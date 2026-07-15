@@ -1,0 +1,2559 @@
+{
+  "chunk": {
+    "height": 32,
+    "status": "documented",
+    "width": 32
+  },
+  "coordinate_system": {
+    "origin": "northwest",
+    "x_positive": "east",
+    "y_positive": "south"
+  },
+  "entities": [
+    {
+      "center": {
+        "x": 5.0,
+        "y": 5.0
+      },
+      "copper_neighbours": [
+        2,
+        3
+      ],
+      "id": 1,
+      "kind": "electric-pole",
+      "nominal_bounds": {
+        "bottom": 6,
+        "left": 4,
+        "right": 6,
+        "top": 4
+      },
+      "prototype": "substation",
+      "quality": "normal",
+      "supplied_by": [],
+      "top_left": {
+        "x": 4,
+        "y": 4
+      }
+    },
+    {
+      "center": {
+        "x": 5.0,
+        "y": 21.0
+      },
+      "copper_neighbours": [
+        1,
+        4
+      ],
+      "id": 2,
+      "kind": "electric-pole",
+      "nominal_bounds": {
+        "bottom": 22,
+        "left": 4,
+        "right": 6,
+        "top": 20
+      },
+      "prototype": "substation",
+      "quality": "normal",
+      "supplied_by": [],
+      "top_left": {
+        "x": 4,
+        "y": 20
+      }
+    },
+    {
+      "center": {
+        "x": 21.0,
+        "y": 5.0
+      },
+      "copper_neighbours": [
+        1,
+        4
+      ],
+      "id": 3,
+      "kind": "electric-pole",
+      "nominal_bounds": {
+        "bottom": 6,
+        "left": 20,
+        "right": 22,
+        "top": 4
+      },
+      "prototype": "substation",
+      "quality": "normal",
+      "supplied_by": [],
+      "top_left": {
+        "x": 20,
+        "y": 4
+      }
+    },
+    {
+      "center": {
+        "x": 21.0,
+        "y": 21.0
+      },
+      "copper_neighbours": [
+        2,
+        3
+      ],
+      "id": 4,
+      "kind": "electric-pole",
+      "nominal_bounds": {
+        "bottom": 22,
+        "left": 20,
+        "right": 22,
+        "top": 20
+      },
+      "prototype": "substation",
+      "quality": "normal",
+      "supplied_by": [],
+      "top_left": {
+        "x": 20,
+        "y": 20
+      }
+    },
+    {
+      "center": {
+        "x": 2.5,
+        "y": 2.5
+      },
+      "copper_neighbours": [],
+      "id": 5,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 4,
+        "left": 1,
+        "right": 4,
+        "top": 1
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1
+      ],
+      "top_left": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "center": {
+        "x": 5.5,
+        "y": 2.5
+      },
+      "copper_neighbours": [],
+      "id": 6,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 4,
+        "left": 4,
+        "right": 7,
+        "top": 1
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1
+      ],
+      "top_left": {
+        "x": 4,
+        "y": 1
+      }
+    },
+    {
+      "center": {
+        "x": 8.5,
+        "y": 2.5
+      },
+      "copper_neighbours": [],
+      "id": 7,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 4,
+        "left": 7,
+        "right": 10,
+        "top": 1
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1
+      ],
+      "top_left": {
+        "x": 7,
+        "y": 1
+      }
+    },
+    {
+      "center": {
+        "x": 11.5,
+        "y": 2.5
+      },
+      "copper_neighbours": [],
+      "id": 8,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 4,
+        "left": 10,
+        "right": 13,
+        "top": 1
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1,
+        3
+      ],
+      "top_left": {
+        "x": 10,
+        "y": 1
+      }
+    },
+    {
+      "center": {
+        "x": 14.5,
+        "y": 2.5
+      },
+      "copper_neighbours": [],
+      "id": 9,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 4,
+        "left": 13,
+        "right": 16,
+        "top": 1
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1,
+        3
+      ],
+      "top_left": {
+        "x": 13,
+        "y": 1
+      }
+    },
+    {
+      "center": {
+        "x": 17.5,
+        "y": 2.5
+      },
+      "copper_neighbours": [],
+      "id": 10,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 4,
+        "left": 16,
+        "right": 19,
+        "top": 1
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3
+      ],
+      "top_left": {
+        "x": 16,
+        "y": 1
+      }
+    },
+    {
+      "center": {
+        "x": 20.5,
+        "y": 2.5
+      },
+      "copper_neighbours": [],
+      "id": 11,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 4,
+        "left": 19,
+        "right": 22,
+        "top": 1
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3
+      ],
+      "top_left": {
+        "x": 19,
+        "y": 1
+      }
+    },
+    {
+      "center": {
+        "x": 23.5,
+        "y": 2.5
+      },
+      "copper_neighbours": [],
+      "id": 12,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 4,
+        "left": 22,
+        "right": 25,
+        "top": 1
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3
+      ],
+      "top_left": {
+        "x": 22,
+        "y": 1
+      }
+    },
+    {
+      "center": {
+        "x": 26.5,
+        "y": 2.5
+      },
+      "copper_neighbours": [],
+      "id": 13,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 4,
+        "left": 25,
+        "right": 28,
+        "top": 1
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3
+      ],
+      "top_left": {
+        "x": 25,
+        "y": 1
+      }
+    },
+    {
+      "center": {
+        "x": 29.5,
+        "y": 2.5
+      },
+      "copper_neighbours": [],
+      "id": 14,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 4,
+        "left": 28,
+        "right": 31,
+        "top": 1
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3
+      ],
+      "top_left": {
+        "x": 28,
+        "y": 1
+      }
+    },
+    {
+      "center": {
+        "x": 2.5,
+        "y": 5.5
+      },
+      "copper_neighbours": [],
+      "id": 15,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 7,
+        "left": 1,
+        "right": 4,
+        "top": 4
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1
+      ],
+      "top_left": {
+        "x": 1,
+        "y": 4
+      }
+    },
+    {
+      "center": {
+        "x": 8.5,
+        "y": 5.5
+      },
+      "copper_neighbours": [],
+      "id": 16,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 7,
+        "left": 7,
+        "right": 10,
+        "top": 4
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1
+      ],
+      "top_left": {
+        "x": 7,
+        "y": 4
+      }
+    },
+    {
+      "center": {
+        "x": 11.5,
+        "y": 5.5
+      },
+      "copper_neighbours": [],
+      "id": 17,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 7,
+        "left": 10,
+        "right": 13,
+        "top": 4
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1,
+        3
+      ],
+      "top_left": {
+        "x": 10,
+        "y": 4
+      }
+    },
+    {
+      "center": {
+        "x": 14.5,
+        "y": 5.5
+      },
+      "copper_neighbours": [],
+      "id": 18,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 7,
+        "left": 13,
+        "right": 16,
+        "top": 4
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1,
+        3
+      ],
+      "top_left": {
+        "x": 13,
+        "y": 4
+      }
+    },
+    {
+      "center": {
+        "x": 17.5,
+        "y": 5.5
+      },
+      "copper_neighbours": [],
+      "id": 19,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 7,
+        "left": 16,
+        "right": 19,
+        "top": 4
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3
+      ],
+      "top_left": {
+        "x": 16,
+        "y": 4
+      }
+    },
+    {
+      "center": {
+        "x": 23.5,
+        "y": 5.5
+      },
+      "copper_neighbours": [],
+      "id": 20,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 7,
+        "left": 22,
+        "right": 25,
+        "top": 4
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3
+      ],
+      "top_left": {
+        "x": 22,
+        "y": 4
+      }
+    },
+    {
+      "center": {
+        "x": 26.5,
+        "y": 5.5
+      },
+      "copper_neighbours": [],
+      "id": 21,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 7,
+        "left": 25,
+        "right": 28,
+        "top": 4
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3
+      ],
+      "top_left": {
+        "x": 25,
+        "y": 4
+      }
+    },
+    {
+      "center": {
+        "x": 29.5,
+        "y": 5.5
+      },
+      "copper_neighbours": [],
+      "id": 22,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 7,
+        "left": 28,
+        "right": 31,
+        "top": 4
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3
+      ],
+      "top_left": {
+        "x": 28,
+        "y": 4
+      }
+    },
+    {
+      "center": {
+        "x": 2.5,
+        "y": 8.5
+      },
+      "copper_neighbours": [],
+      "id": 23,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 10,
+        "left": 1,
+        "right": 4,
+        "top": 7
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1
+      ],
+      "top_left": {
+        "x": 1,
+        "y": 7
+      }
+    },
+    {
+      "center": {
+        "x": 5.5,
+        "y": 8.5
+      },
+      "copper_neighbours": [],
+      "id": 24,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 10,
+        "left": 4,
+        "right": 7,
+        "top": 7
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1
+      ],
+      "top_left": {
+        "x": 4,
+        "y": 7
+      }
+    },
+    {
+      "center": {
+        "x": 8.5,
+        "y": 8.5
+      },
+      "copper_neighbours": [],
+      "id": 25,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 10,
+        "left": 7,
+        "right": 10,
+        "top": 7
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1
+      ],
+      "top_left": {
+        "x": 7,
+        "y": 7
+      }
+    },
+    {
+      "center": {
+        "x": 11.5,
+        "y": 8.5
+      },
+      "copper_neighbours": [],
+      "id": 26,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 10,
+        "left": 10,
+        "right": 13,
+        "top": 7
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1,
+        3
+      ],
+      "top_left": {
+        "x": 10,
+        "y": 7
+      }
+    },
+    {
+      "center": {
+        "x": 14.5,
+        "y": 8.5
+      },
+      "copper_neighbours": [],
+      "id": 27,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 10,
+        "left": 13,
+        "right": 16,
+        "top": 7
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1,
+        3
+      ],
+      "top_left": {
+        "x": 13,
+        "y": 7
+      }
+    },
+    {
+      "center": {
+        "x": 17.5,
+        "y": 8.5
+      },
+      "copper_neighbours": [],
+      "id": 28,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 10,
+        "left": 16,
+        "right": 19,
+        "top": 7
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3
+      ],
+      "top_left": {
+        "x": 16,
+        "y": 7
+      }
+    },
+    {
+      "center": {
+        "x": 20.5,
+        "y": 8.5
+      },
+      "copper_neighbours": [],
+      "id": 29,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 10,
+        "left": 19,
+        "right": 22,
+        "top": 7
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3
+      ],
+      "top_left": {
+        "x": 19,
+        "y": 7
+      }
+    },
+    {
+      "center": {
+        "x": 23.5,
+        "y": 8.5
+      },
+      "copper_neighbours": [],
+      "id": 30,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 10,
+        "left": 22,
+        "right": 25,
+        "top": 7
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3
+      ],
+      "top_left": {
+        "x": 22,
+        "y": 7
+      }
+    },
+    {
+      "center": {
+        "x": 26.5,
+        "y": 8.5
+      },
+      "copper_neighbours": [],
+      "id": 31,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 10,
+        "left": 25,
+        "right": 28,
+        "top": 7
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3
+      ],
+      "top_left": {
+        "x": 25,
+        "y": 7
+      }
+    },
+    {
+      "center": {
+        "x": 29.5,
+        "y": 8.5
+      },
+      "copper_neighbours": [],
+      "id": 32,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 10,
+        "left": 28,
+        "right": 31,
+        "top": 7
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3
+      ],
+      "top_left": {
+        "x": 28,
+        "y": 7
+      }
+    },
+    {
+      "center": {
+        "x": 2.5,
+        "y": 11.5
+      },
+      "copper_neighbours": [],
+      "id": 33,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 13,
+        "left": 1,
+        "right": 4,
+        "top": 10
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1,
+        2
+      ],
+      "top_left": {
+        "x": 1,
+        "y": 10
+      }
+    },
+    {
+      "center": {
+        "x": 5.5,
+        "y": 11.5
+      },
+      "copper_neighbours": [],
+      "id": 34,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 13,
+        "left": 4,
+        "right": 7,
+        "top": 10
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1,
+        2
+      ],
+      "top_left": {
+        "x": 4,
+        "y": 10
+      }
+    },
+    {
+      "center": {
+        "x": 8.5,
+        "y": 11.5
+      },
+      "copper_neighbours": [],
+      "id": 35,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 13,
+        "left": 7,
+        "right": 10,
+        "top": 10
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1,
+        2
+      ],
+      "top_left": {
+        "x": 7,
+        "y": 10
+      }
+    },
+    {
+      "center": {
+        "x": 11.5,
+        "y": 11.5
+      },
+      "copper_neighbours": [],
+      "id": 36,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 13,
+        "left": 10,
+        "right": 13,
+        "top": 10
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "top_left": {
+        "x": 10,
+        "y": 10
+      }
+    },
+    {
+      "center": {
+        "x": 14.5,
+        "y": 11.5
+      },
+      "copper_neighbours": [],
+      "id": 37,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 13,
+        "left": 13,
+        "right": 16,
+        "top": 10
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "top_left": {
+        "x": 13,
+        "y": 10
+      }
+    },
+    {
+      "center": {
+        "x": 17.5,
+        "y": 11.5
+      },
+      "copper_neighbours": [],
+      "id": 38,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 13,
+        "left": 16,
+        "right": 19,
+        "top": 10
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3,
+        4
+      ],
+      "top_left": {
+        "x": 16,
+        "y": 10
+      }
+    },
+    {
+      "center": {
+        "x": 20.5,
+        "y": 11.5
+      },
+      "copper_neighbours": [],
+      "id": 39,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 13,
+        "left": 19,
+        "right": 22,
+        "top": 10
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3,
+        4
+      ],
+      "top_left": {
+        "x": 19,
+        "y": 10
+      }
+    },
+    {
+      "center": {
+        "x": 23.5,
+        "y": 11.5
+      },
+      "copper_neighbours": [],
+      "id": 40,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 13,
+        "left": 22,
+        "right": 25,
+        "top": 10
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3,
+        4
+      ],
+      "top_left": {
+        "x": 22,
+        "y": 10
+      }
+    },
+    {
+      "center": {
+        "x": 26.5,
+        "y": 11.5
+      },
+      "copper_neighbours": [],
+      "id": 41,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 13,
+        "left": 25,
+        "right": 28,
+        "top": 10
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3,
+        4
+      ],
+      "top_left": {
+        "x": 25,
+        "y": 10
+      }
+    },
+    {
+      "center": {
+        "x": 29.5,
+        "y": 11.5
+      },
+      "copper_neighbours": [],
+      "id": 42,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 13,
+        "left": 28,
+        "right": 31,
+        "top": 10
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3,
+        4
+      ],
+      "top_left": {
+        "x": 28,
+        "y": 10
+      }
+    },
+    {
+      "center": {
+        "x": 2.5,
+        "y": 14.5
+      },
+      "copper_neighbours": [],
+      "id": 43,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 16,
+        "left": 1,
+        "right": 4,
+        "top": 13
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1,
+        2
+      ],
+      "top_left": {
+        "x": 1,
+        "y": 13
+      }
+    },
+    {
+      "center": {
+        "x": 5.5,
+        "y": 14.5
+      },
+      "copper_neighbours": [],
+      "id": 44,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 16,
+        "left": 4,
+        "right": 7,
+        "top": 13
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1,
+        2
+      ],
+      "top_left": {
+        "x": 4,
+        "y": 13
+      }
+    },
+    {
+      "center": {
+        "x": 8.5,
+        "y": 14.5
+      },
+      "copper_neighbours": [],
+      "id": 45,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 16,
+        "left": 7,
+        "right": 10,
+        "top": 13
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1,
+        2
+      ],
+      "top_left": {
+        "x": 7,
+        "y": 13
+      }
+    },
+    {
+      "center": {
+        "x": 11.5,
+        "y": 14.5
+      },
+      "copper_neighbours": [],
+      "id": 46,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 16,
+        "left": 10,
+        "right": 13,
+        "top": 13
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "top_left": {
+        "x": 10,
+        "y": 13
+      }
+    },
+    {
+      "center": {
+        "x": 14.5,
+        "y": 14.5
+      },
+      "copper_neighbours": [],
+      "id": 47,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 16,
+        "left": 13,
+        "right": 16,
+        "top": 13
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "top_left": {
+        "x": 13,
+        "y": 13
+      }
+    },
+    {
+      "center": {
+        "x": 17.5,
+        "y": 14.5
+      },
+      "copper_neighbours": [],
+      "id": 48,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 16,
+        "left": 16,
+        "right": 19,
+        "top": 13
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3,
+        4
+      ],
+      "top_left": {
+        "x": 16,
+        "y": 13
+      }
+    },
+    {
+      "center": {
+        "x": 20.5,
+        "y": 14.5
+      },
+      "copper_neighbours": [],
+      "id": 49,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 16,
+        "left": 19,
+        "right": 22,
+        "top": 13
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3,
+        4
+      ],
+      "top_left": {
+        "x": 19,
+        "y": 13
+      }
+    },
+    {
+      "center": {
+        "x": 23.5,
+        "y": 14.5
+      },
+      "copper_neighbours": [],
+      "id": 50,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 16,
+        "left": 22,
+        "right": 25,
+        "top": 13
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3,
+        4
+      ],
+      "top_left": {
+        "x": 22,
+        "y": 13
+      }
+    },
+    {
+      "center": {
+        "x": 26.5,
+        "y": 14.5
+      },
+      "copper_neighbours": [],
+      "id": 51,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 16,
+        "left": 25,
+        "right": 28,
+        "top": 13
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3,
+        4
+      ],
+      "top_left": {
+        "x": 25,
+        "y": 13
+      }
+    },
+    {
+      "center": {
+        "x": 29.5,
+        "y": 14.5
+      },
+      "copper_neighbours": [],
+      "id": 52,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 16,
+        "left": 28,
+        "right": 31,
+        "top": 13
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        3,
+        4
+      ],
+      "top_left": {
+        "x": 28,
+        "y": 13
+      }
+    },
+    {
+      "center": {
+        "x": 2.5,
+        "y": 17.5
+      },
+      "copper_neighbours": [],
+      "id": 53,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 19,
+        "left": 1,
+        "right": 4,
+        "top": 16
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2
+      ],
+      "top_left": {
+        "x": 1,
+        "y": 16
+      }
+    },
+    {
+      "center": {
+        "x": 5.5,
+        "y": 17.5
+      },
+      "copper_neighbours": [],
+      "id": 54,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 19,
+        "left": 4,
+        "right": 7,
+        "top": 16
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2
+      ],
+      "top_left": {
+        "x": 4,
+        "y": 16
+      }
+    },
+    {
+      "center": {
+        "x": 8.5,
+        "y": 17.5
+      },
+      "copper_neighbours": [],
+      "id": 55,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 19,
+        "left": 7,
+        "right": 10,
+        "top": 16
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2
+      ],
+      "top_left": {
+        "x": 7,
+        "y": 16
+      }
+    },
+    {
+      "center": {
+        "x": 11.5,
+        "y": 17.5
+      },
+      "copper_neighbours": [],
+      "id": 56,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 19,
+        "left": 10,
+        "right": 13,
+        "top": 16
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2,
+        4
+      ],
+      "top_left": {
+        "x": 10,
+        "y": 16
+      }
+    },
+    {
+      "center": {
+        "x": 14.5,
+        "y": 17.5
+      },
+      "copper_neighbours": [],
+      "id": 57,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 19,
+        "left": 13,
+        "right": 16,
+        "top": 16
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2,
+        4
+      ],
+      "top_left": {
+        "x": 13,
+        "y": 16
+      }
+    },
+    {
+      "center": {
+        "x": 17.5,
+        "y": 17.5
+      },
+      "copper_neighbours": [],
+      "id": 58,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 19,
+        "left": 16,
+        "right": 19,
+        "top": 16
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 16,
+        "y": 16
+      }
+    },
+    {
+      "center": {
+        "x": 20.5,
+        "y": 17.5
+      },
+      "copper_neighbours": [],
+      "id": 59,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 19,
+        "left": 19,
+        "right": 22,
+        "top": 16
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 19,
+        "y": 16
+      }
+    },
+    {
+      "center": {
+        "x": 23.5,
+        "y": 17.5
+      },
+      "copper_neighbours": [],
+      "id": 60,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 19,
+        "left": 22,
+        "right": 25,
+        "top": 16
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 22,
+        "y": 16
+      }
+    },
+    {
+      "center": {
+        "x": 26.5,
+        "y": 17.5
+      },
+      "copper_neighbours": [],
+      "id": 61,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 19,
+        "left": 25,
+        "right": 28,
+        "top": 16
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 25,
+        "y": 16
+      }
+    },
+    {
+      "center": {
+        "x": 29.5,
+        "y": 17.5
+      },
+      "copper_neighbours": [],
+      "id": 62,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 19,
+        "left": 28,
+        "right": 31,
+        "top": 16
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 28,
+        "y": 16
+      }
+    },
+    {
+      "center": {
+        "x": 2.5,
+        "y": 20.5
+      },
+      "copper_neighbours": [],
+      "id": 63,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 22,
+        "left": 1,
+        "right": 4,
+        "top": 19
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2
+      ],
+      "top_left": {
+        "x": 1,
+        "y": 19
+      }
+    },
+    {
+      "center": {
+        "x": 8.5,
+        "y": 20.5
+      },
+      "copper_neighbours": [],
+      "id": 64,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 22,
+        "left": 7,
+        "right": 10,
+        "top": 19
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2
+      ],
+      "top_left": {
+        "x": 7,
+        "y": 19
+      }
+    },
+    {
+      "center": {
+        "x": 11.5,
+        "y": 20.5
+      },
+      "copper_neighbours": [],
+      "id": 65,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 22,
+        "left": 10,
+        "right": 13,
+        "top": 19
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2,
+        4
+      ],
+      "top_left": {
+        "x": 10,
+        "y": 19
+      }
+    },
+    {
+      "center": {
+        "x": 14.5,
+        "y": 20.5
+      },
+      "copper_neighbours": [],
+      "id": 66,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 22,
+        "left": 13,
+        "right": 16,
+        "top": 19
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2,
+        4
+      ],
+      "top_left": {
+        "x": 13,
+        "y": 19
+      }
+    },
+    {
+      "center": {
+        "x": 17.5,
+        "y": 20.5
+      },
+      "copper_neighbours": [],
+      "id": 67,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 22,
+        "left": 16,
+        "right": 19,
+        "top": 19
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 16,
+        "y": 19
+      }
+    },
+    {
+      "center": {
+        "x": 23.5,
+        "y": 20.5
+      },
+      "copper_neighbours": [],
+      "id": 68,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 22,
+        "left": 22,
+        "right": 25,
+        "top": 19
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 22,
+        "y": 19
+      }
+    },
+    {
+      "center": {
+        "x": 26.5,
+        "y": 20.5
+      },
+      "copper_neighbours": [],
+      "id": 69,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 22,
+        "left": 25,
+        "right": 28,
+        "top": 19
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 25,
+        "y": 19
+      }
+    },
+    {
+      "center": {
+        "x": 29.5,
+        "y": 20.5
+      },
+      "copper_neighbours": [],
+      "id": 70,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 22,
+        "left": 28,
+        "right": 31,
+        "top": 19
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 28,
+        "y": 19
+      }
+    },
+    {
+      "center": {
+        "x": 2.5,
+        "y": 23.5
+      },
+      "copper_neighbours": [],
+      "id": 71,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 25,
+        "left": 1,
+        "right": 4,
+        "top": 22
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2
+      ],
+      "top_left": {
+        "x": 1,
+        "y": 22
+      }
+    },
+    {
+      "center": {
+        "x": 5.5,
+        "y": 23.5
+      },
+      "copper_neighbours": [],
+      "id": 72,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 25,
+        "left": 4,
+        "right": 7,
+        "top": 22
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2
+      ],
+      "top_left": {
+        "x": 4,
+        "y": 22
+      }
+    },
+    {
+      "center": {
+        "x": 8.5,
+        "y": 23.5
+      },
+      "copper_neighbours": [],
+      "id": 73,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 25,
+        "left": 7,
+        "right": 10,
+        "top": 22
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2
+      ],
+      "top_left": {
+        "x": 7,
+        "y": 22
+      }
+    },
+    {
+      "center": {
+        "x": 11.5,
+        "y": 23.5
+      },
+      "copper_neighbours": [],
+      "id": 74,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 25,
+        "left": 10,
+        "right": 13,
+        "top": 22
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2,
+        4
+      ],
+      "top_left": {
+        "x": 10,
+        "y": 22
+      }
+    },
+    {
+      "center": {
+        "x": 14.5,
+        "y": 23.5
+      },
+      "copper_neighbours": [],
+      "id": 75,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 25,
+        "left": 13,
+        "right": 16,
+        "top": 22
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2,
+        4
+      ],
+      "top_left": {
+        "x": 13,
+        "y": 22
+      }
+    },
+    {
+      "center": {
+        "x": 17.5,
+        "y": 23.5
+      },
+      "copper_neighbours": [],
+      "id": 76,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 25,
+        "left": 16,
+        "right": 19,
+        "top": 22
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 16,
+        "y": 22
+      }
+    },
+    {
+      "center": {
+        "x": 20.5,
+        "y": 23.5
+      },
+      "copper_neighbours": [],
+      "id": 77,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 25,
+        "left": 19,
+        "right": 22,
+        "top": 22
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 19,
+        "y": 22
+      }
+    },
+    {
+      "center": {
+        "x": 23.5,
+        "y": 23.5
+      },
+      "copper_neighbours": [],
+      "id": 78,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 25,
+        "left": 22,
+        "right": 25,
+        "top": 22
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 22,
+        "y": 22
+      }
+    },
+    {
+      "center": {
+        "x": 26.5,
+        "y": 23.5
+      },
+      "copper_neighbours": [],
+      "id": 79,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 25,
+        "left": 25,
+        "right": 28,
+        "top": 22
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 25,
+        "y": 22
+      }
+    },
+    {
+      "center": {
+        "x": 29.5,
+        "y": 23.5
+      },
+      "copper_neighbours": [],
+      "id": 80,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 25,
+        "left": 28,
+        "right": 31,
+        "top": 22
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 28,
+        "y": 22
+      }
+    },
+    {
+      "center": {
+        "x": 2.5,
+        "y": 26.5
+      },
+      "copper_neighbours": [],
+      "id": 81,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 28,
+        "left": 1,
+        "right": 4,
+        "top": 25
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2
+      ],
+      "top_left": {
+        "x": 1,
+        "y": 25
+      }
+    },
+    {
+      "center": {
+        "x": 5.5,
+        "y": 26.5
+      },
+      "copper_neighbours": [],
+      "id": 82,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 28,
+        "left": 4,
+        "right": 7,
+        "top": 25
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2
+      ],
+      "top_left": {
+        "x": 4,
+        "y": 25
+      }
+    },
+    {
+      "center": {
+        "x": 8.5,
+        "y": 26.5
+      },
+      "copper_neighbours": [],
+      "id": 83,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 28,
+        "left": 7,
+        "right": 10,
+        "top": 25
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2
+      ],
+      "top_left": {
+        "x": 7,
+        "y": 25
+      }
+    },
+    {
+      "center": {
+        "x": 11.5,
+        "y": 26.5
+      },
+      "copper_neighbours": [],
+      "id": 84,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 28,
+        "left": 10,
+        "right": 13,
+        "top": 25
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2,
+        4
+      ],
+      "top_left": {
+        "x": 10,
+        "y": 25
+      }
+    },
+    {
+      "center": {
+        "x": 14.5,
+        "y": 26.5
+      },
+      "copper_neighbours": [],
+      "id": 85,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 28,
+        "left": 13,
+        "right": 16,
+        "top": 25
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2,
+        4
+      ],
+      "top_left": {
+        "x": 13,
+        "y": 25
+      }
+    },
+    {
+      "center": {
+        "x": 17.5,
+        "y": 26.5
+      },
+      "copper_neighbours": [],
+      "id": 86,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 28,
+        "left": 16,
+        "right": 19,
+        "top": 25
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 16,
+        "y": 25
+      }
+    },
+    {
+      "center": {
+        "x": 20.5,
+        "y": 26.5
+      },
+      "copper_neighbours": [],
+      "id": 87,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 28,
+        "left": 19,
+        "right": 22,
+        "top": 25
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 19,
+        "y": 25
+      }
+    },
+    {
+      "center": {
+        "x": 23.5,
+        "y": 26.5
+      },
+      "copper_neighbours": [],
+      "id": 88,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 28,
+        "left": 22,
+        "right": 25,
+        "top": 25
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 22,
+        "y": 25
+      }
+    },
+    {
+      "center": {
+        "x": 26.5,
+        "y": 26.5
+      },
+      "copper_neighbours": [],
+      "id": 89,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 28,
+        "left": 25,
+        "right": 28,
+        "top": 25
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 25,
+        "y": 25
+      }
+    },
+    {
+      "center": {
+        "x": 29.5,
+        "y": 26.5
+      },
+      "copper_neighbours": [],
+      "id": 90,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 28,
+        "left": 28,
+        "right": 31,
+        "top": 25
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 28,
+        "y": 25
+      }
+    },
+    {
+      "center": {
+        "x": 2.5,
+        "y": 29.5
+      },
+      "copper_neighbours": [],
+      "id": 91,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 31,
+        "left": 1,
+        "right": 4,
+        "top": 28
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2
+      ],
+      "top_left": {
+        "x": 1,
+        "y": 28
+      }
+    },
+    {
+      "center": {
+        "x": 5.5,
+        "y": 29.5
+      },
+      "copper_neighbours": [],
+      "id": 92,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 31,
+        "left": 4,
+        "right": 7,
+        "top": 28
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2
+      ],
+      "top_left": {
+        "x": 4,
+        "y": 28
+      }
+    },
+    {
+      "center": {
+        "x": 8.5,
+        "y": 29.5
+      },
+      "copper_neighbours": [],
+      "id": 93,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 31,
+        "left": 7,
+        "right": 10,
+        "top": 28
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2
+      ],
+      "top_left": {
+        "x": 7,
+        "y": 28
+      }
+    },
+    {
+      "center": {
+        "x": 11.5,
+        "y": 29.5
+      },
+      "copper_neighbours": [],
+      "id": 94,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 31,
+        "left": 10,
+        "right": 13,
+        "top": 28
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2,
+        4
+      ],
+      "top_left": {
+        "x": 10,
+        "y": 28
+      }
+    },
+    {
+      "center": {
+        "x": 14.5,
+        "y": 29.5
+      },
+      "copper_neighbours": [],
+      "id": 95,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 31,
+        "left": 13,
+        "right": 16,
+        "top": 28
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        2,
+        4
+      ],
+      "top_left": {
+        "x": 13,
+        "y": 28
+      }
+    },
+    {
+      "center": {
+        "x": 17.5,
+        "y": 29.5
+      },
+      "copper_neighbours": [],
+      "id": 96,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 31,
+        "left": 16,
+        "right": 19,
+        "top": 28
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 16,
+        "y": 28
+      }
+    },
+    {
+      "center": {
+        "x": 20.5,
+        "y": 29.5
+      },
+      "copper_neighbours": [],
+      "id": 97,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 31,
+        "left": 19,
+        "right": 22,
+        "top": 28
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 19,
+        "y": 28
+      }
+    },
+    {
+      "center": {
+        "x": 23.5,
+        "y": 29.5
+      },
+      "copper_neighbours": [],
+      "id": 98,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 31,
+        "left": 22,
+        "right": 25,
+        "top": 28
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 22,
+        "y": 28
+      }
+    },
+    {
+      "center": {
+        "x": 26.5,
+        "y": 29.5
+      },
+      "copper_neighbours": [],
+      "id": 99,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 31,
+        "left": 25,
+        "right": 28,
+        "top": 28
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 25,
+        "y": 28
+      }
+    },
+    {
+      "center": {
+        "x": 29.5,
+        "y": 29.5
+      },
+      "copper_neighbours": [],
+      "id": 100,
+      "kind": "solar-panel",
+      "nominal_bounds": {
+        "bottom": 31,
+        "left": 28,
+        "right": 31,
+        "top": 28
+      },
+      "prototype": "solar-panel",
+      "quality": "normal",
+      "supplied_by": [
+        4
+      ],
+      "top_left": {
+        "x": 28,
+        "y": 28
+      }
+    }
+  ],
+  "factorio_configuration": {
+    "coverage_rule": {
+      "status": "assumed",
+      "value": "nominal-footprint-intersects-closed-supply-square"
+    },
+    "prototypes": [
+      {
+        "electrical_status": "assumed-untrusted",
+        "geometry_status": "assumed",
+        "height": 2,
+        "kind": "electric-pole",
+        "name": "big-electric-pole",
+        "supply_distance2": 4,
+        "width": 2,
+        "wire_distance2": 60
+      },
+      {
+        "electrical_status": "assumed",
+        "geometry_status": "assumed",
+        "height": 1,
+        "kind": "electric-pole",
+        "name": "medium-electric-pole",
+        "supply_distance2": 7,
+        "width": 1,
+        "wire_distance2": 18
+      },
+      {
+        "electrical_status": "assumed",
+        "geometry_status": "assumed",
+        "height": 1,
+        "kind": "electric-pole",
+        "name": "small-electric-pole",
+        "supply_distance2": 5,
+        "width": 1,
+        "wire_distance2": 15
+      },
+      {
+        "electrical_status": "not-applicable",
+        "geometry_status": "assumed",
+        "height": 3,
+        "kind": "solar-panel",
+        "name": "solar-panel",
+        "supply_distance2": null,
+        "width": 3,
+        "wire_distance2": null
+      },
+      {
+        "electrical_status": "assumed",
+        "geometry_status": "assumed",
+        "height": 2,
+        "kind": "electric-pole",
+        "name": "substation",
+        "supply_distance2": 18,
+        "width": 2,
+        "wire_distance2": 36
+      }
+    ],
+    "quality": {
+      "status": "project-choice",
+      "value": "normal"
+    },
+    "wire_rule": {
+      "status": "assumed",
+      "value": "euclidean-center-distance-at-most-minimum-endpoint-reach"
+    }
+  },
+  "format": "solar-chunk-layout-v1",
+  "search": {
+    "candidates_checked": 14832,
+    "method": "regular pole lattices (1-4 per axis, shifted -3..3) and 3x3 panel grids",
+    "panel_count": 96,
+    "pole_count": 4,
+    "status": "best-found-not-proven-optimal"
+  },
+  "target_factorio_version": "2.1.11",
+  "validation": {
+    "errors": [],
+    "valid": true
+  },
+  "wire_edges": [
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      3,
+      4
+    ]
+  ]
+}
