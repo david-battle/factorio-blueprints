@@ -78,25 +78,76 @@ def build_blueprint() -> dict:
         wires.append([requester["entity_number"], 2, assembler["entity_number"], 2])
 
     for center_x, quality in high_specs:
-        add(
+        assembler = add(
             "assembling-machine-3",
             center_x,
             5.5,
             recipe="crusher",
             recipe_quality=quality,
+            control_behavior={"read_ingredients": True},
             **({} if quality == "legendary" else {"items": MODULE_ITEMS}),
         )
-        add("steel-chest", center_x - 1, 8.5)
+        buffer = add(
+            "buffer-chest",
+            center_x - 1,
+            8.5,
+            control_behavior={
+                "read_contents": False,
+                "set_requests": True,
+                "circuit_condition_enabled": False,
+            },
+            request_filters={
+                "sections": [{"index": 1}],
+                "trash_not_requested": True,
+            },
+        )
         add("bulk-inserter", center_x - 1, 7.5, direction=8, mirror=True)
         add("bulk-inserter", center_x - 1, 3.5, direction=8, mirror=True)
         # Sorter branch -> steel buffer.
         add("bulk-inserter", center_x - 1, 9.5, direction=8, mirror=True)
+        multiplier = add(
+            "arithmetic-combinator",
+            center_x,
+            8,
+            control_behavior={
+                "arithmetic_conditions": {
+                    "first_signal": {"type": "virtual", "name": "signal-each"},
+                    "second_constant": 60,
+                    "operation": "*",
+                    "output_signal": {"type": "virtual", "name": "signal-each"},
+                }
+            },
+        )
+        wires.append([assembler["entity_number"], 2, multiplier["entity_number"], 2])
+        wires.append([buffer["entity_number"], 2, multiplier["entity_number"], 4])
 
     # Shared product belt for all eight assemblers.
     for value in range(26):
         belt(value + 0.5, 2.5, 4)
 
-    # Proven east-facing Legendary extraction geometry.
+    # Keep one stack of Normal through Epic products before allowing surplus
+    # to continue to the recycler.  The quality-only filters remain useful if
+    # the recipe is later parameterized to another product.
+    product_qualities = ("normal", "uncommon", "rare", "epic")
+    for x, quality in zip((21.5, 22.5, 23.5, 24.5), product_qualities):
+        add(
+            "bulk-inserter",
+            x,
+            1.5,
+            direction=8,
+            mirror=True,
+            filters=[
+                {
+                    "index": 1,
+                    "quality": quality,
+                    "comparator": "=",
+                }
+            ],
+            use_filters=True,
+        )
+        add("passive-provider-chest", x, 0.5, bar=1)
+
+    # Legendary products bypass recycling entirely.
     add(
         "turbo-splitter",
         26.5,
@@ -109,7 +160,7 @@ def build_blueprint() -> dict:
     add("bulk-inserter", 28.5, 1.5, direction=12)
     add("passive-provider-chest", 29.5, 1.5)
 
-    # Normal-through-Epic product queue follows the outer perimeter to the
+    # Product surplus follows the outer perimeter to the
     # recycler input, avoiding every machine and sorter branch.
     belt(27.5, 2.5, 4)
     belt(28.5, 2.5, 4)
@@ -198,6 +249,10 @@ def build_blueprint() -> dict:
     # Central logistic/construction coverage, powered by both upper substations.
     add("roboport", 11, -1)
 
+    # Dedicated overflow capacity for buffer chests using trash-unrequested.
+    for x in (26.5, 27.5, 28.5, 29.5):
+        add("storage-chest", x, 10.5)
+
     # Place the complete compacted design inside local chunk coordinates.
     for entity in entities:
         entity["position"]["x"] += 1
@@ -209,8 +264,8 @@ def build_blueprint() -> dict:
             "label": "QUP integrated beta",
             "description": (
                 "Integrated Crusher quality upcycler: four Normal AM3s, four "
-                "higher tiers, Legendary extraction, recycler, quality sorter, "
-                "steel buffers, recovered-Normal return, and power."
+                "higher tiers, one-stack quality reserves, recycler, "
+                "quality sorter, buffers, recovered-Normal return, and power."
             ),
             "icons": [
                 {"signal": {"name": "assembling-machine-3"}, "index": 1},
@@ -239,17 +294,39 @@ def validate(data: dict) -> None:
     ]
     assert all(e["recipe"] == "crusher" for e in assemblers)
     assert sum(e["name"] == "requester-chest" for e in entities) == 4
-    assert sum(e["name"] == "steel-chest" for e in entities) == 5
+    assert sum(e["name"] == "steel-chest" for e in entities) == 1
+    assert sum(e["name"] == "buffer-chest" for e in entities) == 4
+    assert sum(e["name"] == "storage-chest" for e in entities) == 4
+    assert sum(e["name"] == "arithmetic-combinator" for e in entities) == 4
     assert sum(e["name"] == "recycler" for e in entities) == 1
-    assert sum(e["name"] == "passive-provider-chest" for e in entities) == 1
+    assert sum(e["name"] == "passive-provider-chest" for e in entities) == 5
     assert sum(e["name"] == "substation" for e in entities) == 5
     assert sum(e["name"] == "roboport" for e in entities) == 1
     assert sum(e["name"] == "turbo-underground-belt" for e in entities) == 2
     splitters = [e for e in entities if e["name"] == "turbo-splitter"]
     assert len(splitters) == 5
     assert all("name" not in e["filter"] for e in splitters)
-    assert len(blueprint["wires"]) == 8
+    assert len(blueprint["wires"]) == 16
     assert sum(wire[1] == wire[3] == 5 for wire in blueprint["wires"]) == 4
+    reserve_inserters = [e for e in entities if "filters" in e]
+    assert len(reserve_inserters) == 4
+    assert [e["filters"][0]["quality"] for e in reserve_inserters] == [
+        "normal", "uncommon", "rare", "epic",
+    ]
+    assert all(e["use_filters"] is True for e in reserve_inserters)
+    reserve_chests = [
+        e for e in entities
+        if e["name"] == "passive-provider-chest" and e.get("bar") == 1
+    ]
+    assert len(reserve_chests) == 4
+    buffer_chests = [e for e in entities if e["name"] == "buffer-chest"]
+    assert all(e["control_behavior"]["read_contents"] is False for e in buffer_chests)
+    assert all(e["request_filters"]["trash_not_requested"] is True for e in buffer_chests)
+    combinators = [e for e in entities if e["name"] == "arithmetic-combinator"]
+    assert all(
+        e["control_behavior"]["arithmetic_conditions"]["second_constant"] == 60
+        for e in combinators
+    )
     requesters = [e for e in entities if e["name"] == "requester-chest"]
     assert all(e["control_behavior"]["read_contents"] is False for e in requesters)
     assert all(e["request_filters"]["request_from_buffers"] is True for e in requesters)
@@ -262,13 +339,16 @@ def validate(data: dict) -> None:
     centers = [(e["position"]["x"], e["position"]["y"]) for e in entities]
     assert len(centers) == len(set(centers))
     footprints = {
+        "arithmetic-combinator": (2, 1),
         "assembling-machine-3": (3, 3),
+        "buffer-chest": (1, 1),
         "bulk-inserter": (1, 1),
         "passive-provider-chest": (1, 1),
         "recycler": (4, 4),
         "requester-chest": (1, 1),
         "roboport": (4, 4),
         "steel-chest": (1, 1),
+        "storage-chest": (1, 1),
         "substation": (2, 2),
         "turbo-splitter": (1, 2),
         "turbo-transport-belt": (1, 1),

@@ -125,3 +125,29 @@ multiples of 32 and keep their outer nominal bounds on multiples of 32.
 - Use an underground-belt pair for unavoidable crossings between independent
   flows; do not place two ordinary belts at one center or silently merge the
   product, recycler-input, and recovered-ingredient paths.
+- A verified Factorio 2.1.11 bulk inserter that filters solely by quality uses
+  `"use_filters": true` plus a filter entry containing `index`, `quality`, and
+  `comparator`, with no item `name`. For example:
+
+  ```json
+  {
+    "direction": 8,
+    "mirror": true,
+    "filters": [{"index": 1, "quality": "uncommon", "comparator": "="}],
+    "use_filters": true
+  }
+  ```
+
+- For a simple finite product reserve, a passive-provider chest with `"bar": 1`
+  and a quality-only filtered inserter keeps one stack of that quality without
+  circuit logic. One stack is not always equal to rocket capacity, but it is a
+  useful transparent approximation when exact rocket-capacity selector logic
+  would make the blueprint disproportionately complex.
+- When placing quality-reserve inserters on a shared eastbound product belt,
+  account for where each native-quality assembler inserts its output. Put the
+  matching reserve pickup on that output tile or downstream of it; placing it
+  upstream means it can collect quality procs from earlier assemblers but can
+  never collect the native assembler's own products.
+- If Legendary products already leave through a proven quality-only splitter,
+  retain that dedicated outlet and add one-stack reserve chests only for the
+  qualities that would otherwise continue to recycling.

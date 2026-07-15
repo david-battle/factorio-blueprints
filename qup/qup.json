@@ -2,7 +2,7 @@
   "blueprint": {
     "item": "blueprint",
     "label": "QUP integrated beta",
-    "description": "Integrated Crusher quality upcycler: four Normal AM3s, four higher tiers, Legendary extraction, recycler, quality sorter, steel buffers, recovered-Normal return, and power.",
+    "description": "Integrated Crusher quality upcycler: four Normal AM3s, four higher tiers, one-stack quality reserves, recycler, quality sorter, buffers, recovered-Normal return, and power.",
     "icons": [
       {
         "signal": {
@@ -396,14 +396,30 @@
           "y": 9.5
         },
         "recipe": "crusher",
-        "recipe_quality": "legendary"
+        "recipe_quality": "legendary",
+        "control_behavior": {
+          "read_ingredients": true
+        }
       },
       {
         "entity_number": 22,
-        "name": "steel-chest",
+        "name": "buffer-chest",
         "position": {
           "x": 14.5,
           "y": 12.5
+        },
+        "control_behavior": {
+          "read_contents": false,
+          "set_requests": true,
+          "circuit_condition_enabled": false
+        },
+        "request_filters": {
+          "sections": [
+            {
+              "index": 1
+            }
+          ],
+          "trash_not_requested": true
         }
       },
       {
@@ -438,6 +454,28 @@
       },
       {
         "entity_number": 26,
+        "name": "arithmetic-combinator",
+        "position": {
+          "x": 15.5,
+          "y": 12
+        },
+        "control_behavior": {
+          "arithmetic_conditions": {
+            "first_signal": {
+              "type": "virtual",
+              "name": "signal-each"
+            },
+            "second_constant": 60,
+            "operation": "*",
+            "output_signal": {
+              "type": "virtual",
+              "name": "signal-each"
+            }
+          }
+        }
+      },
+      {
+        "entity_number": 27,
         "name": "assembling-machine-3",
         "position": {
           "x": 18.5,
@@ -445,6 +483,9 @@
         },
         "recipe": "crusher",
         "recipe_quality": "epic",
+        "control_behavior": {
+          "read_ingredients": true
+        },
         "items": [
           {
             "id": {
@@ -474,29 +515,32 @@
         ]
       },
       {
-        "entity_number": 27,
-        "name": "steel-chest",
+        "entity_number": 28,
+        "name": "buffer-chest",
         "position": {
           "x": 17.5,
           "y": 12.5
-        }
-      },
-      {
-        "entity_number": 28,
-        "name": "bulk-inserter",
-        "position": {
-          "x": 17.5,
-          "y": 11.5
         },
-        "direction": 8,
-        "mirror": true
+        "control_behavior": {
+          "read_contents": false,
+          "set_requests": true,
+          "circuit_condition_enabled": false
+        },
+        "request_filters": {
+          "sections": [
+            {
+              "index": 1
+            }
+          ],
+          "trash_not_requested": true
+        }
       },
       {
         "entity_number": 29,
         "name": "bulk-inserter",
         "position": {
           "x": 17.5,
-          "y": 7.5
+          "y": 11.5
         },
         "direction": 8,
         "mirror": true
@@ -506,13 +550,45 @@
         "name": "bulk-inserter",
         "position": {
           "x": 17.5,
-          "y": 13.5
+          "y": 7.5
         },
         "direction": 8,
         "mirror": true
       },
       {
         "entity_number": 31,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 17.5,
+          "y": 13.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 32,
+        "name": "arithmetic-combinator",
+        "position": {
+          "x": 18.5,
+          "y": 12
+        },
+        "control_behavior": {
+          "arithmetic_conditions": {
+            "first_signal": {
+              "type": "virtual",
+              "name": "signal-each"
+            },
+            "second_constant": 60,
+            "operation": "*",
+            "output_signal": {
+              "type": "virtual",
+              "name": "signal-each"
+            }
+          }
+        }
+      },
+      {
+        "entity_number": 33,
         "name": "assembling-machine-3",
         "position": {
           "x": 21.5,
@@ -520,6 +596,9 @@
         },
         "recipe": "crusher",
         "recipe_quality": "rare",
+        "control_behavior": {
+          "read_ingredients": true
+        },
         "items": [
           {
             "id": {
@@ -549,15 +628,28 @@
         ]
       },
       {
-        "entity_number": 32,
-        "name": "steel-chest",
+        "entity_number": 34,
+        "name": "buffer-chest",
         "position": {
           "x": 20.5,
           "y": 12.5
+        },
+        "control_behavior": {
+          "read_contents": false,
+          "set_requests": true,
+          "circuit_condition_enabled": false
+        },
+        "request_filters": {
+          "sections": [
+            {
+              "index": 1
+            }
+          ],
+          "trash_not_requested": true
         }
       },
       {
-        "entity_number": 33,
+        "entity_number": 35,
         "name": "bulk-inserter",
         "position": {
           "x": 20.5,
@@ -567,7 +659,7 @@
         "mirror": true
       },
       {
-        "entity_number": 34,
+        "entity_number": 36,
         "name": "bulk-inserter",
         "position": {
           "x": 20.5,
@@ -577,7 +669,7 @@
         "mirror": true
       },
       {
-        "entity_number": 35,
+        "entity_number": 37,
         "name": "bulk-inserter",
         "position": {
           "x": 20.5,
@@ -587,7 +679,29 @@
         "mirror": true
       },
       {
-        "entity_number": 36,
+        "entity_number": 38,
+        "name": "arithmetic-combinator",
+        "position": {
+          "x": 21.5,
+          "y": 12
+        },
+        "control_behavior": {
+          "arithmetic_conditions": {
+            "first_signal": {
+              "type": "virtual",
+              "name": "signal-each"
+            },
+            "second_constant": 60,
+            "operation": "*",
+            "output_signal": {
+              "type": "virtual",
+              "name": "signal-each"
+            }
+          }
+        }
+      },
+      {
+        "entity_number": 39,
         "name": "assembling-machine-3",
         "position": {
           "x": 24.5,
@@ -595,6 +709,9 @@
         },
         "recipe": "crusher",
         "recipe_quality": "uncommon",
+        "control_behavior": {
+          "read_ingredients": true
+        },
         "items": [
           {
             "id": {
@@ -624,15 +741,28 @@
         ]
       },
       {
-        "entity_number": 37,
-        "name": "steel-chest",
+        "entity_number": 40,
+        "name": "buffer-chest",
         "position": {
           "x": 23.5,
           "y": 12.5
+        },
+        "control_behavior": {
+          "read_contents": false,
+          "set_requests": true,
+          "circuit_condition_enabled": false
+        },
+        "request_filters": {
+          "sections": [
+            {
+              "index": 1
+            }
+          ],
+          "trash_not_requested": true
         }
       },
       {
-        "entity_number": 38,
+        "entity_number": 41,
         "name": "bulk-inserter",
         "position": {
           "x": 23.5,
@@ -642,7 +772,7 @@
         "mirror": true
       },
       {
-        "entity_number": 39,
+        "entity_number": 42,
         "name": "bulk-inserter",
         "position": {
           "x": 23.5,
@@ -652,7 +782,7 @@
         "mirror": true
       },
       {
-        "entity_number": 40,
+        "entity_number": 43,
         "name": "bulk-inserter",
         "position": {
           "x": 23.5,
@@ -662,7 +792,29 @@
         "mirror": true
       },
       {
-        "entity_number": 41,
+        "entity_number": 44,
+        "name": "arithmetic-combinator",
+        "position": {
+          "x": 24.5,
+          "y": 12
+        },
+        "control_behavior": {
+          "arithmetic_conditions": {
+            "first_signal": {
+              "type": "virtual",
+              "name": "signal-each"
+            },
+            "second_constant": 60,
+            "operation": "*",
+            "output_signal": {
+              "type": "virtual",
+              "name": "signal-each"
+            }
+          }
+        }
+      },
+      {
+        "entity_number": 45,
         "name": "turbo-transport-belt",
         "position": {
           "x": 1.5,
@@ -671,7 +823,7 @@
         "direction": 4
       },
       {
-        "entity_number": 42,
+        "entity_number": 46,
         "name": "turbo-transport-belt",
         "position": {
           "x": 2.5,
@@ -680,7 +832,7 @@
         "direction": 4
       },
       {
-        "entity_number": 43,
+        "entity_number": 47,
         "name": "turbo-transport-belt",
         "position": {
           "x": 3.5,
@@ -689,7 +841,7 @@
         "direction": 4
       },
       {
-        "entity_number": 44,
+        "entity_number": 48,
         "name": "turbo-transport-belt",
         "position": {
           "x": 4.5,
@@ -698,7 +850,7 @@
         "direction": 4
       },
       {
-        "entity_number": 45,
+        "entity_number": 49,
         "name": "turbo-transport-belt",
         "position": {
           "x": 5.5,
@@ -707,7 +859,7 @@
         "direction": 4
       },
       {
-        "entity_number": 46,
+        "entity_number": 50,
         "name": "turbo-transport-belt",
         "position": {
           "x": 6.5,
@@ -716,7 +868,7 @@
         "direction": 4
       },
       {
-        "entity_number": 47,
+        "entity_number": 51,
         "name": "turbo-transport-belt",
         "position": {
           "x": 7.5,
@@ -725,7 +877,7 @@
         "direction": 4
       },
       {
-        "entity_number": 48,
+        "entity_number": 52,
         "name": "turbo-transport-belt",
         "position": {
           "x": 8.5,
@@ -734,7 +886,7 @@
         "direction": 4
       },
       {
-        "entity_number": 49,
+        "entity_number": 53,
         "name": "turbo-transport-belt",
         "position": {
           "x": 9.5,
@@ -743,7 +895,7 @@
         "direction": 4
       },
       {
-        "entity_number": 50,
+        "entity_number": 54,
         "name": "turbo-transport-belt",
         "position": {
           "x": 10.5,
@@ -752,7 +904,7 @@
         "direction": 4
       },
       {
-        "entity_number": 51,
+        "entity_number": 55,
         "name": "turbo-transport-belt",
         "position": {
           "x": 11.5,
@@ -761,7 +913,7 @@
         "direction": 4
       },
       {
-        "entity_number": 52,
+        "entity_number": 56,
         "name": "turbo-transport-belt",
         "position": {
           "x": 12.5,
@@ -770,7 +922,7 @@
         "direction": 4
       },
       {
-        "entity_number": 53,
+        "entity_number": 57,
         "name": "turbo-transport-belt",
         "position": {
           "x": 13.5,
@@ -779,7 +931,7 @@
         "direction": 4
       },
       {
-        "entity_number": 54,
+        "entity_number": 58,
         "name": "turbo-transport-belt",
         "position": {
           "x": 14.5,
@@ -788,7 +940,7 @@
         "direction": 4
       },
       {
-        "entity_number": 55,
+        "entity_number": 59,
         "name": "turbo-transport-belt",
         "position": {
           "x": 15.5,
@@ -797,7 +949,7 @@
         "direction": 4
       },
       {
-        "entity_number": 56,
+        "entity_number": 60,
         "name": "turbo-transport-belt",
         "position": {
           "x": 16.5,
@@ -806,7 +958,7 @@
         "direction": 4
       },
       {
-        "entity_number": 57,
+        "entity_number": 61,
         "name": "turbo-transport-belt",
         "position": {
           "x": 17.5,
@@ -815,7 +967,7 @@
         "direction": 4
       },
       {
-        "entity_number": 58,
+        "entity_number": 62,
         "name": "turbo-transport-belt",
         "position": {
           "x": 18.5,
@@ -824,7 +976,7 @@
         "direction": 4
       },
       {
-        "entity_number": 59,
+        "entity_number": 63,
         "name": "turbo-transport-belt",
         "position": {
           "x": 19.5,
@@ -833,7 +985,7 @@
         "direction": 4
       },
       {
-        "entity_number": 60,
+        "entity_number": 64,
         "name": "turbo-transport-belt",
         "position": {
           "x": 20.5,
@@ -842,7 +994,7 @@
         "direction": 4
       },
       {
-        "entity_number": 61,
+        "entity_number": 65,
         "name": "turbo-transport-belt",
         "position": {
           "x": 21.5,
@@ -851,7 +1003,7 @@
         "direction": 4
       },
       {
-        "entity_number": 62,
+        "entity_number": 66,
         "name": "turbo-transport-belt",
         "position": {
           "x": 22.5,
@@ -860,7 +1012,7 @@
         "direction": 4
       },
       {
-        "entity_number": 63,
+        "entity_number": 67,
         "name": "turbo-transport-belt",
         "position": {
           "x": 23.5,
@@ -869,7 +1021,7 @@
         "direction": 4
       },
       {
-        "entity_number": 64,
+        "entity_number": 68,
         "name": "turbo-transport-belt",
         "position": {
           "x": 24.5,
@@ -878,7 +1030,7 @@
         "direction": 4
       },
       {
-        "entity_number": 65,
+        "entity_number": 69,
         "name": "turbo-transport-belt",
         "position": {
           "x": 25.5,
@@ -887,7 +1039,7 @@
         "direction": 4
       },
       {
-        "entity_number": 66,
+        "entity_number": 70,
         "name": "turbo-transport-belt",
         "position": {
           "x": 26.5,
@@ -896,7 +1048,115 @@
         "direction": 4
       },
       {
-        "entity_number": 67,
+        "entity_number": 71,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 22.5,
+          "y": 5.5
+        },
+        "direction": 8,
+        "mirror": true,
+        "filters": [
+          {
+            "index": 1,
+            "quality": "normal",
+            "comparator": "="
+          }
+        ],
+        "use_filters": true
+      },
+      {
+        "entity_number": 72,
+        "name": "passive-provider-chest",
+        "position": {
+          "x": 22.5,
+          "y": 4.5
+        },
+        "bar": 1
+      },
+      {
+        "entity_number": 73,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 23.5,
+          "y": 5.5
+        },
+        "direction": 8,
+        "mirror": true,
+        "filters": [
+          {
+            "index": 1,
+            "quality": "uncommon",
+            "comparator": "="
+          }
+        ],
+        "use_filters": true
+      },
+      {
+        "entity_number": 74,
+        "name": "passive-provider-chest",
+        "position": {
+          "x": 23.5,
+          "y": 4.5
+        },
+        "bar": 1
+      },
+      {
+        "entity_number": 75,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 24.5,
+          "y": 5.5
+        },
+        "direction": 8,
+        "mirror": true,
+        "filters": [
+          {
+            "index": 1,
+            "quality": "rare",
+            "comparator": "="
+          }
+        ],
+        "use_filters": true
+      },
+      {
+        "entity_number": 76,
+        "name": "passive-provider-chest",
+        "position": {
+          "x": 24.5,
+          "y": 4.5
+        },
+        "bar": 1
+      },
+      {
+        "entity_number": 77,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 25.5,
+          "y": 5.5
+        },
+        "direction": 8,
+        "mirror": true,
+        "filters": [
+          {
+            "index": 1,
+            "quality": "epic",
+            "comparator": "="
+          }
+        ],
+        "use_filters": true
+      },
+      {
+        "entity_number": 78,
+        "name": "passive-provider-chest",
+        "position": {
+          "x": 25.5,
+          "y": 4.5
+        },
+        "bar": 1
+      },
+      {
+        "entity_number": 79,
         "name": "turbo-splitter",
         "position": {
           "x": 27.5,
@@ -910,7 +1170,7 @@
         "output_priority": "left"
       },
       {
-        "entity_number": 68,
+        "entity_number": 80,
         "name": "turbo-transport-belt",
         "position": {
           "x": 28.5,
@@ -919,7 +1179,7 @@
         "direction": 4
       },
       {
-        "entity_number": 69,
+        "entity_number": 81,
         "name": "bulk-inserter",
         "position": {
           "x": 29.5,
@@ -928,7 +1188,7 @@
         "direction": 12
       },
       {
-        "entity_number": 70,
+        "entity_number": 82,
         "name": "passive-provider-chest",
         "position": {
           "x": 30.5,
@@ -936,7 +1196,7 @@
         }
       },
       {
-        "entity_number": 71,
+        "entity_number": 83,
         "name": "turbo-transport-belt",
         "position": {
           "x": 28.5,
@@ -945,7 +1205,7 @@
         "direction": 4
       },
       {
-        "entity_number": 72,
+        "entity_number": 84,
         "name": "turbo-transport-belt",
         "position": {
           "x": 29.5,
@@ -954,7 +1214,7 @@
         "direction": 4
       },
       {
-        "entity_number": 73,
+        "entity_number": 85,
         "name": "turbo-transport-belt",
         "position": {
           "x": 30.5,
@@ -963,119 +1223,11 @@
         "direction": 4
       },
       {
-        "entity_number": 74,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 31.5,
-          "y": 6.5
-        },
-        "direction": 8
-      },
-      {
-        "entity_number": 75,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 31.5,
-          "y": 7.5
-        },
-        "direction": 8
-      },
-      {
-        "entity_number": 76,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 31.5,
-          "y": 8.5
-        },
-        "direction": 8
-      },
-      {
-        "entity_number": 77,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 31.5,
-          "y": 9.5
-        },
-        "direction": 8
-      },
-      {
-        "entity_number": 78,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 31.5,
-          "y": 10.5
-        },
-        "direction": 8
-      },
-      {
-        "entity_number": 79,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 31.5,
-          "y": 11.5
-        },
-        "direction": 8
-      },
-      {
-        "entity_number": 80,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 31.5,
-          "y": 12.5
-        },
-        "direction": 8
-      },
-      {
-        "entity_number": 81,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 31.5,
-          "y": 13.5
-        },
-        "direction": 8
-      },
-      {
-        "entity_number": 82,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 31.5,
-          "y": 14.5
-        },
-        "direction": 8
-      },
-      {
-        "entity_number": 83,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 31.5,
-          "y": 15.5
-        },
-        "direction": 8
-      },
-      {
-        "entity_number": 84,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 31.5,
-          "y": 16.5
-        },
-        "direction": 8
-      },
-      {
-        "entity_number": 85,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 31.5,
-          "y": 17.5
-        },
-        "direction": 8
-      },
-      {
         "entity_number": 86,
         "name": "turbo-transport-belt",
         "position": {
           "x": 31.5,
-          "y": 18.5
+          "y": 6.5
         },
         "direction": 8
       },
@@ -1084,7 +1236,7 @@
         "name": "turbo-transport-belt",
         "position": {
           "x": 31.5,
-          "y": 19.5
+          "y": 7.5
         },
         "direction": 8
       },
@@ -1093,7 +1245,7 @@
         "name": "turbo-transport-belt",
         "position": {
           "x": 31.5,
-          "y": 20.5
+          "y": 8.5
         },
         "direction": 8
       },
@@ -1102,7 +1254,7 @@
         "name": "turbo-transport-belt",
         "position": {
           "x": 31.5,
-          "y": 21.5
+          "y": 9.5
         },
         "direction": 8
       },
@@ -1111,7 +1263,7 @@
         "name": "turbo-transport-belt",
         "position": {
           "x": 31.5,
-          "y": 22.5
+          "y": 10.5
         },
         "direction": 8
       },
@@ -1120,114 +1272,114 @@
         "name": "turbo-transport-belt",
         "position": {
           "x": 31.5,
-          "y": 23.5
+          "y": 11.5
         },
-        "direction": 12
+        "direction": 8
       },
       {
         "entity_number": 92,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 10.5,
-          "y": 23.5
+          "x": 31.5,
+          "y": 12.5
         },
-        "direction": 12
+        "direction": 8
       },
       {
         "entity_number": 93,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 11.5,
-          "y": 23.5
+          "x": 31.5,
+          "y": 13.5
         },
-        "direction": 12
+        "direction": 8
       },
       {
         "entity_number": 94,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 12.5,
-          "y": 23.5
+          "x": 31.5,
+          "y": 14.5
         },
-        "direction": 12
+        "direction": 8
       },
       {
         "entity_number": 95,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 13.5,
-          "y": 23.5
+          "x": 31.5,
+          "y": 15.5
         },
-        "direction": 12
+        "direction": 8
       },
       {
         "entity_number": 96,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 14.5,
-          "y": 23.5
+          "x": 31.5,
+          "y": 16.5
         },
-        "direction": 12
+        "direction": 8
       },
       {
         "entity_number": 97,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 15.5,
-          "y": 23.5
+          "x": 31.5,
+          "y": 17.5
         },
-        "direction": 12
+        "direction": 8
       },
       {
         "entity_number": 98,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 16.5,
-          "y": 23.5
+          "x": 31.5,
+          "y": 18.5
         },
-        "direction": 12
+        "direction": 8
       },
       {
         "entity_number": 99,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 17.5,
-          "y": 23.5
+          "x": 31.5,
+          "y": 19.5
         },
-        "direction": 12
+        "direction": 8
       },
       {
         "entity_number": 100,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 18.5,
-          "y": 23.5
+          "x": 31.5,
+          "y": 20.5
         },
-        "direction": 12
+        "direction": 8
       },
       {
         "entity_number": 101,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 19.5,
-          "y": 23.5
+          "x": 31.5,
+          "y": 21.5
         },
-        "direction": 12
+        "direction": 8
       },
       {
         "entity_number": 102,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 20.5,
-          "y": 23.5
+          "x": 31.5,
+          "y": 22.5
         },
-        "direction": 12
+        "direction": 8
       },
       {
         "entity_number": 103,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 21.5,
+          "x": 31.5,
           "y": 23.5
         },
         "direction": 12
@@ -1236,7 +1388,7 @@
         "entity_number": 104,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 22.5,
+          "x": 10.5,
           "y": 23.5
         },
         "direction": 12
@@ -1245,7 +1397,7 @@
         "entity_number": 105,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 23.5,
+          "x": 11.5,
           "y": 23.5
         },
         "direction": 12
@@ -1254,7 +1406,7 @@
         "entity_number": 106,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 24.5,
+          "x": 12.5,
           "y": 23.5
         },
         "direction": 12
@@ -1263,7 +1415,7 @@
         "entity_number": 107,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 25.5,
+          "x": 13.5,
           "y": 23.5
         },
         "direction": 12
@@ -1272,7 +1424,7 @@
         "entity_number": 108,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 26.5,
+          "x": 14.5,
           "y": 23.5
         },
         "direction": 12
@@ -1281,7 +1433,7 @@
         "entity_number": 109,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 27.5,
+          "x": 15.5,
           "y": 23.5
         },
         "direction": 12
@@ -1290,7 +1442,7 @@
         "entity_number": 110,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 28.5,
+          "x": 16.5,
           "y": 23.5
         },
         "direction": 12
@@ -1299,7 +1451,7 @@
         "entity_number": 111,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 29.5,
+          "x": 17.5,
           "y": 23.5
         },
         "direction": 12
@@ -1308,7 +1460,7 @@
         "entity_number": 112,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 30.5,
+          "x": 18.5,
           "y": 23.5
         },
         "direction": 12
@@ -1317,13 +1469,121 @@
         "entity_number": 113,
         "name": "turbo-transport-belt",
         "position": {
+          "x": 19.5,
+          "y": 23.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 114,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 20.5,
+          "y": 23.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 115,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 21.5,
+          "y": 23.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 116,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 22.5,
+          "y": 23.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 117,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 23.5,
+          "y": 23.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 118,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 24.5,
+          "y": 23.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 119,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 25.5,
+          "y": 23.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 120,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 26.5,
+          "y": 23.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 121,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 27.5,
+          "y": 23.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 122,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 28.5,
+          "y": 23.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 123,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 29.5,
+          "y": 23.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 124,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 30.5,
+          "y": 23.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 125,
+        "name": "turbo-transport-belt",
+        "position": {
           "x": 9.5,
           "y": 23.5
         },
         "direction": 0
       },
       {
-        "entity_number": 114,
+        "entity_number": 126,
         "name": "turbo-transport-belt",
         "position": {
           "x": 9.5,
@@ -1332,7 +1592,7 @@
         "direction": 0
       },
       {
-        "entity_number": 115,
+        "entity_number": 127,
         "name": "turbo-transport-belt",
         "position": {
           "x": 9.5,
@@ -1341,7 +1601,7 @@
         "direction": 0
       },
       {
-        "entity_number": 116,
+        "entity_number": 128,
         "name": "turbo-transport-belt",
         "position": {
           "x": 9.5,
@@ -1350,7 +1610,7 @@
         "direction": 0
       },
       {
-        "entity_number": 117,
+        "entity_number": 129,
         "name": "turbo-transport-belt",
         "position": {
           "x": 9.5,
@@ -1359,7 +1619,7 @@
         "direction": 0
       },
       {
-        "entity_number": 118,
+        "entity_number": 130,
         "name": "turbo-transport-belt",
         "position": {
           "x": 9.5,
@@ -1368,7 +1628,7 @@
         "direction": 0
       },
       {
-        "entity_number": 119,
+        "entity_number": 131,
         "name": "turbo-transport-belt",
         "position": {
           "x": 9.5,
@@ -1377,7 +1637,7 @@
         "direction": 4
       },
       {
-        "entity_number": 120,
+        "entity_number": 132,
         "name": "turbo-transport-belt",
         "position": {
           "x": 10.5,
@@ -1386,7 +1646,7 @@
         "direction": 4
       },
       {
-        "entity_number": 121,
+        "entity_number": 133,
         "name": "bulk-inserter",
         "position": {
           "x": 11.5,
@@ -1395,7 +1655,7 @@
         "direction": 12
       },
       {
-        "entity_number": 122,
+        "entity_number": 134,
         "name": "recycler",
         "position": {
           "x": 13,
@@ -1430,7 +1690,7 @@
         ]
       },
       {
-        "entity_number": 123,
+        "entity_number": 135,
         "name": "turbo-transport-belt",
         "position": {
           "x": 12.5,
@@ -1439,7 +1699,7 @@
         "direction": 4
       },
       {
-        "entity_number": 124,
+        "entity_number": 136,
         "name": "turbo-splitter",
         "position": {
           "x": 13.5,
@@ -1453,7 +1713,7 @@
         "output_priority": "left"
       },
       {
-        "entity_number": 125,
+        "entity_number": 137,
         "name": "turbo-transport-belt",
         "position": {
           "x": 14.5,
@@ -1462,7 +1722,7 @@
         "direction": 0
       },
       {
-        "entity_number": 126,
+        "entity_number": 138,
         "name": "turbo-transport-belt",
         "position": {
           "x": 14.5,
@@ -1471,7 +1731,7 @@
         "direction": 0
       },
       {
-        "entity_number": 127,
+        "entity_number": 139,
         "name": "turbo-transport-belt",
         "position": {
           "x": 14.5,
@@ -1480,7 +1740,7 @@
         "direction": 4
       },
       {
-        "entity_number": 128,
+        "entity_number": 140,
         "name": "turbo-transport-belt",
         "position": {
           "x": 15.5,
@@ -1489,7 +1749,7 @@
         "direction": 4
       },
       {
-        "entity_number": 129,
+        "entity_number": 141,
         "name": "turbo-splitter",
         "position": {
           "x": 16.5,
@@ -1503,7 +1763,7 @@
         "output_priority": "left"
       },
       {
-        "entity_number": 130,
+        "entity_number": 142,
         "name": "turbo-transport-belt",
         "position": {
           "x": 17.5,
@@ -1512,7 +1772,7 @@
         "direction": 0
       },
       {
-        "entity_number": 131,
+        "entity_number": 143,
         "name": "turbo-transport-belt",
         "position": {
           "x": 17.5,
@@ -1521,7 +1781,7 @@
         "direction": 0
       },
       {
-        "entity_number": 132,
+        "entity_number": 144,
         "name": "turbo-transport-belt",
         "position": {
           "x": 17.5,
@@ -1530,7 +1790,7 @@
         "direction": 4
       },
       {
-        "entity_number": 133,
+        "entity_number": 145,
         "name": "turbo-transport-belt",
         "position": {
           "x": 18.5,
@@ -1539,7 +1799,7 @@
         "direction": 4
       },
       {
-        "entity_number": 134,
+        "entity_number": 146,
         "name": "turbo-splitter",
         "position": {
           "x": 19.5,
@@ -1553,7 +1813,7 @@
         "output_priority": "left"
       },
       {
-        "entity_number": 135,
+        "entity_number": 147,
         "name": "turbo-transport-belt",
         "position": {
           "x": 20.5,
@@ -1562,7 +1822,7 @@
         "direction": 0
       },
       {
-        "entity_number": 136,
+        "entity_number": 148,
         "name": "turbo-transport-belt",
         "position": {
           "x": 20.5,
@@ -1571,7 +1831,7 @@
         "direction": 0
       },
       {
-        "entity_number": 137,
+        "entity_number": 149,
         "name": "turbo-transport-belt",
         "position": {
           "x": 20.5,
@@ -1580,7 +1840,7 @@
         "direction": 4
       },
       {
-        "entity_number": 138,
+        "entity_number": 150,
         "name": "turbo-transport-belt",
         "position": {
           "x": 21.5,
@@ -1589,7 +1849,7 @@
         "direction": 4
       },
       {
-        "entity_number": 139,
+        "entity_number": 151,
         "name": "turbo-splitter",
         "position": {
           "x": 22.5,
@@ -1603,7 +1863,7 @@
         "output_priority": "left"
       },
       {
-        "entity_number": 140,
+        "entity_number": 152,
         "name": "turbo-transport-belt",
         "position": {
           "x": 23.5,
@@ -1612,7 +1872,7 @@
         "direction": 0
       },
       {
-        "entity_number": 141,
+        "entity_number": 153,
         "name": "turbo-transport-belt",
         "position": {
           "x": 23.5,
@@ -1621,7 +1881,7 @@
         "direction": 0
       },
       {
-        "entity_number": 142,
+        "entity_number": 154,
         "name": "turbo-transport-belt",
         "position": {
           "x": 23.5,
@@ -1630,7 +1890,7 @@
         "direction": 4
       },
       {
-        "entity_number": 143,
+        "entity_number": 155,
         "name": "turbo-transport-belt",
         "position": {
           "x": 24.5,
@@ -1639,7 +1899,7 @@
         "direction": 4
       },
       {
-        "entity_number": 144,
+        "entity_number": 156,
         "name": "bulk-inserter",
         "position": {
           "x": 25.5,
@@ -1648,7 +1908,7 @@
         "direction": 12
       },
       {
-        "entity_number": 145,
+        "entity_number": 157,
         "name": "steel-chest",
         "position": {
           "x": 26.5,
@@ -1656,7 +1916,7 @@
         }
       },
       {
-        "entity_number": 146,
+        "entity_number": 158,
         "name": "bulk-inserter",
         "position": {
           "x": 26.5,
@@ -1666,7 +1926,7 @@
         "mirror": true
       },
       {
-        "entity_number": 147,
+        "entity_number": 159,
         "name": "turbo-transport-belt",
         "position": {
           "x": 26.5,
@@ -1675,7 +1935,7 @@
         "direction": 8
       },
       {
-        "entity_number": 148,
+        "entity_number": 160,
         "name": "turbo-transport-belt",
         "position": {
           "x": 26.5,
@@ -1684,7 +1944,7 @@
         "direction": 8
       },
       {
-        "entity_number": 149,
+        "entity_number": 161,
         "name": "turbo-transport-belt",
         "position": {
           "x": 26.5,
@@ -1693,7 +1953,7 @@
         "direction": 8
       },
       {
-        "entity_number": 150,
+        "entity_number": 162,
         "name": "turbo-transport-belt",
         "position": {
           "x": 26.5,
@@ -1702,7 +1962,7 @@
         "direction": 8
       },
       {
-        "entity_number": 151,
+        "entity_number": 163,
         "name": "turbo-underground-belt",
         "position": {
           "x": 26.5,
@@ -1712,7 +1972,7 @@
         "type": "input"
       },
       {
-        "entity_number": 152,
+        "entity_number": 164,
         "name": "turbo-underground-belt",
         "position": {
           "x": 26.5,
@@ -1722,7 +1982,7 @@
         "type": "output"
       },
       {
-        "entity_number": 153,
+        "entity_number": 165,
         "name": "turbo-transport-belt",
         "position": {
           "x": 26.5,
@@ -1731,118 +1991,10 @@
         "direction": 12
       },
       {
-        "entity_number": 154,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 1.5,
-          "y": 25.5
-        },
-        "direction": 12
-      },
-      {
-        "entity_number": 155,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 2.5,
-          "y": 25.5
-        },
-        "direction": 12
-      },
-      {
-        "entity_number": 156,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 3.5,
-          "y": 25.5
-        },
-        "direction": 12
-      },
-      {
-        "entity_number": 157,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 4.5,
-          "y": 25.5
-        },
-        "direction": 12
-      },
-      {
-        "entity_number": 158,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 5.5,
-          "y": 25.5
-        },
-        "direction": 12
-      },
-      {
-        "entity_number": 159,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 6.5,
-          "y": 25.5
-        },
-        "direction": 12
-      },
-      {
-        "entity_number": 160,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 7.5,
-          "y": 25.5
-        },
-        "direction": 12
-      },
-      {
-        "entity_number": 161,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 8.5,
-          "y": 25.5
-        },
-        "direction": 12
-      },
-      {
-        "entity_number": 162,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 9.5,
-          "y": 25.5
-        },
-        "direction": 12
-      },
-      {
-        "entity_number": 163,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 10.5,
-          "y": 25.5
-        },
-        "direction": 12
-      },
-      {
-        "entity_number": 164,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 11.5,
-          "y": 25.5
-        },
-        "direction": 12
-      },
-      {
-        "entity_number": 165,
-        "name": "turbo-transport-belt",
-        "position": {
-          "x": 12.5,
-          "y": 25.5
-        },
-        "direction": 12
-      },
-      {
         "entity_number": 166,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 13.5,
+          "x": 1.5,
           "y": 25.5
         },
         "direction": 12
@@ -1851,7 +2003,7 @@
         "entity_number": 167,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 14.5,
+          "x": 2.5,
           "y": 25.5
         },
         "direction": 12
@@ -1860,7 +2012,7 @@
         "entity_number": 168,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 15.5,
+          "x": 3.5,
           "y": 25.5
         },
         "direction": 12
@@ -1869,7 +2021,7 @@
         "entity_number": 169,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 16.5,
+          "x": 4.5,
           "y": 25.5
         },
         "direction": 12
@@ -1878,7 +2030,7 @@
         "entity_number": 170,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 17.5,
+          "x": 5.5,
           "y": 25.5
         },
         "direction": 12
@@ -1887,7 +2039,7 @@
         "entity_number": 171,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 18.5,
+          "x": 6.5,
           "y": 25.5
         },
         "direction": 12
@@ -1896,7 +2048,7 @@
         "entity_number": 172,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 19.5,
+          "x": 7.5,
           "y": 25.5
         },
         "direction": 12
@@ -1905,7 +2057,7 @@
         "entity_number": 173,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 20.5,
+          "x": 8.5,
           "y": 25.5
         },
         "direction": 12
@@ -1914,7 +2066,7 @@
         "entity_number": 174,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 21.5,
+          "x": 9.5,
           "y": 25.5
         },
         "direction": 12
@@ -1923,7 +2075,7 @@
         "entity_number": 175,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 22.5,
+          "x": 10.5,
           "y": 25.5
         },
         "direction": 12
@@ -1932,7 +2084,7 @@
         "entity_number": 176,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 23.5,
+          "x": 11.5,
           "y": 25.5
         },
         "direction": 12
@@ -1941,7 +2093,7 @@
         "entity_number": 177,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 24.5,
+          "x": 12.5,
           "y": 25.5
         },
         "direction": 12
@@ -1950,7 +2102,7 @@
         "entity_number": 178,
         "name": "turbo-transport-belt",
         "position": {
-          "x": 25.5,
+          "x": 13.5,
           "y": 25.5
         },
         "direction": 12
@@ -1959,13 +2111,121 @@
         "entity_number": 179,
         "name": "turbo-transport-belt",
         "position": {
+          "x": 14.5,
+          "y": 25.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 180,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 15.5,
+          "y": 25.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 181,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 16.5,
+          "y": 25.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 182,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 17.5,
+          "y": 25.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 183,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 18.5,
+          "y": 25.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 184,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 19.5,
+          "y": 25.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 185,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 20.5,
+          "y": 25.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 186,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 21.5,
+          "y": 25.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 187,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 22.5,
+          "y": 25.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 188,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 23.5,
+          "y": 25.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 189,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 24.5,
+          "y": 25.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 190,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 25.5,
+          "y": 25.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 191,
+        "name": "turbo-transport-belt",
+        "position": {
           "x": 0.5,
           "y": 25.5
         },
         "direction": 0
       },
       {
-        "entity_number": 180,
+        "entity_number": 192,
         "name": "turbo-transport-belt",
         "position": {
           "x": 0.5,
@@ -1974,7 +2234,7 @@
         "direction": 0
       },
       {
-        "entity_number": 181,
+        "entity_number": 193,
         "name": "turbo-transport-belt",
         "position": {
           "x": 0.5,
@@ -1983,7 +2243,7 @@
         "direction": 0
       },
       {
-        "entity_number": 182,
+        "entity_number": 194,
         "name": "turbo-transport-belt",
         "position": {
           "x": 0.5,
@@ -1992,7 +2252,7 @@
         "direction": 0
       },
       {
-        "entity_number": 183,
+        "entity_number": 195,
         "name": "turbo-transport-belt",
         "position": {
           "x": 0.5,
@@ -2001,7 +2261,7 @@
         "direction": 0
       },
       {
-        "entity_number": 184,
+        "entity_number": 196,
         "name": "turbo-transport-belt",
         "position": {
           "x": 0.5,
@@ -2010,7 +2270,7 @@
         "direction": 0
       },
       {
-        "entity_number": 185,
+        "entity_number": 197,
         "name": "turbo-transport-belt",
         "position": {
           "x": 0.5,
@@ -2019,7 +2279,7 @@
         "direction": 0
       },
       {
-        "entity_number": 186,
+        "entity_number": 198,
         "name": "turbo-transport-belt",
         "position": {
           "x": 0.5,
@@ -2028,7 +2288,7 @@
         "direction": 0
       },
       {
-        "entity_number": 187,
+        "entity_number": 199,
         "name": "turbo-transport-belt",
         "position": {
           "x": 0.5,
@@ -2037,7 +2297,7 @@
         "direction": 0
       },
       {
-        "entity_number": 188,
+        "entity_number": 200,
         "name": "turbo-transport-belt",
         "position": {
           "x": 0.5,
@@ -2046,7 +2306,7 @@
         "direction": 0
       },
       {
-        "entity_number": 189,
+        "entity_number": 201,
         "name": "turbo-transport-belt",
         "position": {
           "x": 0.5,
@@ -2055,7 +2315,7 @@
         "direction": 0
       },
       {
-        "entity_number": 190,
+        "entity_number": 202,
         "name": "turbo-transport-belt",
         "position": {
           "x": 0.5,
@@ -2064,7 +2324,7 @@
         "direction": 4
       },
       {
-        "entity_number": 191,
+        "entity_number": 203,
         "name": "turbo-transport-belt",
         "position": {
           "x": 1.5,
@@ -2073,7 +2333,7 @@
         "direction": 4
       },
       {
-        "entity_number": 192,
+        "entity_number": 204,
         "name": "turbo-transport-belt",
         "position": {
           "x": 2.5,
@@ -2082,7 +2342,7 @@
         "direction": 4
       },
       {
-        "entity_number": 193,
+        "entity_number": 205,
         "name": "turbo-transport-belt",
         "position": {
           "x": 3.5,
@@ -2091,7 +2351,7 @@
         "direction": 4
       },
       {
-        "entity_number": 194,
+        "entity_number": 206,
         "name": "turbo-transport-belt",
         "position": {
           "x": 4.5,
@@ -2100,7 +2360,7 @@
         "direction": 4
       },
       {
-        "entity_number": 195,
+        "entity_number": 207,
         "name": "turbo-transport-belt",
         "position": {
           "x": 5.5,
@@ -2109,7 +2369,7 @@
         "direction": 4
       },
       {
-        "entity_number": 196,
+        "entity_number": 208,
         "name": "turbo-transport-belt",
         "position": {
           "x": 6.5,
@@ -2118,7 +2378,7 @@
         "direction": 4
       },
       {
-        "entity_number": 197,
+        "entity_number": 209,
         "name": "turbo-transport-belt",
         "position": {
           "x": 7.5,
@@ -2127,7 +2387,7 @@
         "direction": 4
       },
       {
-        "entity_number": 198,
+        "entity_number": 210,
         "name": "turbo-transport-belt",
         "position": {
           "x": 8.5,
@@ -2136,7 +2396,7 @@
         "direction": 4
       },
       {
-        "entity_number": 199,
+        "entity_number": 211,
         "name": "turbo-transport-belt",
         "position": {
           "x": 9.5,
@@ -2145,7 +2405,7 @@
         "direction": 4
       },
       {
-        "entity_number": 200,
+        "entity_number": 212,
         "name": "turbo-transport-belt",
         "position": {
           "x": 10.5,
@@ -2154,7 +2414,7 @@
         "direction": 4
       },
       {
-        "entity_number": 201,
+        "entity_number": 213,
         "name": "turbo-transport-belt",
         "position": {
           "x": 11.5,
@@ -2163,7 +2423,7 @@
         "direction": 4
       },
       {
-        "entity_number": 202,
+        "entity_number": 214,
         "name": "substation",
         "position": {
           "x": 4,
@@ -2171,7 +2431,7 @@
         }
       },
       {
-        "entity_number": 203,
+        "entity_number": 215,
         "name": "substation",
         "position": {
           "x": 20,
@@ -2179,7 +2439,7 @@
         }
       },
       {
-        "entity_number": 204,
+        "entity_number": 216,
         "name": "substation",
         "position": {
           "x": 4,
@@ -2187,7 +2447,7 @@
         }
       },
       {
-        "entity_number": 205,
+        "entity_number": 217,
         "name": "substation",
         "position": {
           "x": 20,
@@ -2195,7 +2455,7 @@
         }
       },
       {
-        "entity_number": 206,
+        "entity_number": 218,
         "name": "substation",
         "position": {
           "x": 30,
@@ -2203,11 +2463,43 @@
         }
       },
       {
-        "entity_number": 207,
+        "entity_number": 219,
         "name": "roboport",
         "position": {
           "x": 12,
           "y": 3
+        }
+      },
+      {
+        "entity_number": 220,
+        "name": "storage-chest",
+        "position": {
+          "x": 27.5,
+          "y": 14.5
+        }
+      },
+      {
+        "entity_number": 221,
+        "name": "storage-chest",
+        "position": {
+          "x": 28.5,
+          "y": 14.5
+        }
+      },
+      {
+        "entity_number": 222,
+        "name": "storage-chest",
+        "position": {
+          "x": 29.5,
+          "y": 14.5
+        }
+      },
+      {
+        "entity_number": 223,
+        "name": "storage-chest",
+        "position": {
+          "x": 30.5,
+          "y": 14.5
         }
       }
     ],
@@ -2237,27 +2529,75 @@
         2
       ],
       [
-        202,
+        21,
+        2,
+        26,
+        2
+      ],
+      [
+        22,
+        2,
+        26,
+        4
+      ],
+      [
+        27,
+        2,
+        32,
+        2
+      ],
+      [
+        28,
+        2,
+        32,
+        4
+      ],
+      [
+        33,
+        2,
+        38,
+        2
+      ],
+      [
+        34,
+        2,
+        38,
+        4
+      ],
+      [
+        39,
+        2,
+        44,
+        2
+      ],
+      [
+        40,
+        2,
+        44,
+        4
+      ],
+      [
+        214,
         5,
-        203,
+        215,
         5
       ],
       [
-        202,
+        214,
         5,
-        204,
+        216,
         5
       ],
       [
-        203,
+        215,
         5,
-        205,
+        217,
         5
       ],
       [
-        203,
+        215,
         5,
-        206,
+        218,
         5
       ]
     ],
