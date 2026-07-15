@@ -1,0 +1,171 @@
+{
+  "blueprint": {
+    "item": "blueprint",
+    "label": "QUP recycler gate",
+    "description": "Feed mixed-quality Crushers from the west. Legendary goes to the provider; Normal through Epic goes through the quality-module recycler.",
+    "icons": [
+      {
+        "signal": {
+          "name": "recycler"
+        },
+        "index": 1
+      },
+      {
+        "signal": {
+          "name": "crusher"
+        },
+        "index": 2
+      }
+    ],
+    "entities": [
+      {
+        "entity_number": 1,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 3.5,
+          "y": 2.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 2,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 4.5,
+          "y": 2.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 3,
+        "name": "turbo-splitter",
+        "position": {
+          "x": 5.5,
+          "y": 2
+        },
+        "direction": 4,
+        "filter": {
+          "quality": "legendary",
+          "comparator": "="
+        },
+        "output_priority": "left"
+      },
+      {
+        "entity_number": 4,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 6.5,
+          "y": 1.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 5,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 7.5,
+          "y": 1.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 6,
+        "name": "passive-provider-chest",
+        "position": {
+          "x": 8.5,
+          "y": 1.5
+        }
+      },
+      {
+        "entity_number": 7,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 6.5,
+          "y": 2.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 8,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 7.5,
+          "y": 2.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 9,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 8.5,
+          "y": 2.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 10,
+        "name": "recycler",
+        "position": {
+          "x": 10,
+          "y": 4
+        },
+        "items": [
+          {
+            "id": {
+              "name": "quality-module-3"
+            },
+            "items": {
+              "in_inventory": [
+                {
+                  "inventory": 4,
+                  "stack": 0
+                },
+                {
+                  "inventory": 4,
+                  "stack": 1
+                },
+                {
+                  "inventory": 4,
+                  "stack": 2
+                },
+                {
+                  "inventory": 4,
+                  "stack": 3
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "entity_number": 11,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 9.5,
+          "y": 1.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 12,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 10.5,
+          "y": 1.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 13,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 11.5,
+          "y": 1.5
+        },
+        "direction": 4
+      }
+    ],
+    "version": 562954249109504
+  }
+}

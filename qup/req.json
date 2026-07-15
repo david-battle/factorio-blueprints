@@ -1,0 +1,198 @@
+{
+  "blueprint": {
+    "item": "blueprint",
+    "label": "QUP requester gate",
+    "description": "Parameterize Crusher to Cargo bay. The wired requester obtains its requests from the Normal assembler's recipe ingredients.",
+    "icons": [
+      {
+        "signal": {
+          "name": "assembling-machine-3"
+        },
+        "index": 1
+      },
+      {
+        "signal": {
+          "name": "crusher"
+        },
+        "index": 2
+      }
+    ],
+    "entities": [
+      {
+        "entity_number": 1,
+        "name": "stone-wall",
+        "position": {
+          "x": 0.5,
+          "y": 0.5
+        }
+      },
+      {
+        "entity_number": 2,
+        "name": "stone-wall",
+        "position": {
+          "x": 31.5,
+          "y": 0.5
+        }
+      },
+      {
+        "entity_number": 3,
+        "name": "stone-wall",
+        "position": {
+          "x": 0.5,
+          "y": 31.5
+        }
+      },
+      {
+        "entity_number": 4,
+        "name": "stone-wall",
+        "position": {
+          "x": 31.5,
+          "y": 31.5
+        }
+      },
+      {
+        "entity_number": 5,
+        "name": "assembling-machine-3",
+        "position": {
+          "x": 5.5,
+          "y": 5.5
+        },
+        "recipe": "crusher",
+        "recipe_quality": "normal",
+        "control_behavior": {
+          "read_ingredients": true
+        }
+      },
+      {
+        "entity_number": 6,
+        "name": "assembling-machine-3",
+        "position": {
+          "x": 9.5,
+          "y": 5.5
+        },
+        "recipe": "crusher",
+        "recipe_quality": "uncommon"
+      },
+      {
+        "entity_number": 7,
+        "name": "assembling-machine-3",
+        "position": {
+          "x": 13.5,
+          "y": 5.5
+        },
+        "recipe": "crusher",
+        "recipe_quality": "rare"
+      },
+      {
+        "entity_number": 8,
+        "name": "assembling-machine-3",
+        "position": {
+          "x": 17.5,
+          "y": 5.5
+        },
+        "recipe": "crusher",
+        "recipe_quality": "epic"
+      },
+      {
+        "entity_number": 9,
+        "name": "assembling-machine-3",
+        "position": {
+          "x": 21.5,
+          "y": 5.5
+        },
+        "recipe": "crusher",
+        "recipe_quality": "legendary"
+      },
+      {
+        "entity_number": 10,
+        "name": "requester-chest",
+        "position": {
+          "x": 5.5,
+          "y": 9.5
+        },
+        "control_behavior": {
+          "set_requests": true,
+          "circuit_condition_enabled": false
+        },
+        "request_filters": {
+          "sections": [
+            {
+              "index": 1
+            }
+          ]
+        }
+      },
+      {
+        "entity_number": 11,
+        "name": "turbo-splitter",
+        "position": {
+          "x": 5,
+          "y": 13.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 12,
+        "name": "turbo-splitter",
+        "position": {
+          "x": 9,
+          "y": 13.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 13,
+        "name": "turbo-splitter",
+        "position": {
+          "x": 13,
+          "y": 13.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 14,
+        "name": "turbo-splitter",
+        "position": {
+          "x": 17,
+          "y": 13.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 15,
+        "name": "turbo-splitter",
+        "position": {
+          "x": 21,
+          "y": 13.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 16,
+        "name": "substation",
+        "position": {
+          "x": 16,
+          "y": 18
+        }
+      }
+    ],
+    "snap-to-grid": {
+      "x": 32,
+      "y": 32
+    },
+    "absolute-snapping": true,
+    "position-relative-to-grid": {
+      "x": 0,
+      "y": 0
+    },
+    "version": 562954249109504,
+    "wires": [
+      [
+        10,
+        2,
+        5,
+        2
+      ]
+    ]
+  }
+}

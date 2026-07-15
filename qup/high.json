@@ -1,0 +1,504 @@
+{
+  "blueprint": {
+    "item": "blueprint",
+    "label": "QUP high bank",
+    "description": "Powered Uncommon-through-Legendary Crusher bank. Separate quality-lane inputs feed steel buffers; products share one belt.",
+    "icons": [
+      {
+        "signal": {
+          "name": "assembling-machine-3"
+        },
+        "index": 1
+      },
+      {
+        "signal": {
+          "name": "quality-module-3",
+          "quality": "legendary"
+        },
+        "index": 2
+      }
+    ],
+    "entities": [
+      {
+        "entity_number": 1,
+        "name": "assembling-machine-3",
+        "position": {
+          "x": 2.5,
+          "y": 3.5
+        },
+        "recipe": "crusher",
+        "recipe_quality": "uncommon",
+        "items": [
+          {
+            "id": {
+              "name": "quality-module-3"
+            },
+            "items": {
+              "in_inventory": [
+                {
+                  "inventory": 4,
+                  "stack": 0
+                },
+                {
+                  "inventory": 4,
+                  "stack": 1
+                },
+                {
+                  "inventory": 4,
+                  "stack": 2
+                },
+                {
+                  "inventory": 4,
+                  "stack": 3
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "entity_number": 2,
+        "name": "steel-chest",
+        "position": {
+          "x": 1.5,
+          "y": 6.5
+        }
+      },
+      {
+        "entity_number": 3,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 1.5,
+          "y": 5.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 4,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 1.5,
+          "y": 7.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 5,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 1.5,
+          "y": 9.5
+        },
+        "direction": 0
+      },
+      {
+        "entity_number": 6,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 1.5,
+          "y": 8.5
+        },
+        "direction": 0
+      },
+      {
+        "entity_number": 7,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 1.5,
+          "y": 1.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 8,
+        "name": "assembling-machine-3",
+        "position": {
+          "x": 5.5,
+          "y": 3.5
+        },
+        "recipe": "crusher",
+        "recipe_quality": "rare",
+        "items": [
+          {
+            "id": {
+              "name": "quality-module-3"
+            },
+            "items": {
+              "in_inventory": [
+                {
+                  "inventory": 4,
+                  "stack": 0
+                },
+                {
+                  "inventory": 4,
+                  "stack": 1
+                },
+                {
+                  "inventory": 4,
+                  "stack": 2
+                },
+                {
+                  "inventory": 4,
+                  "stack": 3
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "entity_number": 9,
+        "name": "steel-chest",
+        "position": {
+          "x": 4.5,
+          "y": 6.5
+        }
+      },
+      {
+        "entity_number": 10,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 4.5,
+          "y": 5.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 11,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 4.5,
+          "y": 7.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 12,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 4.5,
+          "y": 9.5
+        },
+        "direction": 0
+      },
+      {
+        "entity_number": 13,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 4.5,
+          "y": 8.5
+        },
+        "direction": 0
+      },
+      {
+        "entity_number": 14,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 4.5,
+          "y": 1.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 15,
+        "name": "assembling-machine-3",
+        "position": {
+          "x": 8.5,
+          "y": 3.5
+        },
+        "recipe": "crusher",
+        "recipe_quality": "epic",
+        "items": [
+          {
+            "id": {
+              "name": "quality-module-3"
+            },
+            "items": {
+              "in_inventory": [
+                {
+                  "inventory": 4,
+                  "stack": 0
+                },
+                {
+                  "inventory": 4,
+                  "stack": 1
+                },
+                {
+                  "inventory": 4,
+                  "stack": 2
+                },
+                {
+                  "inventory": 4,
+                  "stack": 3
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "entity_number": 16,
+        "name": "steel-chest",
+        "position": {
+          "x": 7.5,
+          "y": 6.5
+        }
+      },
+      {
+        "entity_number": 17,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 7.5,
+          "y": 5.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 18,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 7.5,
+          "y": 7.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 19,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 7.5,
+          "y": 9.5
+        },
+        "direction": 0
+      },
+      {
+        "entity_number": 20,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 7.5,
+          "y": 8.5
+        },
+        "direction": 0
+      },
+      {
+        "entity_number": 21,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 7.5,
+          "y": 1.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 22,
+        "name": "assembling-machine-3",
+        "position": {
+          "x": 11.5,
+          "y": 3.5
+        },
+        "recipe": "crusher",
+        "recipe_quality": "legendary"
+      },
+      {
+        "entity_number": 23,
+        "name": "steel-chest",
+        "position": {
+          "x": 10.5,
+          "y": 6.5
+        }
+      },
+      {
+        "entity_number": 24,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 10.5,
+          "y": 5.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 25,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 10.5,
+          "y": 7.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 26,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 10.5,
+          "y": 9.5
+        },
+        "direction": 0
+      },
+      {
+        "entity_number": 27,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 10.5,
+          "y": 8.5
+        },
+        "direction": 0
+      },
+      {
+        "entity_number": 28,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 10.5,
+          "y": 1.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 29,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 0.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 30,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 1.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 31,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 2.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 32,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 3.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 33,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 4.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 34,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 5.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 35,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 6.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 36,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 7.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 37,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 8.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 38,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 9.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 39,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 10.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 40,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 11.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 41,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 12.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 42,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 13.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 43,
+        "name": "substation",
+        "position": {
+          "x": 7,
+          "y": 11
+        }
+      }
+    ],
+    "version": 562954249109504
+  }
+}

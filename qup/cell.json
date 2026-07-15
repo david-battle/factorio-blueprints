@@ -1,0 +1,140 @@
+{
+  "blueprint": {
+    "item": "blueprint",
+    "label": "QUP normal cell",
+    "description": "Isolated flow test: wired recipe-driven requester -> input bulk inserter -> Normal AM3 -> output bulk inserter -> turbo belt.",
+    "icons": [
+      {
+        "signal": {
+          "name": "assembling-machine-3"
+        },
+        "index": 1
+      },
+      {
+        "signal": {
+          "name": "crusher"
+        },
+        "index": 2
+      }
+    ],
+    "entities": [
+      {
+        "entity_number": 1,
+        "name": "assembling-machine-3",
+        "position": {
+          "x": 2.5,
+          "y": 3.5
+        },
+        "recipe": "crusher",
+        "recipe_quality": "normal",
+        "control_behavior": {
+          "read_ingredients": true
+        },
+        "items": [
+          {
+            "id": {
+              "name": "quality-module-3"
+            },
+            "items": {
+              "in_inventory": [
+                {
+                  "inventory": 4,
+                  "stack": 0
+                },
+                {
+                  "inventory": 4,
+                  "stack": 1
+                },
+                {
+                  "inventory": 4,
+                  "stack": 2
+                },
+                {
+                  "inventory": 4,
+                  "stack": 3
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "entity_number": 2,
+        "name": "requester-chest",
+        "position": {
+          "x": 1.5,
+          "y": 6.5
+        },
+        "control_behavior": {
+          "read_contents": false,
+          "set_requests": true,
+          "circuit_condition_enabled": false
+        },
+        "request_filters": {
+          "sections": [
+            {
+              "index": 1
+            }
+          ],
+          "request_from_buffers": true
+        }
+      },
+      {
+        "entity_number": 3,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 1.5,
+          "y": 5.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 4,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 1.5,
+          "y": 1.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 5,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 1.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 6,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 2.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 7,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 3.5,
+          "y": 0.5
+        },
+        "direction": 4
+      }
+    ],
+    "wires": [
+      [
+        1,
+        2,
+        2,
+        2
+      ]
+    ],
+    "version": 562954249109504
+  }
+}

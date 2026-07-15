@@ -1,0 +1,153 @@
+{
+  "expected": {
+    "assembler_utilization": {
+      "epic": 0.007681358240605466,
+      "legendary": 0.0006827873991649304,
+      "normal": 1.0,
+      "rare": 0.040786155796413495,
+      "uncommon": 0.20313479623824182
+    },
+    "craft_capacity_per_second": {
+      "epic": 0.1,
+      "legendary": 0.125,
+      "normal": 0.4,
+      "rare": 0.1,
+      "uncommon": 0.1
+    },
+    "crafts_per_second": {
+      "epic": 0.0007681358240605467,
+      "legendary": 8.53484248956163e-05,
+      "normal": 0.4,
+      "rare": 0.0040786155796413495,
+      "uncommon": 0.020313479623824182
+    },
+    "external_normal_items_per_second": {
+      "electric-engine-unit": 3.19,
+      "low-density-structure": 6.38,
+      "steel-plate": 3.19
+    },
+    "external_normal_recipe_sets_per_second": 0.319,
+    "legendary_products_per_second": 0.00026326164272190867,
+    "minimum_recyclers": 1,
+    "products_per_second": {
+      "epic": 0.0016012189604366314,
+      "legendary": 0.00026326164272190867,
+      "normal": 0.36000000000000004,
+      "rare": 0.009098967187821393,
+      "uncommon": 0.054282131661441774
+    },
+    "recovered_recipe_sets_per_second": {
+      "epic": 0.0007681358240624674,
+      "legendary": 8.534842489582973e-05,
+      "normal": 0.08100000000000002,
+      "rare": 0.004078615579642254,
+      "uncommon": 0.0203134796238244
+    },
+    "recycler_capacity_each_per_second": 0.64,
+    "recycler_count": 1,
+    "recycler_input_per_second": 0.42498231780969986,
+    "recycler_utilization": 0.6640348715776561
+  },
+  "scenario": {
+    "assembler_counts": {
+      "epic": 1,
+      "legendary": 1,
+      "normal": 4,
+      "rare": 1,
+      "uncommon": 1
+    },
+    "assembler_quality_chance": 0.1,
+    "ingredients": {
+      "electric-engine-unit": 10,
+      "low-density-structure": 20,
+      "steel-plate": 10
+    },
+    "legendary_assembler_cycle_seconds": 8.0,
+    "quality_assembler_cycle_seconds": 10.0,
+    "recipe": "crusher",
+    "recycler_cycle_seconds": 1.5625,
+    "recycler_quality_chance": 0.1
+  },
+  "stochastic": {
+    "assembler_utilization": {
+      "epic": {
+        "max": 0.007944444444444443,
+        "mean": 0.00754861111111111,
+        "min": 0.007277777777777778,
+        "stddev": 0.0001675612565343132
+      },
+      "legendary": {
+        "max": 0.0006888888888888888,
+        "mean": 0.0006433333333333333,
+        "min": 0.0006,
+        "stddev": 2.852332811776319e-05
+      },
+      "normal": {
+        "max": 1.0,
+        "mean": 1.0,
+        "min": 1.0,
+        "stddev": 0.0
+      },
+      "rare": {
+        "max": 0.04113888888888889,
+        "mean": 0.0404125,
+        "min": 0.03969444444444444,
+        "stddev": 0.0004180786261629761
+      },
+      "uncommon": {
+        "max": 0.20413888888888887,
+        "mean": 0.20240555555555553,
+        "min": 0.2008611111111111,
+        "stddev": 0.0009155043135606487
+      }
+    },
+    "ending_recycler_queue": {
+      "max": 3,
+      "mean": 3,
+      "min": 3,
+      "stddev": 0.0
+    },
+    "external_items_per_second": {
+      "electric-engine-unit": {
+        "max": 3.193025,
+        "mean": 3.190038888888889,
+        "min": 3.1882027777777777,
+        "stddev": 0.0011408238981835393
+      },
+      "low-density-structure": {
+        "max": 6.385280555555555,
+        "mean": 6.38013625,
+        "min": 6.377630555555555,
+        "stddev": 0.0016675394647540178
+      },
+      "steel-plate": {
+        "max": 3.192338888888889,
+        "mean": 3.190075277777778,
+        "min": 3.188011111111111,
+        "stddev": 0.0010146762163735442
+      }
+    },
+    "hours_per_trial": 100.0,
+    "legendary_products_per_hour": {
+      "max": 1.07,
+      "mean": 0.929,
+      "min": 0.83,
+      "stddev": 0.06048966853934646
+    },
+    "maximum_recycler_queue": {
+      "max": 5,
+      "mean": 5,
+      "min": 5,
+      "stddev": 0.0
+    },
+    "recycler_count": 1,
+    "recycler_utilization": {
+      "max": 0.6642881944444444,
+      "mean": 0.6638248697916667,
+      "min": 0.6635243055555555,
+      "stddev": 0.00019067050720314986
+    },
+    "seed": 2111,
+    "trials": 20
+  }
+}

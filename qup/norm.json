@@ -1,0 +1,500 @@
+{
+  "blueprint": {
+    "item": "blueprint",
+    "label": "QUP Normal bank",
+    "description": "Four proven Normal Crusher cells with isolated recipe-driven requesters and a shared eastbound turbo output belt.",
+    "icons": [
+      {
+        "signal": {
+          "name": "assembling-machine-3"
+        },
+        "index": 1
+      },
+      {
+        "signal": {
+          "name": "crusher"
+        },
+        "index": 2
+      }
+    ],
+    "entities": [
+      {
+        "entity_number": 1,
+        "name": "assembling-machine-3",
+        "position": {
+          "x": 2.5,
+          "y": 3.5
+        },
+        "recipe": "crusher",
+        "recipe_quality": "normal",
+        "control_behavior": {
+          "read_ingredients": true
+        },
+        "items": [
+          {
+            "id": {
+              "name": "quality-module-3"
+            },
+            "items": {
+              "in_inventory": [
+                {
+                  "inventory": 4,
+                  "stack": 0
+                },
+                {
+                  "inventory": 4,
+                  "stack": 1
+                },
+                {
+                  "inventory": 4,
+                  "stack": 2
+                },
+                {
+                  "inventory": 4,
+                  "stack": 3
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "entity_number": 2,
+        "name": "requester-chest",
+        "position": {
+          "x": 1.5,
+          "y": 6.5
+        },
+        "control_behavior": {
+          "read_contents": false,
+          "set_requests": true,
+          "circuit_condition_enabled": false
+        },
+        "request_filters": {
+          "sections": [
+            {
+              "index": 1
+            }
+          ],
+          "request_from_buffers": true
+        }
+      },
+      {
+        "entity_number": 3,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 1.5,
+          "y": 5.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 4,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 1.5,
+          "y": 1.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 5,
+        "name": "assembling-machine-3",
+        "position": {
+          "x": 5.5,
+          "y": 3.5
+        },
+        "recipe": "crusher",
+        "recipe_quality": "normal",
+        "control_behavior": {
+          "read_ingredients": true
+        },
+        "items": [
+          {
+            "id": {
+              "name": "quality-module-3"
+            },
+            "items": {
+              "in_inventory": [
+                {
+                  "inventory": 4,
+                  "stack": 0
+                },
+                {
+                  "inventory": 4,
+                  "stack": 1
+                },
+                {
+                  "inventory": 4,
+                  "stack": 2
+                },
+                {
+                  "inventory": 4,
+                  "stack": 3
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "entity_number": 6,
+        "name": "requester-chest",
+        "position": {
+          "x": 4.5,
+          "y": 6.5
+        },
+        "control_behavior": {
+          "read_contents": false,
+          "set_requests": true,
+          "circuit_condition_enabled": false
+        },
+        "request_filters": {
+          "sections": [
+            {
+              "index": 1
+            }
+          ],
+          "request_from_buffers": true
+        }
+      },
+      {
+        "entity_number": 7,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 4.5,
+          "y": 5.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 8,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 4.5,
+          "y": 1.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 9,
+        "name": "assembling-machine-3",
+        "position": {
+          "x": 8.5,
+          "y": 3.5
+        },
+        "recipe": "crusher",
+        "recipe_quality": "normal",
+        "control_behavior": {
+          "read_ingredients": true
+        },
+        "items": [
+          {
+            "id": {
+              "name": "quality-module-3"
+            },
+            "items": {
+              "in_inventory": [
+                {
+                  "inventory": 4,
+                  "stack": 0
+                },
+                {
+                  "inventory": 4,
+                  "stack": 1
+                },
+                {
+                  "inventory": 4,
+                  "stack": 2
+                },
+                {
+                  "inventory": 4,
+                  "stack": 3
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "entity_number": 10,
+        "name": "requester-chest",
+        "position": {
+          "x": 7.5,
+          "y": 6.5
+        },
+        "control_behavior": {
+          "read_contents": false,
+          "set_requests": true,
+          "circuit_condition_enabled": false
+        },
+        "request_filters": {
+          "sections": [
+            {
+              "index": 1
+            }
+          ],
+          "request_from_buffers": true
+        }
+      },
+      {
+        "entity_number": 11,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 7.5,
+          "y": 5.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 12,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 7.5,
+          "y": 1.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 13,
+        "name": "assembling-machine-3",
+        "position": {
+          "x": 11.5,
+          "y": 3.5
+        },
+        "recipe": "crusher",
+        "recipe_quality": "normal",
+        "control_behavior": {
+          "read_ingredients": true
+        },
+        "items": [
+          {
+            "id": {
+              "name": "quality-module-3"
+            },
+            "items": {
+              "in_inventory": [
+                {
+                  "inventory": 4,
+                  "stack": 0
+                },
+                {
+                  "inventory": 4,
+                  "stack": 1
+                },
+                {
+                  "inventory": 4,
+                  "stack": 2
+                },
+                {
+                  "inventory": 4,
+                  "stack": 3
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "entity_number": 14,
+        "name": "requester-chest",
+        "position": {
+          "x": 10.5,
+          "y": 6.5
+        },
+        "control_behavior": {
+          "read_contents": false,
+          "set_requests": true,
+          "circuit_condition_enabled": false
+        },
+        "request_filters": {
+          "sections": [
+            {
+              "index": 1
+            }
+          ],
+          "request_from_buffers": true
+        }
+      },
+      {
+        "entity_number": 15,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 10.5,
+          "y": 5.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 16,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 10.5,
+          "y": 1.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 17,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 0.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 18,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 1.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 19,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 2.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 20,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 3.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 21,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 4.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 22,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 5.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 23,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 6.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 24,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 7.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 25,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 8.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 26,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 9.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 27,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 10.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 28,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 11.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 29,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 12.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 30,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 13.5,
+          "y": 0.5
+        },
+        "direction": 4
+      }
+    ],
+    "wires": [
+      [
+        2,
+        2,
+        1,
+        2
+      ],
+      [
+        6,
+        2,
+        5,
+        2
+      ],
+      [
+        10,
+        2,
+        9,
+        2
+      ],
+      [
+        14,
+        2,
+        13,
+        2
+      ]
+    ],
+    "version": 562954249109504
+  }
+}

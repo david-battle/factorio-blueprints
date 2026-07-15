@@ -1,0 +1,59 @@
+{
+  "evidence": {
+    "classification": "installed-source-verified",
+    "factorio_version": "2.1.11",
+    "build": 86962,
+    "executable_version_checked": "2026-07-15",
+    "runtime_dump_completed": false,
+    "runtime_dump_note": "A running Factorio server and client prevented a separate --dump-data process. Values were traced through the installed, unmodified 2.1.11 prototype Lua instead.",
+    "installation": "D:/factorio-standalone/Factorio_2.1.11",
+    "sources": [
+      "data/space-age/prototypes/recipe.lua",
+      "data/base/prototypes/entity/entities.lua",
+      "data/quality/prototypes/item.lua",
+      "data/recycler/data.lua",
+      "data/recycler/recycling.lua",
+      "data/recycler/data-updates.lua"
+    ]
+  },
+  "recipe": {
+    "name": "crusher",
+    "energy_required": 10.0,
+    "result_count": 1,
+    "ingredients": {
+      "low-density-structure": 20,
+      "steel-plate": 10,
+      "electric-engine-unit": 10
+    },
+    "recycling_energy_required": 0.625,
+    "recycling_return_fraction": 0.25
+  },
+  "assembler": {
+    "name": "assembling-machine-3",
+    "crafting_categories": [
+      "crafting",
+      "advanced-crafting",
+      "crafting-with-fluid"
+    ],
+    "crafting_speed": 1.25,
+    "module_slots": 4
+  },
+  "recycler": {
+    "name": "recycler",
+    "crafting_speed": 0.5,
+    "module_slots": 4,
+    "allowed_effects": [
+      "consumption",
+      "speed",
+      "pollution",
+      "quality"
+    ]
+  },
+  "quality_module": {
+    "name": "quality-module-3",
+    "quality": "normal",
+    "quality_chance_per_module": 0.025,
+    "speed_modifier_per_module": -0.05,
+    "count_per_machine": 4
+  }
+}

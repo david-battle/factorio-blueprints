@@ -1,0 +1,154 @@
+{
+  "blueprint": {
+    "item": "blueprint",
+    "label": "QUP Epic tier",
+    "description": "Feed mixed Epic Crusher ingredients from the west. A steel buffer supplies an Epic-recipe AM3 with four Quality Module 3s.",
+    "icons": [
+      {
+        "signal": {
+          "name": "assembling-machine-3"
+        },
+        "index": 1
+      },
+      {
+        "signal": {
+          "name": "quality-module-3",
+          "quality": "epic"
+        },
+        "index": 2
+      }
+    ],
+    "entities": [
+      {
+        "entity_number": 1,
+        "name": "assembling-machine-3",
+        "position": {
+          "x": 2.5,
+          "y": 3.5
+        },
+        "recipe": "crusher",
+        "recipe_quality": "epic",
+        "items": [
+          {
+            "id": {
+              "name": "quality-module-3"
+            },
+            "items": {
+              "in_inventory": [
+                {
+                  "inventory": 4,
+                  "stack": 0
+                },
+                {
+                  "inventory": 4,
+                  "stack": 1
+                },
+                {
+                  "inventory": 4,
+                  "stack": 2
+                },
+                {
+                  "inventory": 4,
+                  "stack": 3
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "entity_number": 2,
+        "name": "steel-chest",
+        "position": {
+          "x": 1.5,
+          "y": 6.5
+        }
+      },
+      {
+        "entity_number": 3,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 1.5,
+          "y": 5.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 4,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 1.5,
+          "y": 7.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 5,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": -0.5,
+          "y": 8.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 6,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 0.5,
+          "y": 8.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 7,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 1.5,
+          "y": 8.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 8,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 1.5,
+          "y": 1.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 9,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 1.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 10,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 2.5,
+          "y": 0.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 11,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 3.5,
+          "y": 0.5
+        },
+        "direction": 4
+      }
+    ],
+    "version": 562954249109504
+  }
+}

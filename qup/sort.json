@@ -1,0 +1,322 @@
+{
+  "blueprint": {
+    "item": "blueprint",
+    "label": "QUP quality sorter",
+    "description": "Mixed recycler output enters from the west. Four connected quality-only splitters extract Legendary through Uncommon; the final remainder is Normal.",
+    "icons": [
+      {
+        "signal": {
+          "name": "turbo-splitter"
+        },
+        "index": 1
+      },
+      {
+        "signal": {
+          "name": "quality-module-3"
+        },
+        "index": 2
+      }
+    ],
+    "entities": [
+      {
+        "entity_number": 1,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 1.5,
+          "y": 2.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 2,
+        "name": "turbo-splitter",
+        "position": {
+          "x": 2.5,
+          "y": 2
+        },
+        "direction": 4,
+        "filter": {
+          "quality": "legendary",
+          "comparator": "="
+        },
+        "output_priority": "left"
+      },
+      {
+        "entity_number": 3,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 3.5,
+          "y": 1.5
+        },
+        "direction": 0
+      },
+      {
+        "entity_number": 4,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 3.5,
+          "y": 0.5
+        },
+        "direction": 0
+      },
+      {
+        "entity_number": 5,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 3.5,
+          "y": -0.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 6,
+        "name": "iron-chest",
+        "position": {
+          "x": 3.5,
+          "y": -1.5
+        }
+      },
+      {
+        "entity_number": 7,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 3.5,
+          "y": 2.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 8,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 4.5,
+          "y": 2.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 9,
+        "name": "turbo-splitter",
+        "position": {
+          "x": 5.5,
+          "y": 2
+        },
+        "direction": 4,
+        "filter": {
+          "quality": "epic",
+          "comparator": "="
+        },
+        "output_priority": "left"
+      },
+      {
+        "entity_number": 10,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 6.5,
+          "y": 1.5
+        },
+        "direction": 0
+      },
+      {
+        "entity_number": 11,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 6.5,
+          "y": 0.5
+        },
+        "direction": 0
+      },
+      {
+        "entity_number": 12,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 6.5,
+          "y": -0.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 13,
+        "name": "iron-chest",
+        "position": {
+          "x": 6.5,
+          "y": -1.5
+        }
+      },
+      {
+        "entity_number": 14,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 6.5,
+          "y": 2.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 15,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 7.5,
+          "y": 2.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 16,
+        "name": "turbo-splitter",
+        "position": {
+          "x": 8.5,
+          "y": 2
+        },
+        "direction": 4,
+        "filter": {
+          "quality": "rare",
+          "comparator": "="
+        },
+        "output_priority": "left"
+      },
+      {
+        "entity_number": 17,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 9.5,
+          "y": 1.5
+        },
+        "direction": 0
+      },
+      {
+        "entity_number": 18,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 9.5,
+          "y": 0.5
+        },
+        "direction": 0
+      },
+      {
+        "entity_number": 19,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 9.5,
+          "y": -0.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 20,
+        "name": "iron-chest",
+        "position": {
+          "x": 9.5,
+          "y": -1.5
+        }
+      },
+      {
+        "entity_number": 21,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 9.5,
+          "y": 2.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 22,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 10.5,
+          "y": 2.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 23,
+        "name": "turbo-splitter",
+        "position": {
+          "x": 11.5,
+          "y": 2
+        },
+        "direction": 4,
+        "filter": {
+          "quality": "uncommon",
+          "comparator": "="
+        },
+        "output_priority": "left"
+      },
+      {
+        "entity_number": 24,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 12.5,
+          "y": 1.5
+        },
+        "direction": 0
+      },
+      {
+        "entity_number": 25,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 12.5,
+          "y": 0.5
+        },
+        "direction": 0
+      },
+      {
+        "entity_number": 26,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 12.5,
+          "y": -0.5
+        },
+        "direction": 8,
+        "mirror": true
+      },
+      {
+        "entity_number": 27,
+        "name": "iron-chest",
+        "position": {
+          "x": 12.5,
+          "y": -1.5
+        }
+      },
+      {
+        "entity_number": 28,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 12.5,
+          "y": 2.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 29,
+        "name": "turbo-transport-belt",
+        "position": {
+          "x": 13.5,
+          "y": 2.5
+        },
+        "direction": 4
+      },
+      {
+        "entity_number": 30,
+        "name": "bulk-inserter",
+        "position": {
+          "x": 14.5,
+          "y": 2.5
+        },
+        "direction": 12
+      },
+      {
+        "entity_number": 31,
+        "name": "iron-chest",
+        "position": {
+          "x": 15.5,
+          "y": 2.5
+        }
+      }
+    ],
+    "version": 562954249109504
+  }
+}

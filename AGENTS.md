@@ -38,3 +38,90 @@ For a design intended to occupy exactly one 32 x 32 Factorio world chunk:
 
 For multi-chunk designs, apply the same principle using dimensions that are
 multiples of 32 and keep their outer nominal bounds on multiples of 32.
+
+## Factorio 2.1.11 blueprint learnings
+
+- Prefer small in-game validation blueprints before composing a full layout.
+  Copy exact exported positions, directions, control behavior, wires, and item
+  inventory structures rather than inferring undocumented JSON shapes.
+- A splitter that filters every item of one quality has no item `name`:
+
+  ```json
+  "filter": {"quality": "epic", "comparator": "="}
+  ```
+
+  Set `output_priority` to the desired filtered side. Quality-only splitter
+  ladders can replace recipe-specific item-by-quality sorter matrices.
+- For recipe-independent requester chests, wire the chest to an assembling
+  machine configured with `"read_ingredients": true`. Configure the requester
+  with `"set_requests": true`, `"read_contents": false`, and an empty request
+  section. Reading chest contents on the same circuit can feed inventory counts
+  back as requests and cause requests to grow as the chest fills.
+- When buffer chests are valid ingredient sources, set
+  `request_filters.request_from_buffers` to `true` on every requester chest.
+- A verified green-wire export between an assembling machine and requester chest
+  uses connector 2 at both ends: `[assembler_number, 2, chest_number, 2]`.
+- In the verified Normal assembler cell, the bulk inserters use `direction: 8`
+  and `mirror: true`. Keep the requester immediately adjacent to its inserter;
+  validate reach and arrows in game before replicating a cell.
+- Factorio 2.1.11 exports four normal-quality Quality Module 3s as an `items`
+  array with one item ID and four explicit module inventory slots:
+
+  ```json
+  "items": [{
+    "id": {"name": "quality-module-3"},
+    "items": {"in_inventory": [
+      {"inventory": 4, "stack": 0},
+      {"inventory": 4, "stack": 1},
+      {"inventory": 4, "stack": 2},
+      {"inventory": 4, "stack": 3}
+    ]}
+  }]
+  ```
+
+  Do not encode modules as a name-to-count dictionary in this target version.
+- A compact row of 3 x 3 assembling machines needs a three-tile center pitch;
+  a four-tile pitch introduces an unnecessary one-tile aisle. Preserve the
+  proven off-center inserter column when compacting replicated cells.
+- For the verified default-orientation recycler, relative to its center:
+
+  - the input belt is at `(-2.5, -1.5)`;
+  - the input bulk inserter is at `(-1.5, -1.5)` with `direction: 12`;
+  - recovered ingredients are ejected automatically onto the belt at
+    `(-0.5, -2.5)`.
+
+  Do not add a recycler output inserter. An incorrectly positioned output
+  inserter can cause the recycler to throw its first products onto the ground.
+- Belts must occupy the immediately adjacent input and output tiles of a
+  splitter. For an east-facing splitter centered at `(x, y)`, the continuing
+  south-lane belts are at `(x - 1, y + 0.5)` and `(x + 1, y + 0.5)`; leaving an
+  extra tile creates a disconnected gap.
+- On a turning belt path, the corner entity's direction is the outgoing
+  direction. Audit every west-to-north, north-to-east, and similar corner
+  explicitly; a straight-direction corner can look close while remaining
+  disconnected.
+- A five-quality sorter needs only four quality-only splitters. Extract
+  Legendary, Epic, Rare, and Uncommon; the final remainder is Normal. Use steel
+  chests, not iron chests, for the mixed-item quality buffers, and connect each
+  buffer to active consumption so it provides backpressure rather than merely
+  filling forever.
+- A mixed-item buffer of one quality can directly feed an assembler configured
+  for that recipe quality. The assembler input inserter automatically selects
+  the recipe ingredients it needs; item-specific sorter filters are unnecessary.
+- Recovered Normal ingredients may be inserted into the wired Normal requester
+  chests. Logistic requests automatically account for chest inventory without
+  exposing chest contents on the circuit, provided `read_contents` remains
+  `false`.
+- Explicit copper connections between electric poles/substations use connector
+  ID 5 at both ends: `[pole_a, 5, pole_b, 5]`. Add a connected copper graph to
+  the blueprint instead of assuming nearby poles will auto-connect as intended.
+- Keep substations outside belt corridors and future lane-extension paths. For
+  designs with several logistic chests, include a powered roboport positioned
+  to cover the complete chest bank rather than relying on external coverage.
+- Before export, reject duplicate entity-center positions and calculate nominal
+  footprints for every entity prototype. For a one-chunk design, assert every
+  footprint edge stays within local coordinates `0..32`, then export 32 x 32
+  absolute snapping with a zero grid offset.
+- Use an underground-belt pair for unavoidable crossings between independent
+  flows; do not place two ordinary belts at one center or silently merge the
+  product, recycler-input, and recovered-ingredient paths.
