@@ -31,6 +31,12 @@ FACTORIO_VERSION = "2.1.11"
 BLUEPRINT_VERSION = (2 << 48) | (1 << 32) | (11 << 16)
 CHUNK_TILES = 32
 CHUNK_STATUS = "documented"
+# Keep entity coordinates in the local chunk interval [0, 32). Factorio's
+# global chunk boundaries are multiples of 32, so absolute snapping must use a
+# zero offset. A (16, 16) offset puts these bounds half a chunk off the world
+# grid and makes the layout straddle four chunks.
+BLUEPRINT_CENTER_OFFSET = 0
+ABSOLUTE_GRID_OFFSET = {"x": 0, "y": 0}
 QUALITY = "normal"
 QUALITY_STATUS = "project-choice"
 COVERAGE_RULE = "nominal-footprint-intersects-closed-supply-square"
@@ -174,6 +180,22 @@ def poles_can_connect(first: Entity, second: Entity) -> bool:
     return (ax - bx) ** 2 + (ay - by) ** 2 <= reach2**2
 
 
+def substation_supply_in_bounds(entity: Entity) -> bool:
+    """Return whether a substation's entire electric supply square is in-chunk."""
+    if entity.prototype != "substation":
+        return True
+    distance = entity.spec.supply_distance2
+    assert distance is not None
+    center_x, center_y = entity.center2
+    chunk_size2 = 2 * CHUNK_TILES
+    return (
+        center_x - distance >= 0
+        and center_y - distance >= 0
+        and center_x + distance <= chunk_size2
+        and center_y + distance <= chunk_size2
+    )
+
+
 def validate(entities: Sequence[Entity]) -> ValidationResult:
     errors: list[str] = []
     ids = [entity.entity_id for entity in entities]
@@ -188,6 +210,10 @@ def validate(entities: Sequence[Entity]) -> ValidationResult:
         known_entities.append(entity)
         if not in_bounds(entity):
             errors.append(f"entity {entity.entity_id} is outside the chunk")
+        if not substation_supply_in_bounds(entity):
+            errors.append(
+                f"substation {entity.entity_id} supply area extends outside the chunk"
+            )
 
     for index, first in enumerate(known_entities):
         for second in known_entities[index + 1 :]:
@@ -275,10 +301,49 @@ def _panel_grid(poles: Sequence[Entity], offset_x: int, offset_y: int) -> tuple[
     return tuple(panels)
 
 
+# A reflection-symmetric packing around substations whose 18x18 supply squares
+# touch the four chunk corners.  Unlike _panel_grid, central rows are staggered
+# where needed to recover space around the 2x2 substation footprints.
+SYMMETRIC_PANEL_POSITIONS = (
+    (0,0),(3,0),(7,0),(10,0),(13,0),(16,0),(19,0),(22,0),(26,0),(29,0),
+    (3,3),(6,3),(10,3),(19,3),(23,3),(26,3),(0,4),(13,4),(16,4),(29,4),
+    (0,7),(5,7),(10,7),(13,7),(16,7),(19,7),(24,7),(29,7),
+    (0,10),(3,10),(7,10),(10,10),(13,10),(16,10),(19,10),(22,10),(26,10),(29,10),
+    (0,13),(3,13),(6,13),(9,13),(12,13),(17,13),(20,13),(23,13),(26,13),(29,13),
+    (0,16),(3,16),(6,16),(9,16),(12,16),(17,16),(20,16),(23,16),(26,16),(29,16),
+    (0,19),(3,19),(7,19),(10,19),(13,19),(16,19),(19,19),(22,19),(26,19),(29,19),
+    (0,22),(5,22),(10,22),(13,22),(16,22),(19,22),(24,22),(29,22),
+    (0,25),(13,25),(16,25),(29,25),(3,26),(6,26),(10,26),(19,26),(23,26),(26,26),
+    (0,29),(3,29),(7,29),(10,29),(13,29),(16,29),(19,29),(22,29),(26,29),(29,29),
+)
+
+
+def _symmetric_substation_candidate() -> tuple[Entity, ...]:
+    substations = tuple(
+        Entity(index + 1, "substation", left, top)
+        for index, (left, top) in enumerate(((8, 8), (22, 8), (8, 22), (22, 22)))
+    )
+    panels = tuple(
+        Entity(index + 5, "solar-panel", left, top)
+        for index, (left, top) in enumerate(SYMMETRIC_PANEL_POSITIONS)
+    )
+    return substations + panels
+
+
 def search() -> SearchResult:
     """Return the best candidate in a bounded heuristic family, not a proof."""
-    best: SearchResult | None = None
-    checked = 0
+    symmetric_entities = _symmetric_substation_candidate()
+    symmetric_validation = validate(symmetric_entities)
+    if not symmetric_validation.valid:
+        raise RuntimeError("built-in symmetric candidate is invalid")
+    checked = 1
+    best: SearchResult | None = SearchResult(
+        symmetric_entities,
+        symmetric_validation,
+        "best-found-not-proven-optimal",
+        checked,
+        "accumulator-space-optimized reflection-symmetric four-substation packing plus regular pole lattices",
+    )
     for prototype in (
         "small-electric-pole",
         "medium-electric-pole",
@@ -395,14 +460,14 @@ def blueprint_json(result: SearchResult) -> dict:
             "version": BLUEPRINT_VERSION,
             "snap-to-grid": {"x": CHUNK_TILES, "y": CHUNK_TILES},
             "absolute-snapping": True,
-            "position-relative-to-grid": {"x": 0, "y": 0},
+            "position-relative-to-grid": dict(ABSOLUTE_GRID_OFFSET),
             "entities": [
                 {
                     "entity_number": entity.entity_id,
                     "name": entity.prototype,
                     "position": {
-                        "x": entity.center2[0] / 2,
-                        "y": entity.center2[1] / 2,
+                        "x": entity.center2[0] / 2 - BLUEPRINT_CENTER_OFFSET,
+                        "y": entity.center2[1] / 2 - BLUEPRINT_CENTER_OFFSET,
                     },
                     "quality": QUALITY,
                 }
