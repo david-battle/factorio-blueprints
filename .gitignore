@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+
+# Machine-local live Factorio console captures.
+tools/server-console.txt
+tools/console-*.txt
