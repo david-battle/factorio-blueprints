@@ -2,8 +2,11 @@
 
 ## 1. Status
 
-This document specifies the intended design. It does not authorize or describe
-an implemented generator, checked-in blueprint string, or finalized layout.
+This document records both the intended design and the current integrated beta.
+The repository now contains a generator, decoded JSON, and importable blueprint
+string. The beta has a validated one-chunk layout, but it is not final until the
+remaining in-game and native-parameterization verification gates in Section 11
+have passed.
 
 Target **Factorio: Space Age experimental 2.1.11**, with all five quality levels
 unlocked and no gameplay mods that change the relevant recipes, entities,
@@ -292,8 +295,9 @@ recipe with a different ingredient count. For each test recipe, verify recipes
 and recipe qualities on all eight assemblers, requester-chest contents, filters
 and circuit signals, routing, recycling, and Legendary extraction.
 
-The eventual generator should separate recipe data from physical layout. At a
-minimum, its input model should cover:
+The current generator still embeds the crusher reference recipe and should be
+refactored to separate recipe data from physical layout. A final input model
+should cover:
 
 - target item and recipe prototype names;
 - target Factorio version;
@@ -346,13 +350,17 @@ rates. The checked-in detailed result is `crusher_analysis.json`.
 
 ## 10. Physical layout and blueprint metadata
 
-No footprint or chunk count has yet been chosen. The design does not currently
-require a one-chunk layout.
+The integrated beta occupies one 32 x 32 chunk. Its nominal footprint is local
+coordinates `(0, 0)` through `(32, 32)`, and it exports:
 
-Once a footprint is chosen, its outer nominal bounds should be multiples of 32
-where practical. If the design is exported with absolute snapping, it shall
-follow the repository alignment rules: outer nominal bounds on world chunk
-boundaries and a zero absolute grid offset. It must not use a half-chunk shift.
+```json
+"snap-to-grid": {"x": 32, "y": 32},
+"absolute-snapping": true,
+"position-relative-to-grid": {"x": 0, "y": 0}
+```
+
+The generator validates these bounds, rejects duplicate entity centers, and
+checks that every known prototype footprint remains inside the chunk.
 
 All entity positions are entity centers. The implementation must preserve
 prototype names, entity qualities, recipe selections, module inventories,
@@ -390,16 +398,14 @@ checked-in blueprint artifacts and rerunning the decode-and-validate round trip.
 
 ## 12. Open design decisions
 
-- Inserter capacities and circuit conditions at each transfer point; the
-  default inserter is a normal-quality bulk inserter, internal buffers are iron
-  chests, requester chests are confined to the Normal-input boundary, and a
-  passive provider chest is used for Legendary output.
-- Recycler placement and provision for an optional repeatable second recycler.
-- Buffer sizes and overflow behavior.
+- Inserter capacities and any circuit conditions needed after sustained
+  in-game throughput testing.
+- Provision for an optional repeatable second recycler; the beta contains one.
+- Final buffer sizes and overflow behavior. The beta uses recipe-derived buffer
+  requests, dedicated storage overflow, and one-stack Normal-through-Epic
+  product reserves.
 - Whether idle Normal assemblers need circuit-controlled input priority.
 - Whether all four Normal assemblers share equal priority or start in stages.
-- Power distribution entities and their qualities.
-- Blueprint dimensions, symmetry, tiling, and snapping grid.
 - Which routing and filtering mechanisms remain fully generic under native
   parameterization, especially for recipes with different ingredient counts.
 - Legendary assembler module variant, if any.
