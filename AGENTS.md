@@ -101,10 +101,9 @@ multiples of 32 and keep their outer nominal bounds on multiples of 32.
   explicitly; a straight-direction corner can look close while remaining
   disconnected.
 - A five-quality sorter needs only four quality-only splitters. Extract
-  Legendary, Epic, Rare, and Uncommon; the final remainder is Normal. Use steel
-  chests, not iron chests, for the mixed-item quality buffers, and connect each
-  buffer to active consumption so it provides backpressure rather than merely
-  filling forever.
+  Legendary, Epic, Rare, and Uncommon; the final remainder is Normal. Connect
+  every mixed-item quality buffer to active consumption and provide deliberate
+  overflow handling so one surplus quality cannot deadlock recycler output.
 - A mixed-item buffer of one quality can directly feed an assembler configured
   for that recipe quality. The assembler input inserter automatically selects
   the recipe ingredients it needs; item-specific sorter filters are unnecessary.
@@ -148,6 +147,9 @@ multiples of 32 and keep their outer nominal bounds on multiples of 32.
   matching reserve pickup on that output tile or downstream of it; placing it
   upstream means it can collect quality procs from earlier assemblers but can
   never collect the native assembler's own products.
-- If Legendary products already leave through a proven quality-only splitter,
-  retain that dedicated outlet and add one-stack reserve chests only for the
-  qualities that would otherwise continue to recycling.
+- Use a quality-only splitter, not a belt-side inserter, for the Legendary
+  product boundary. Legendary extraction must be exhaustive: a splitter handles
+  both lanes without arm-cycle, power, or destination-blocking misses that could
+  send a Legendary product into recycling. One-stack inserter reserves are
+  appropriate only for Normal through Epic products whose missed surplus is
+  intentionally allowed to continue to the recycler.
