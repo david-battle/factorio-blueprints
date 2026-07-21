@@ -1,5 +1,10 @@
 # Jimbo Local Factorio Bot
 
+> Historical design note: this document records the original local-model
+> proposal. The implemented and completed POC is documented in `README.md`,
+> `POC_PLAN.md`, and `RESUME.md`; those files supersede this proposal where they
+> differ.
+
 ## Goal
 
 Build a lightweight, fully local Factorio chat bot that players can address in

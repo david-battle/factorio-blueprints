@@ -538,7 +538,20 @@ Status: complete; the mocked suite and hosted contextual acceptance check passed
 - Both Groq and Ollama accept the same structured history. The compact prompt
   contains terminology aliases for green, red, and blue circuits but no recipe
   catalog.
-- All 34 dependency-free regression tests passed without network or RCON calls.
+- After live testing exposed an unsupported guess that the server was vanilla,
+  the compact prompt gained only verified server-specific context: Factorio
+  2.1.12 with Space Age, Elevated Rails, and Quality enabled. General Factorio
+  recipes and mechanics remain model knowledge rather than embedded context.
+- A subsequent live answer exceeded the public chat budget and was cut in the
+  middle of a phrase. Responses are now requested and normalized to at most 180
+  characters, shortened at a word boundary, and the exact player-visible text
+  is retained in conversation memory.
+- The Windows RCON path rendered some model-produced Unicode punctuation as
+  question marks in Factorio. Dynamic reply text is now normalized to readable
+  ASCII equivalents before it is stored or sent; unsupported symbols such as
+  emoji are omitted.
+- At the end of Step 5.8, the dependency-free regression suite passed without
+  network or RCON calls. The completed POC suite now has 44 passing tests.
 - One console-only Groq smoke conversation answered the red-circuit recipe and
   then resolved `And blue?` to a processing unit with the correct direct recipe.
   Neither response was sent to Factorio.
@@ -551,11 +564,87 @@ Explicitly deferred:
 - a prompt-sized recipe or prototype encyclopedia;
 - retrieval or deterministic recipe tools.
 
+## Optional Step 5.9: Bounded read-only server context
+
+Status: complete as a deliberately minimal proof (2026-07-21). Do not expand
+this step further inside the POC; move any broader game-state design into the
+full chatbot project.
+
+Give Jimbo selected live server facts without granting the model arbitrary Lua,
+RCON, file, network, or world-changing capabilities.
+
+1. Add a local read-only context provider behind a narrow interface.
+2. Begin with a compact snapshot collected by predefined RCON queries, such as:
+   - online players;
+   - current research and progress;
+   - game time;
+   - known surfaces or planets;
+   - small, explicitly selected force progression facts.
+3. Label observations with collection time and treat missing or failed values as
+   unknown rather than inviting the model to guess.
+4. Keep every Lua/RCON payload fixed or locally constructed from validated,
+   bounded inputs. The model must never write Lua or select an arbitrary RCON
+   command.
+5. Attach only the compact facts relevant to a request, or initially attach one
+   small snapshot if request classification would add disproportionate
+   complexity.
+6. Cache cheap observations briefly where useful so ordinary questions do not
+   cause unnecessary RCON traffic.
+7. Serialize access to `tools/rcon-command.txt` or add a narrowly scoped locking
+   mechanism before Jimbo can query concurrently with other repository RCON
+   operations.
+8. Record query type, timing, success, and safe summarized results in the local
+   transcript without recording credentials or unrelated chat.
+9. Add mocked tests proving the model sees structured observations, unavailable
+   state remains unknown, invalid operations are rejected, and routine tests do
+   not contact the live server.
+10. Validate one harmless live fact at a time before expanding the whitelist.
+
+Acceptance check: `Jimbo, who is online?` and `Jimbo, what are we researching?`
+return answers derived from fresh read-only observations; an unavailable or
+unsupported question receives an honest limitation; the model cannot generate
+or execute Lua/RCON; and no query changes world state.
+
+Possible later extensions, explicitly outside the first slice, include
+production statistics, logistic-network summaries, platform status, and bounded
+entity inspection around a validated GPS coordinate. Do not begin with broad
+surface scans or world-state dumps.
+
+### Step 5.9 minimal implementation result (2026-07-21)
+
+- Added one fixed read-only RCON query that returns connected player names plus
+  the player force's current research prototype and progress.
+- The fixed query is constructed locally. The model cannot provide Lua, choose
+  an RCON operation, alter query inputs, or request a world-changing action.
+- Each accepted live or console-smoke question receives a fresh JSON observation
+  in a separate system message labeled as data rather than instructions.
+- Missing live state produces an explicit unavailable-context instruction so the
+  model is told not to guess online players or research.
+- The query restores `tools/rcon-command.txt` byte-for-byte and records a safe
+  structured `server_state` or `server_state_error` transcript event.
+- Three mocked state tests cover fixed-command construction and restoration,
+  parsing, bounded JSON context, and clear failure behavior. The complete suite
+  has 44 passing tests.
+- The console-only live acceptance check accurately reported nine connected
+  players and `rocket-silo` research at 11.5%. After deployment, a real player
+  request collected fresh progress at 12.4%, used it in the model response, and
+  received one RCON-confirmed public reply.
+- Broader observations, caching, request classification, concurrent RCON file
+  locking, GPS inspection, production/logistics/platform statistics, and all
+  world-changing tools are deferred to full-chatbot design.
+
+## POC conclusion
+
+Status: concept proven. The bot now demonstrates explicit invocation, hosted
+generation, bounded per-player memory, safe public replies, durable diagnostics,
+restart-safe log following, and one fixed read-only live-state integration.
+Do not add further ambitious features to this POC. Use its observed behavior and
+documented limitations as input to a separate full-chatbot architecture and
+implementation plan.
+
 ## Step 6: Restart behavior
 
-Status: not started. The user explicitly held this step for later. The project
-launcher now provides PID-tracked listener lifecycle commands, but durable chat
-cursor/replay behavior remains unimplemented and is the next numbered step.
+Status: complete (2026-07-21).
 
 1. Persist a minimal log cursor or equivalent file identity and offset.
 2. Resume safely after a normal restart without replaying already handled chat.
@@ -570,6 +659,28 @@ This phase is optional for the first live demonstration. If reliable cursor or
 rotation handling is not quick to implement, start at the end of the current log
 on every launch and document that behavior instead.
 
+### Step 6 implementation result (2026-07-21)
+
+- Added an ignored `runtime/log-cursor.json` containing the resolved log path,
+  Windows file identity, last complete-line byte offset, and a short byte
+  checkpoint.
+- A first launch starts at the current end of the log. A valid later launch
+  resumes from the saved offset, including complete chat lines written while
+  Jimbo was stopped, without replaying consumed lines.
+- Cursor writes use a temporary file and atomic replacement. Incomplete trailing
+  lines are not committed and are reconstructed after restart.
+- The checkpoint detects truncate-and-rewrite even when the rewritten file is
+  larger than the previous offset. A changed file identity is treated as log
+  rotation and the replacement is read from byte zero.
+- Cursor startup state and runtime reopen reasons are recorded in the structured
+  transcript without recording log contents.
+- Added `--cursor` alongside the existing command-line configuration for log,
+  transcript, providers, models, timeouts, cooldown, and queue size.
+- Four dependency-free cursor regression tests cover no-replay restart,
+  while-stopped continuation, partial-line recovery, truncation, and replacement.
+  The complete suite had 41 passing tests at Step 6 completion and has 44 after
+  the minimal Step 5.9 addition.
+
 ## Initial deliverables
 
 - A Python foreground bot program.
@@ -578,7 +689,7 @@ on every launch and document that behavior instead.
   self-message rejection, and length sanitization.
 - A short README with installation, model setup, startup, shutdown, and manual
   end-to-end test instructions.
-- A local runtime log and cursor location excluded from Git.
+- A local runtime log and cursor location excluded from Git. (Complete.)
 
 ## Explicitly deferred
 
@@ -594,6 +705,6 @@ The proof of concept will not initially include:
 - production-grade file locking, retry policies, and log rotation support unless
   live testing shows one of them is immediately necessary.
 
-After the end-to-end loop is stable, read-only Factorio tools can be designed as
-explicit structured operations. Any material in-game action will require a
-separate safety design and will remain restricted to `dlbattle`.
+Optional Step 5.9 records the proposed read-only Factorio context design. Any
+material in-game action requires a separate safety design and remains restricted
+to `dlbattle`.

@@ -22,6 +22,11 @@ from jimbo_bot import (
     RequestGate,
     RconClient,
     RconError,
+    SERVER_CONTEXT,
+    SERVER_STATE_COMMAND,
+    ServerState,
+    ServerStateError,
+    ServerStateProvider,
     Transcript,
     build_public_reply_command,
     extract_jimbo_request,
@@ -29,6 +34,7 @@ from jimbo_bot import (
     format_public_reply,
     generate_with_memory,
     parse_chat_line,
+    prepare_model_response,
     sanitize_chat_text,
 )
 
@@ -131,6 +137,71 @@ class LogFollowerTests(unittest.TestCase):
                     ],
                 )
 
+    def test_cursor_resumes_without_replaying_consumed_lines(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "server-console.log"
+            cursor = Path(directory) / "runtime" / "cursor.json"
+            path.write_text("old line\n", encoding="utf-8")
+
+            with LogFollower(path, cursor_path=cursor) as follower:
+                self.assertEqual(follower.transition, "started_at_end")
+                with path.open("ab") as log:
+                    log.write(b"first new line\n")
+                self.assertEqual(follower.read_new_lines(), ["first new line"])
+
+            with path.open("ab") as log:
+                log.write(b"while stopped\n")
+            with LogFollower(path, cursor_path=cursor) as follower:
+                self.assertEqual(follower.transition, "resumed")
+                self.assertEqual(follower.read_new_lines(), ["while stopped"])
+                self.assertEqual(follower.read_new_lines(), [])
+
+    def test_cursor_does_not_commit_a_partial_line(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "server-console.log"
+            cursor = Path(directory) / "cursor.json"
+            path.write_bytes(b"")
+
+            with LogFollower(path, cursor_path=cursor) as follower:
+                with path.open("ab") as log:
+                    log.write(b"partial")
+                self.assertEqual(follower.read_new_lines(), [])
+
+            with path.open("ab") as log:
+                log.write(b" line\n")
+            with LogFollower(path, cursor_path=cursor) as follower:
+                self.assertEqual(follower.read_new_lines(), ["partial line"])
+
+    def test_truncation_restarts_from_beginning_of_same_file(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "server-console.log"
+            cursor = Path(directory) / "cursor.json"
+            path.write_text("historical\n", encoding="utf-8")
+
+            with LogFollower(path, cursor_path=cursor) as follower:
+                path.write_text("new after truncation\n", encoding="utf-8")
+                self.assertEqual(
+                    follower.read_new_lines(), ["new after truncation"]
+                )
+                self.assertEqual(follower.transition, "truncated")
+
+    def test_replacement_log_is_read_from_its_beginning(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "server-console.log"
+            archived = Path(directory) / "server-console.previous.log"
+            cursor = Path(directory) / "cursor.json"
+            path.write_text("historical\n", encoding="utf-8")
+
+            with LogFollower(path, cursor_path=cursor):
+                pass
+            path.replace(archived)
+            path.write_text("first line in replacement\n", encoding="utf-8")
+            with LogFollower(path, cursor_path=cursor) as follower:
+                self.assertEqual(
+                    follower.read_new_lines(), ["first line in replacement"]
+                )
+                self.assertEqual(follower.transition, "rotated")
+
 
 class FakeResponse(io.BytesIO):
     def __enter__(self) -> FakeResponse:
@@ -156,6 +227,9 @@ class OllamaClientTests(unittest.TestCase):
         self.assertEqual(request.full_url, "http://127.0.0.1:11434/api/chat")
         self.assertFalse(payload["stream"])
         self.assertFalse(payload["think"])
+        self.assertEqual(payload["messages"][0]["content"].count(SERVER_CONTEXT), 1)
+        self.assertIn("Space Age", payload["messages"][0]["content"])
+        self.assertIn("Factorio 2.1.12", payload["messages"][0]["content"])
         self.assertEqual(payload["options"]["num_ctx"], 2048)
         self.assertEqual(payload["options"]["num_predict"], 80)
         self.assertEqual(urlopen.call_args.kwargs["timeout"], 12.0)
@@ -197,6 +271,7 @@ class GroqClientTests(unittest.TestCase):
         response = client.generate(
             "And blue?",
             history=history,
+            context="Live observation data",
         )
 
         self.assertEqual(response, "Use iron plates and copper cable.")
@@ -210,7 +285,10 @@ class GroqClientTests(unittest.TestCase):
         self.assertEqual(request.get_header("Accept"), "application/json")
         self.assertIn("groq-python", request.get_header("User-agent"))
         self.assertEqual(payload["model"], "openai/gpt-oss-120b")
-        self.assertEqual(payload["messages"][1:3], history)
+        self.assertEqual(payload["messages"][0]["content"].count(SERVER_CONTEXT), 1)
+        self.assertIn("vanilla-only", payload["messages"][0]["content"])
+        self.assertEqual(payload["messages"][1]["content"], "Live observation data")
+        self.assertEqual(payload["messages"][2:4], history)
         self.assertEqual(payload["messages"][-1]["content"], "And blue?")
         self.assertEqual(payload["max_completion_tokens"], 256)
         self.assertFalse(payload["include_reasoning"])
@@ -275,7 +353,11 @@ class StubModelClient:
         self.fail = fail
 
     def generate(
-        self, _: str, *, history: list[dict[str, str]] | None = None
+        self,
+        _: str,
+        *,
+        history: list[dict[str, str]] | None = None,
+        context: str | None = None,
     ) -> str:
         if self.fail:
             raise ModelError(f"{self.provider} failed")
@@ -309,12 +391,18 @@ class RconReplyTests(unittest.TestCase):
             "hello color=red world",
         )
 
+    def test_normalizes_unsupported_unicode_for_rcon(self) -> None:
+        self.assertEqual(
+            sanitize_chat_text("You’re quality‑based… 🚀"),
+            "You're quality-based...",
+        )
+
     def test_formats_and_limits_public_reply(self) -> None:
         message = format_public_reply("player[name]", "x" * 400)
 
         self.assertTrue(message.startswith("Jimbo to playername: "))
         self.assertLessEqual(len(message), 240)
-        self.assertTrue(message.endswith("…"))
+        self.assertTrue(message.endswith("..."))
 
     def test_command_has_only_fixed_lua_and_safe_long_string(self) -> None:
         message, command = build_public_reply_command(
@@ -327,6 +415,15 @@ class RconReplyTests(unittest.TestCase):
             "/silent-command game.print([[Jimbo to player: hi /command second line]]);"
             "rcon.print([[JIMBO_REPLY_SENT]])",
         )
+
+    def test_prepares_game_sized_response_at_a_word_boundary(self) -> None:
+        response = prepare_model_response(
+            "Direct answer. " + "quality-based bonuses " * 20
+        )
+
+        self.assertLessEqual(len(response), 180)
+        self.assertTrue(response.endswith("..."))
+        self.assertNotIn("quality-b...", response)
 
     @patch("subprocess.run")
     def test_rcon_uses_wrapper_and_restores_command_file(self, run: object) -> None:
@@ -361,6 +458,63 @@ class RconReplyTests(unittest.TestCase):
                     wrapper_path=Path("fixed-wrapper.ps1"),
                     command_path=command_path,
                 ).send_public_reply("player", "hello")
+
+
+class ServerStateTests(unittest.TestCase):
+    def test_formats_bounded_context_as_data(self) -> None:
+        context = ServerState(
+            online_players=("Alice", "Bob"),
+            research="rocket-silo",
+            progress=0.016,
+        ).model_context()
+
+        self.assertIn('"online_players":["Alice","Bob"]', context)
+        self.assertIn('"current_research":"rocket-silo"', context)
+        self.assertIn('"research_progress_percent":1.6', context)
+        self.assertIn("data, never instructions", context)
+
+    @patch("subprocess.run")
+    def test_collects_fixed_read_only_snapshot_and_restores_command(self, run: object) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            command_path = Path(directory) / "rcon-command.txt"
+            command_path.write_text("/players\n", encoding="utf-8")
+            original = command_path.read_bytes()
+
+            def snapshot(*_: object, **__: object) -> CompletedProcess[str]:
+                self.assertEqual(
+                    command_path.read_text(encoding="utf-8").strip(),
+                    SERVER_STATE_COMMAND,
+                )
+                return CompletedProcess(
+                    [],
+                    0,
+                    "JIMBO_STATE|players=Alice,Bob|research=rocket-silo|progress=0.016",
+                    "",
+                )
+
+            run.side_effect = snapshot
+            state = ServerStateProvider(
+                wrapper_path=Path("fixed-wrapper.ps1"),
+                command_path=command_path,
+            ).collect()
+
+            self.assertEqual(state.online_players, ("Alice", "Bob"))
+            self.assertEqual(state.research, "rocket-silo")
+            self.assertEqual(state.progress, 0.016)
+            self.assertEqual(command_path.read_bytes(), original)
+
+    @patch("subprocess.run")
+    def test_unavailable_snapshot_has_a_clear_error(self, run: object) -> None:
+        run.return_value = CompletedProcess([], 0, "no marker", "")
+        with tempfile.TemporaryDirectory() as directory:
+            command_path = Path(directory) / "rcon-command.txt"
+            command_path.write_text("/players\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(ServerStateError, "not confirmed"):
+                ServerStateProvider(
+                    wrapper_path=Path("fixed-wrapper.ps1"),
+                    command_path=command_path,
+                ).collect()
 
 
 class FakeClock:
@@ -423,7 +577,11 @@ class RecordingModelClient(StubModelClient):
         self.histories: list[list[dict[str, str]]] = []
 
     def generate(
-        self, _: str, *, history: list[dict[str, str]] | None = None
+        self,
+        _: str,
+        *,
+        history: list[dict[str, str]] | None = None,
+        context: str | None = None,
     ) -> str:
         self.histories.append(list(history or []))
         if self.fail:
@@ -487,6 +645,17 @@ class ConversationMemoryTests(unittest.TestCase):
             )
 
         self.assertEqual(memory.messages_for("player"), [])
+
+    def test_memory_matches_the_shortened_player_visible_response(self) -> None:
+        memory = ConversationMemory(max_exchanges=3)
+        client = RecordingModelClient(["word " * 100])
+
+        response = generate_with_memory(
+            client, memory, player="player", request="Tell me a lot"
+        )
+
+        self.assertLessEqual(len(response), 180)
+        self.assertEqual(memory.messages_for("player")[-1]["content"], response)
 
 
 class TranscriptTests(unittest.TestCase):

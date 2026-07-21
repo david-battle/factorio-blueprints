@@ -5,17 +5,20 @@ full numbered roadmap and recorded decisions.
 
 ## Current state (2026-07-21)
 
-- Steps 1, 2, 3, 4, 5, 5.5, 5.75, and 5.8 are complete.
-- Step 6 is intentionally not started. It is the next numbered step if the user
-  chooses to resume implementation.
+- Steps 1, 2, 3, 4, 5, 5.5, 5.75, 5.8, and 6 are complete.
+- Minimal Step 5.9 is complete: each accepted question receives connected-player
+  and current-research data from one fixed read-only RCON query.
+- The POC is declared proven. Do not add more ambitious POC features; the next
+  phase is a separate full-chatbot design.
 - The live bot uses Groq `openai/gpt-oss-120b`, with no automatic Ollama
   fallback. The local Ollama/Qwen path remains implemented but was too weak for
   reliable Factorio answers.
 - Step 5.8 requires leading `jimbo` or `hey jimbo`, keeps the last three
   completed exchanges separately per player in memory, and sends structured
   history. Memory is deliberately lost on restart.
-- The Step 5.8 suite has 34 dependency-free tests. Its console-only hosted smoke
-  test correctly resolved `And blue?` from a prior red-circuit exchange.
+- The complete suite has 44 dependency-free tests. Hosted smoke tests resolved
+  contextual circuit questions and live server state; minimal Step 5.9 also
+  passed a real public player request.
 - The Groq key is machine-local at `runtime/groq-api-key.txt`. The entire
   runtime directory is ignored. Never print, transcribe, or commit the key.
 
@@ -51,8 +54,10 @@ PID. Listener stdout/stderr and the structured transcript are under `runtime/`.
 
 ## Working tree and next action
 
-The Jimbo implementation and documentation have not yet been committed in this
-work sequence. Inspect `git status` and preserve unrelated user changes. The
-most logical next implementation task is Step 6 (durable restart/cursor
-behavior), but do not begin it unless requested. A README remains listed among
-the initial deliverables and can be added during Step 6 or final POC cleanup.
+The implementation is committed on `main`. Inspect `git status` and preserve
+unrelated user changes before future work. The user-facing `README.md` documents
+setup, operation, testing, diagnostics, safety boundaries, and current
+limitations. Step 6 durable cursor behavior is implemented in
+`runtime/log-cursor.json`, and minimal Step 5.9 is implemented as one fixed
+read-only snapshot. The next task, when requested, is to design the full chatbot
+rather than extend this POC.
