@@ -332,6 +332,11 @@ WELCOME-008: Greeting behavior must not reveal previous join times, activity,
 or other history beyond the neutral distinction between welcome and welcome
 back.
 
+WELCOME-009: Every welcome and welcome-back message must instruct the player to
+begin queries with the word `Jimbo`. The instruction must remain short,
+deterministic, and compatible with the supported `Jimbo` and `Hey Jimbo`
+invocation forms.
+
 Acceptance fixtures include returning players `itsnotyouitsme` and
 `renard10177`, plus first-seen candidate `HANYUEYUE`, subject to the state store
 present at full-bot launch.
@@ -483,6 +488,10 @@ unreliable behavior.
 OPS-005: Provider/model choice must remain replaceable and must not weaken
 locally enforced authority, validation, rendering, or archive guarantees.
 
+OPS-006: When an active bot implementation is replaced by a new revision, the
+new revision must announce itself in public chat and briefly summarize its
+current player-facing capabilities and material limitations.
+
 ## 7. Canonical archive and privacy
 
 ARCH-001: The full bot must maintain one append-only, self-contained canonical
@@ -572,7 +581,8 @@ scenarios pass:
     inspected and reset, and survives restart only according to the approved
     retention policy.
 14. First join, later join, reconnect churn, and bot restart produce exactly the
-    required welcome/welcome-back behavior without greeting bursts.
+    required welcome/welcome-back behavior without greeting bursts, and every
+    delivered greeting tells the player to begin queries with `Jimbo`.
 15. Jimbo accurately reports its actual provider/model, memory, archive scope,
     read-only tools, action restrictions, and renderer limits without exposing
     its raw prompt or operator cost/quota information.
@@ -644,6 +654,21 @@ Resolved decisions:
 - DEC-012: Do not optimize or set a formal service target for response latency.
   Observed latency has not been a problem; anything from effectively immediate
   through roughly one minute is acceptable for now.
+- DEC-013: Use an append-only UTF-8 text event log plus small, documented,
+  atomic flat-text state files for the first release. The archive may use a
+  minimal tagged line format but does not need JSON or SQLite. Add structured
+  storage only if later evidence demonstrates a concrete need. The flat-file
+  approach must still satisfy restart recovery, deduplication, format
+  versioning, migration, archive reconstruction, and privacy requirements.
+- DEC-014: Reuse the existing ignored machine-local Groq API key file. Full-bot
+  implementation must not require a new key or require the user to re-enter,
+  relocate, print, or recommit the existing key. Offline configuration and
+  tests must not validate the key by making a live provider call.
+- DEC-015: Full Bot Step 7 must integrate and exercise real Groq model calls
+  through the existing key file; a stub-only or placeholder model integration
+  does not satisfy that implementation pass. Routine automated tests remain
+  mocked and must not consume hosted quota, followed by an explicit bounded
+  hosted smoke test.
 
 There are currently no unresolved product-scope decisions in this register.
 Detailed privacy, query-budget, and implementation choices remain architecture

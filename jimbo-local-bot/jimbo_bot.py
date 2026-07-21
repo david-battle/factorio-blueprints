@@ -907,6 +907,35 @@ def main() -> int:
         if reconfigure is not None:
             reconfigure(encoding="utf-8", errors="replace")
 
+    if "--full-bot-smoke" in sys.argv[1:]:
+        if len(sys.argv[1:]) != 2 or sys.argv[1] != "--full-bot-smoke":
+            raise SystemExit("usage: jimbo_bot.py --full-bot-smoke PROMPT")
+        from jimbo_full_bot.interactions import InvocationDecision
+        from jimbo_full_bot.model import GroqModelGateway
+        from jimbo_full_bot.routing import MinimalConversationRouter
+        from jimbo_full_bot.config import FullBotConfig
+
+        config = FullBotConfig().validate()
+        handoff = MinimalConversationRouter(config).route(
+            InvocationDecision("smoke", "cli", True, sys.argv[2], "accepted")
+        )
+        assert handoff is not None
+        gateway = GroqModelGateway.from_key_file(
+            config.api_key_path,
+            model=config.model,
+            timeout_seconds=config.provider_timeout_seconds,
+        )
+        print(gateway.generate(handoff.plan, trusted_context=handoff.context), flush=True)
+        return 0
+
+    if "--full-bot" in sys.argv[1:]:
+        if sys.argv[1:] != ["--full-bot"]:
+            raise SystemExit("--full-bot cannot be combined with POC arguments")
+        from jimbo_full_bot.runtime import FullBotRuntime, live_config
+
+        FullBotRuntime(live_config()).run_forever()
+        return 0
+
     args = build_argument_parser().parse_args()
     if args.poll_interval <= 0:
         raise SystemExit("--poll-interval must be greater than zero")

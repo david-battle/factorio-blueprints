@@ -277,3 +277,19 @@ multiples of 32 and keep their outer nominal bounds on multiples of 32.
   `start`/`restart` pass arguments only to `jimbo_bot.py`. Keep the approved launcher stable;
   do not modify or broaden it to execute unrelated Python files or arbitrary
   shell commands. Add narrowly scoped behavior to the project code instead.
+- The active managed listener is the full bot and is launched with
+  `--full-bot`; the POC remains historical/fallback code. Always use the status
+  action rather than trusting a recorded PID.
+- Invoke the approved Jimbo launcher as a command by itself. Combining it with
+  diagnostic commands in one shell invocation can cause a sandbox-only access
+  denial while it checks the user-profile Python executable, even though the
+  identical standalone launcher succeeds.
+- Normalize model-generated chat to readable ASCII before the Windows
+  PowerShell/RCON boundary. Curly apostrophes, nonbreaking hyphens, and dashes
+  previously appeared as `???` in Factorio even though the UTF-8 archive was
+  correct.
+- Basic live state currently uses deterministic phrase routing to one fixed
+  read-only snapshot for players, research/progress, game time, and surfaces.
+  The next Step 6 design uses one model state-needs planning pass over locally
+  allowlisted operations, local validation and fixed RCON execution, then one
+  synthesis pass with trusted provenance. Never permit model-authored Lua/RCON.

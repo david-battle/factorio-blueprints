@@ -152,6 +152,56 @@ This is a working proof of concept, not a service-grade deployment:
 - Broader live-state tools and RCON concurrency/locking belong to a future full
   chatbot design, not this proof of concept.
 
+## Full-bot development
+
+The full bot is being built separately from the active POC under
+`jimbo_full_bot`. Its architecture and serial roadmap are in
+`FULL_BOT_DESIGN.md` and `FULL_BOT_PLAN.md`.
+
+Step 1 provides only a side-effect-free offline shell:
+
+```powershell
+& 'C:\Users\dlbat\AppData\Local\Programs\Python\Python313\python.exe' -m jimbo_full_bot --offline
+```
+
+The command reports validated redacted configuration. It does not read the API
+key, watch live chat, contact Groq, invoke RCON, send messages, or change the
+game. The ordinary project `test` action discovers both POC and full-bot tests.
+
+Full Bot Step 2 adds offline storage components only: an append-only tagged
+UTF-8 event log with retained 10 MB segments and small versioned flat-text state
+files updated through atomic replacement. It adds no JSON storage, SQLite, live
+log reader, provider call, or RCON behavior.
+
+Full Bot Step 3 adds the first-pass durable log reader and normalized
+chat/join/leave event interface needed by later steps. Step 7 now uses it in the
+active full-bot listener with separate full-bot state and archive paths.
+
+Full Bot Step 4 adds first-pass deterministic invocation decisions, self-loop
+suppression, durable first/return join classification, and welcome intents. All
+welcome templates instruct players to begin queries with `Jimbo`. Delivery is
+provided by the minimal Step 5 bridge, and the real hosted model path is
+required in Step 7.
+
+Full Bot Step 5 adds the minimal delivery bridge: one-line plain-text rendering,
+the fixed RCON wrapper transport, serialized sending, exact archive records,
+confirmed-delivery deduplication, and welcome completion. Public delivery is
+enabled only by the explicit Step 7 live configuration.
+Aggressive content filtering and rich rendering remain a later Step 5 follow-up.
+
+Full Bot Step 6 now has a basic deterministic read-only RCON route. Recognized
+questions about connected players, current research/progress, game time, and
+available surfaces use one fixed locally authored snapshot and direct trusted
+answers. The model never selects or authors RCON. Other requests receive the
+static server blurb and continue to ordinary conversation; broader or smarter
+state-needs routing remains a later Step 6 follow-up.
+
+Full Bot Step 7 adds the real Groq `openai/gpt-oss-120b` gateway and the live
+prototype pipeline. It keeps three successfully delivered exchanges in memory
+per player, loses that memory on restart, and never writes or replaces the
+existing ignored API key. The managed listener is currently running the full
+bot; players can test it by beginning a public chat message with `Jimbo`.
+
 Development history, acceptance results, and the remaining roadmap are in
 [POC_PLAN.md](POC_PLAN.md). A concise cold-start handoff is in
 [RESUME.md](RESUME.md).
