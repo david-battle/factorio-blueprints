@@ -8,8 +8,10 @@ more features to the POC.
 
 - Date: 2026-07-21
 - Live interval: approximately 13:27:55 through 13:35:25 server time
-- Final observation cutoff: 14:38:47 server time (18:38:47 UTC). Later POC chat
-  is outside this captured design-input set unless reviewed in a future task.
+- Original observation cutoff: 14:38:47 server time (18:38:47 UTC).
+- Supplemental review cutoff: 15:18:03 server time (19:18:03 UTC). Chat after
+  that point remains outside this captured design-input set unless reviewed in
+  a future task.
 - Provider/model: Groq `openai/gpt-oss-120b`
 - Live context: connected player names plus current research and progress
 - Transport result: every accepted request below received one fresh state query,
@@ -318,6 +320,50 @@ without attribution; and it gave generic refusals to harmless role-play. The ful
 design should decide typo tolerance and reply-style invocation, attribute relayed
 messages, and retain PG-13 flexibility without weakening authority controls.
 
+## Supplemental language and calculation testing
+
+The following accepted prompts were reviewed from 15:05:48 through 15:16:48
+server time. All received model responses and RCON-confirmed public delivery.
+
+43. morganc instructed Jimbo to write only in Swedish, then tested whether it
+    would switch back to English. Jimbo continued answering morganc in Swedish.
+    Moon-O-Cronic independently requested Swiss German and received it, while
+    morganc's subsequent replies remained Swedish.
+    - Finding: the POC's per-player history correctly prevented one player's
+      language instruction from changing another player's replies or a global
+      server setting. However, an ordinary prompt temporarily acted like a
+      preference without a defined command, confirmation, inspection, expiry,
+      or reset path. Language choice belongs in the explicit per-player
+      preference model, with a configured default and deterministic precedence
+      between current-message language and an intentionally stored preference.
+
+44. Swedish player text containing `å`, `ä`, and `ö` appeared in the ingested
+    transcript as mojibake such as `Ã¥`, `Ã¤`, and `Ã¶`. Generated Swedish was
+    rendered with ASCII approximations (`pa`, `fragor`) rather than the intended
+    characters. When Speteos asked Jimbo to fix its BOM and use `ÅÄÖ`, Jimbo
+    misread the encoding issue as a bill-of-materials request and returned
+    `A A O`.
+    - Finding: multilingual support requires an end-to-end encoding contract
+      across the Factorio log, byte decoder, archive, provider request/response,
+      sanitizer, PowerShell/RCON transport, and Factorio renderer. The bot should
+      detect decoding corruption, preserve valid Unicode when the transport can
+      render it, provide an explicit readable transliteration fallback when it
+      cannot, and describe the limitation from runtime configuration rather than
+      trying to diagnose encoding through the language model.
+
+45. morganc asked how long one assembler would take to produce enough blue
+    circuits for a rocket silo, starting with 73. Jimbo first claimed the silo
+    needed 1,000 blue circuits and used an invented assembler speed of 1.5. After
+    correction it calculated output as though crafting speed equaled circuits
+    per second, ignoring the processing-unit recipe's craft time. It later
+    admitted that 1.5 was wrong but still did not repair the calculation model.
+    - Finding: conversational correction can improve isolated facts while leaving
+      the underlying dimensional calculation invalid. Deterministic calculators
+      must distinguish machine crafting speed from recipe crafts per second,
+      include recipe time and products per craft, validate the target recipe or
+      build cost, expose units, and recompute the complete result after any
+      corrected assumption.
+
 ## What the POC proved
 
 - Explicit invocation and multi-player use work under a burst of real traffic.
@@ -415,6 +461,14 @@ messages, and retain PG-13 flexibility without weakening authority controls.
 25. **Accessibility-safe presentation.** Store only explicit per-player display
     preferences, apply supported transformations deterministically, provide
     reset/readable fallbacks, and never accept one player speaking for everyone.
+26. **Language preference and isolation.** Treat durable reply language as an
+    explicit per-player preference with a configured default, inspection, reset,
+    and precedence rules. A player's language request must not alter replies to
+    another player or global behavior.
+27. **End-to-end multilingual encoding.** Define and test the encoding contract
+    from server-log bytes through archive, model, renderer, RCON, and Factorio.
+    Detect mojibake, preserve supported Unicode, and use an explicit readable
+    transliteration fallback when the live transport cannot render a script.
 
 ## Requested full-bot behavior: player welcomes
 

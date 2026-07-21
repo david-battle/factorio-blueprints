@@ -1,9 +1,10 @@
 # Jimbo bot cold-start handoff
 
 Read this file first after a new Codex session. Then read
-`FULL_BOT_FINDINGS.md`, which is the primary input to the next design phase.
-Read `POC_PLAN.md` only when detailed POC history or numbered-step decisions are
-needed; it is authoritative but intentionally long.
+`FULL_BOT_REQUIREMENTS.md`, which is the normative input to the architecture
+phase, followed by `FULL_BOT_FINDINGS.md` for the player-testing evidence behind
+it. Read `POC_PLAN.md` only when detailed POC history or numbered-step decisions
+are needed; it is authoritative but intentionally long.
 
 ## Current state (2026-07-21)
 
@@ -12,11 +13,31 @@ needed; it is authoritative but intentionally long.
   and current-research data from one fixed read-only RCON query.
 - The POC is declared proven. Do not add more ambitious POC features; the next
   phase is a separate full-chatbot design.
-- Player testing findings through 14:38:47 server time (18:38:47 UTC) are
-  captured in `FULL_BOT_FINDINGS.md`. It contains 42 representative cases and
-  25 full-bot design priorities plus the requested welcome/welcome-back behavior.
-- The intended next deliverable is a full-chatbot design document derived from
-  those findings. Do not turn individual findings into more POC prompt patches.
+- Player testing findings through the supplemental 15:18:03 server-time cutoff
+  (19:18:03 UTC) are captured in `FULL_BOT_FINDINGS.md`. It contains 45
+  representative cases and 27 full-bot design priorities plus the requested
+  welcome/welcome-back behavior.
+- `FULL_BOT_REQUIREMENTS.md` is complete enough to begin architecture design. It
+  contains stable requirement IDs, 25 initial acceptance scenarios, and a
+  resolved product-decision register.
+- The intended next deliverable is a separate full-chatbot architecture/design
+  document derived from the requirements. Do not turn individual findings into
+  more POC prompt patches.
+- Jimbo is Jimbo the Jr. Engineer. Harmless non-Factorio conversation is in
+  scope, and the model may supply the detailed conversational personality.
+- Keep the last three completed exchanges separately per player. Do not build a
+  dedicated persistent conversation-memory system, but do not deliberately
+  suppress persistence that naturally arises from the eventual architecture.
+- The model is the primary generic Factorio knowledge source. Broad RCON-backed
+  read-only investigation is authoritative for this live game and should answer
+  questions that players could otherwise resolve through laborious inspection.
+- Management-authorized ghost and blueprint-ghost placement for construction
+  bots is an essential first-release feature and the sole world-changing action
+  class. Its dedicated validated pipeline may execute Lua/RCON and may narrowly
+  accept model-authored Lua/RCON; the general execution prohibition remains.
+- Archive all public chat for this single-server project. Long-artifact delivery,
+  public cost/quota disclosure, formal latency optimization, explicit additional-
+  language support, and welcome reconnect-grace tuning are out of scope.
 - The live bot uses Groq `openai/gpt-oss-120b`, with no automatic Ollama
   fallback. The local Ollama/Qwen path remains implemented but was too weak for
   reliable Factorio answers.
@@ -71,9 +92,11 @@ the structured transcript are under `runtime/`.
 
 ## Working tree and next action
 
-The implementation and latest findings are committed on `main`. At this handoff,
-`main` matches `origin/main`; verify that again rather than assuming it remains
-true. Relevant commits are:
+The implementation, findings, requirements baseline, and this handoff are
+committed on `main`. The requirements/handoff commit is intentionally left for
+the user to push, so expect local `main` to be ahead of `origin/main` by one
+commit at the start of the next context. Verify rather than assuming. Earlier
+relevant commits are:
 
 - `85bd820 Complete Jimbo chatbot proof of concept`
 - `bf3e27b Capture Jimbo full bot design findings`
@@ -82,18 +105,19 @@ true. Relevant commits are:
 The user-facing `README.md` documents setup, operation, testing, diagnostics,
 safety boundaries, and current limitations. Step 6 durable cursor behavior is
 implemented in `runtime/log-cursor.json`, and minimal Step 5.9 is one fixed
-read-only snapshot. The next task, when requested, is to design the full chatbot
-from `FULL_BOT_FINDINGS.md`, preserving a clear boundary between the proven POC
-and the new architecture.
+read-only snapshot. The next task is to create the full chatbot architecture and
+design document from `FULL_BOT_REQUIREMENTS.md`, using the findings as evidence
+and preserving a clear boundary between the proven POC and the new architecture.
 
 ## Fresh-session checklist
 
-1. Read this file and `FULL_BOT_FINDINGS.md`.
+1. Read this file, `FULL_BOT_REQUIREMENTS.md`, and `FULL_BOT_FINDINGS.md`.
 2. Run `git status` and preserve any user changes.
 3. If touching the live bot, query listener status through the fixed project
    launcher before assuming its state.
 4. Do not clear runtime files or the Factorio server console log.
-5. Treat chat after the recorded findings cutoff as uncaptured evidence unless
+5. Treat chat after the latest recorded findings cutoff as uncaptured evidence unless
    the user explicitly requests another review.
-6. Begin the full-bot design as a separate document/project phase; do not reopen
-   the POC merely because the desired full bot needs more capabilities.
+6. Begin the full-bot architecture/design as a separate document/project phase;
+   do not reopen the POC merely because the desired full bot needs more
+   capabilities.
