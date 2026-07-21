@@ -4,3 +4,6 @@ __pycache__/
 # Machine-local live Factorio console captures.
 tools/server-console.txt
 tools/console-*.txt
+
+# Jimbo bot runtime state and transcripts.
+jimbo-local-bot/runtime/

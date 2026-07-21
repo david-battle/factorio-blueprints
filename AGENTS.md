@@ -250,3 +250,30 @@ multiples of 32 and keep their outer nominal bounds on multiples of 32.
   send a Legendary product into recycling. One-stack inserter reserves are
   appropriate only for Normal through Epic products whose missed surplus is
   intentionally allowed to continue to the recycler.
+
+## Local project execution
+
+- For a cold restart of Jimbo work, read
+  `jimbo-local-bot/RESUME.md` and `jimbo-local-bot/POC_PLAN.md` before acting.
+  The resume note is the concise operational handoff; the POC plan is the
+  authoritative history and numbered roadmap.
+
+- Python 3.13 is installed at
+  `C:\Users\dlbat\AppData\Local\Programs\Python\Python313\python.exe`. A
+  restricted shell can make this user-profile executable appear missing even
+  when it is installed and working. Do not infer that Python was removed from a
+  sandboxed `CommandNotFoundException`; use an approved project launcher or
+  verify the exact path with the necessary host permission.
+- For routine Jimbo bot tests and listener lifecycle operations, change only
+  `jimbo-local-bot/tools/jimbo-action.json`, then invoke this fixed command
+  byte-for-byte without arguments:
+
+  ```powershell
+  & 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -NoProfile -ExecutionPolicy Bypass -File 'D:\ChatGPT-Factorio-Playground\factorio-blueprints\jimbo-local-bot\tools\jimbo-project.ps1'
+  ```
+
+- The Jimbo launcher accepts only `test`, `bot`, `start`, `stop`, `restart`, and
+  `status`. Background lifecycle actions use the ignored runtime PID file and
+  `start`/`restart` pass arguments only to `jimbo_bot.py`. Keep the approved launcher stable;
+  do not modify or broaden it to execute unrelated Python files or arbitrary
+  shell commands. Add narrowly scoped behavior to the project code instead.
