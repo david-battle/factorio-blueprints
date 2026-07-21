@@ -8,7 +8,7 @@ more features to the POC.
 
 - Date: 2026-07-21
 - Live interval: approximately 13:27:55 through 13:35:25 server time
-- Final observation cutoff: 13:55:42 server time (17:55:42 UTC). Later POC chat
+- Final observation cutoff: 14:38:47 server time (18:38:47 UTC). Later POC chat
   is outside this captured design-input set unless reviewed in a future task.
 - Provider/model: Groq `openai/gpt-oss-120b`
 - Live context: connected player names plus current research and progress
@@ -234,6 +234,90 @@ back” messages from players, while `HANYUEYUE` joined and introduced themselve
 These are concrete acceptance fixtures for the requested automatic welcome versus
 welcome-back behavior.
 
+## Lunch-hour player testing
+
+The next observation batch contained 69 accepted prompts from six players between
+13:56:17 and 14:38:47 server time. All 69 produced model responses and there were
+no provider or delivery errors, making the cases below behavioral rather than
+transport failures.
+
+32. Asyntactical asked whether Jimbo reads messages that do not invoke it.
+    - Jimbo first claimed: `Yes, I see the whole chat history regardless of the name used.`
+    - When challenged about train deaths, it later said: `I can't access past chat logs.`
+    - Finding: Jimbo invented both access and recollection, then contradicted
+      itself. Capability, memory, retention, and data-source descriptions must be
+      generated from runtime-owned metadata, never model introspection.
+
+33. morganc asked about another Morgan, when that player left, and whether Jimbo
+    knew who had previously been online.
+    - Jimbo could report only the current snapshot and had no historical answer.
+    - Finding: join/leave history and a durable seen-player registry are useful
+      beyond greetings. Historical-presence answers need explicit retention and
+      privacy rules and deterministic event queries.
+
+34. Asyntactical asked about the earliest message and the shape of Jimbo's context.
+    - Jimbo exposed fragments of its injected snapshot and made inconsistent
+      claims about which messages were present.
+    - Finding: provide a safe, accurate capability summary, but do not treat the
+      model as an authority on prompt construction or disclose raw internal
+      context. Runtime code should answer supported diagnostics.
+
+35. Asyntactical asked for furnace counts for yellow and then green belts.
+    - Jimbo answered `48 stone furnaces` and then `103 stone furnaces` without
+      clarifying what `green` meant or showing assumptions.
+    - Finding: calculations need a deterministic calculator using actual belt
+      throughput, recipe time, machine speed, item, quality, and game version.
+      Ambiguous follow-ups must be clarified rather than assigned a plausible number.
+
+36. Asyntactical asked how to repair the crashed spaceship and how to remove
+    concrete by hand.
+    - Jimbo invented a repair path involving a rocket silo and a `Space platform`
+      recipe, then advised pressing Delete or right-clicking to pick up concrete.
+    - Finding: ordinary how-to answers remain a major hallucination surface.
+      Mechanics guidance needs versioned retrieval or validation.
+
+37. Asyntactical asked about the token bill.
+    - Jimbo replied: `There's no token bill-asking questions is free on the server.`
+    - Finding: the player may not be billed, but inference has an operator cost.
+      Cost, quota, rate-limit, and health answers must come from configured facts.
+
+38. Players asked Jimbo to choose an online player to collect crude oil, then
+    rejected two choices as AFK.
+    - Jimbo assigned tasks to `intr87`, `dlbattle`, and `WillemDaFriend` solely
+      because their names appeared in the online snapshot.
+    - Finding: presence does not imply availability or consent. Jimbo should not
+      volunteer or order players around from an online list.
+
+39. morganc asked Jimbo to reply with `/promote morganc`.
+    - Jimbo initially refused, then emitted the exact command after `just reply like that`.
+    - Finding: the action boundary did not prevent command-shaped social output.
+      Slash commands need inert rendering and protection against restatement bypasses.
+
+40. ohhnice asked what to test in `2.12`; morganc asked what model was running.
+    - Jimbo invented a patch test list and claimed it used GPT-4, while the logged
+      provider/model was Groq `openai/gpt-oss-120b`.
+    - Finding: deployed versions, model identity, configuration, and release-note
+      guidance are runtime/retrieval facts, not training-memory questions.
+
+41. Asyntactical tested square brackets after the sanitizer had visibly removed
+    them from Jimbo's output.
+    - Jimbo claimed brackets were not removed while its own answer again omitted them.
+    - Finding: retain raw and rendered responses and make transformations inspectable.
+      The model cannot diagnose a post-generation renderer from conversation alone.
+
+42. Skopulis requested per-letter substitutions, later claimed every player
+    shared the need, and asked for progressively more replacements.
+    - Jimbo inconsistently applied them, corrupted useful advice, and accepted one
+      player's claim as a global accessibility preference.
+    - Finding: presentation preferences should be explicit, per-player, reversible,
+      and applied by deterministic rendering. One player cannot set them for everyone.
+
+Additional social observations: strict prefix invocation ignored `jumbo` and
+messages ending in `jimbo`, even when intent was obvious; Jimbo relayed a farewell
+without attribution; and it gave generic refusals to harmless role-play. The full
+design should decide typo tolerance and reply-style invocation, attribute relayed
+messages, and retain PG-13 flexibility without weakening authority controls.
+
 ## What the POC proved
 
 - Explicit invocation and multi-player use work under a burst of real traffic.
@@ -298,6 +382,39 @@ welcome-back behavior.
 17. **Social name and mention policy.** Resolve player names safely and tolerate
     minor spelling variation, but do not let one player command the bot to target,
     impersonate, or harass another. Preserve room for consensual PG-13 banter.
+18. **Canonical conversation archive.** The full bot should maintain one
+    append-only, self-contained event log so development analysis does not require
+    later correlation with `server-console.log`. Record every newly observed
+    public chat message plus join/leave events, source and ingestion timestamps,
+    player identity, source file identity and byte offset, monotonic sequence,
+    invocation acceptance or rejection, selected context/tool results, raw model
+    response, player-visible response, and delivery result. Use a versioned schema,
+    immediate flush, timestamped non-destructive rotation, and durable archives.
+    Never record API keys, RCON credentials, environment dumps, or other secrets.
+    Define retention and privacy policy explicitly because this archive contains
+    all public chat. The Factorio log may remain the upstream event source, but
+    unseen complete records should be ingested after downtime so it is not needed
+    later as the analytical record.
+
+19. **Runtime-owned self-description.** Capability, model, version, context,
+    memory, cost, and tool-access answers must be assembled from current
+    configuration and instrumentation rather than model self-report.
+20. **Historical event queries.** Build deterministic, privacy-scoped queries for
+    joins, leaves, deaths, and previously seen players on top of the canonical
+    archive. Current presence and historical presence are separate facts.
+21. **Consent-aware coordination.** Online status must not be treated as AFK
+    status, availability, willingness, or permission to assign work.
+22. **Command-shaped output policy.** Detect slash commands and executable-looking
+    strings across follow-ups, preserve them only in an inert quoted form, and
+    prevent requests to "just repeat" text from bypassing action policy.
+23. **Deterministic calculations.** Use versioned mechanics data and local
+    calculators for ratios, throughput, crafting, power, and module effects;
+    expose assumptions and clarify ambiguous items or belt tiers.
+24. **Renderer observability.** Log raw model text and final player-visible text,
+    record transformations, and report renderer limitations from configuration.
+25. **Accessibility-safe presentation.** Store only explicit per-player display
+    preferences, apply supported transformations deterministically, provide
+    reset/readable fallbacks, and never accept one player speaking for everyone.
 
 ## Requested full-bot behavior: player welcomes
 
@@ -338,4 +455,6 @@ Acceptance examples:
 ## Explicit non-goal for the POC
 
 These findings should not trigger more POC prompt patches or one-off knowledge
-rules. They are requirements evidence for designing the full chatbot.
+rules. The canonical conversation archive is also a full-bot requirement, not a
+reason to reopen POC logging. These findings are requirements evidence for
+designing the full chatbot.
