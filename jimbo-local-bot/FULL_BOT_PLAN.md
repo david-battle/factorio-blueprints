@@ -604,6 +604,29 @@ were obtained, and cannot cause any operation outside the local read-only
 allowlist. A bounded hosted smoke and harmless live RCON smoke pass before the
 planner becomes the primary live path.
 
+#### Implementation progress (2026-07-21)
+
+- Added a provider-neutral `StateNeedsPlan` with exactly four initial operations:
+  connected players, current research, game time, and available surfaces.
+- The model owns natural-language state-needs selection through one strict
+  planning call. Local code performs schema and allowlist validation only; it
+  does not add another intent classifier or expand the phrase catalog.
+- Approved selections project one locally authored fixed read-only RCON snapshot
+  into provenance-bearing tool results. One answer pass receives those results
+  separately from player text and conversation history.
+- The latest successfully delivered observation is retained per player for
+  model-handled provenance follow-ups. The phrase matcher is consulted only if
+  planning fails during rollout.
+- Planning, validation, selected tools, safe query timing/status, synthesis, and
+  delivery lifecycle events are archived. Routine tests mock provider and RCON.
+- The complete dependency-free suite passes 137 tests. A bounded hosted/live
+  smoke selected connected players plus surfaces for an indirect compound live
+  question, executed one harmless fixed snapshot, and synthesized the observed
+  values. A second hosted smoke selected no tools for a generic splitter
+  question. Neither smoke delivered public chat. The managed listener was
+  restarted onto this revision as PID 17992, verified running, and the change
+  was announced publicly under OPS-006.
+
 ## Step 7: Integrate the model and bounded per-player conversation
 
 ### Scope
@@ -688,24 +711,31 @@ memory.
 
 ### Work
 
-1. Implement inspect, set, edit, and reset for the affected player's own
-   preferences.
+1. Let the model interpret inspect, set, edit, and reset requests and propose a
+   strict typed preference operation for the authenticated player.
 2. Start with `facts_only` versus `facts_and_advice` and only explicitly
    approved presentation transformations.
-3. Store preferences durably with schema version and timestamps.
-4. Apply preferences through deterministic application code after factual
-   content is established.
-5. Protect commands, coordinates, names, recipes, quantities, units, and other
-   factual spans from presentation transformation.
-6. Supply a readable fallback when a transformation is unsafe or unsupported.
+3. Validate ownership and the small value allowlist locally, then store
+   preferences durably with schema version and timestamps.
+4. Give response preferences to the model. For `facts_only`, require structured
+   facts, assumptions, warnings, and advice sections; local code may omit the
+   explicitly tagged advice section but must not classify arbitrary prose.
+5. Limit local presentation transformations to mechanical operations that do
+   not require recognizing factual spans or understanding meaning.
+6. Preserve commands, coordinates, names, recipes, quantities, and units by
+   construction in structured fields or leave the response untransformed.
+7. Supply a readable untransformed fallback when a transformation is unsafe or
+   unsupported.
 
 ### Tests
 
 - Ownership, case-insensitive identity, inspect, edit, reset, and restart.
 - One player cannot set another player's or global preferences by assertion.
-- Facts-only removes advice without removing material assumptions or warnings.
-- Transformations cannot corrupt protected spans or create executable-looking
-  output.
+- Model-produced structured facts-only output omits only the tagged advice
+  section without removing material assumptions or warnings.
+- Local code does not infer facts versus advice from arbitrary prose.
+- Mechanical transformations cannot corrupt structured factual values or create
+  executable-looking output.
 - Unsupported transformations use the readable fallback.
 
 ### Acceptance check
@@ -730,11 +760,14 @@ calculations with explicit assumptions.
    machines, crafting speeds, modules/beacons, belt throughput, and relevant
    modifiers.
 2. Implement calculation primitives with units and defined rounding.
-3. Route supported calculation requests to the calculator rather than relying
-   on model arithmetic.
-4. Detect missing material inputs and produce focused clarification questions.
-5. Distinguish comparison dimensions such as throughput, efficiency, power,
-   pollution, space, and cost.
+3. Let the model recognize calculation intent and propose typed calculator
+   inputs; do not add local natural-language routing or parsing rules.
+4. Return missing fields, invalid prototypes, units, versions, and authoritative
+   candidate matches as structured validation results. The model asks focused
+   clarification questions.
+5. Let the model interpret `best` and propose comparison dimensions such as
+   throughput, efficiency, power, pollution, space, and cost; local code
+   computes only the requested validated dimensions.
 6. Include assumptions, game-data version, and recomputable inputs in results.
 
 ### Tests
@@ -744,7 +777,8 @@ calculations with explicit assumptions.
 - Unit consistency, rounding edges, invalid prototypes, and unsupported game
   versions.
 - Changing any input recomputes the complete result.
-- Ambiguous `best` and materially incomplete inputs clarify instead of guessing.
+- The model clarifies ambiguous `best` and materially incomplete inputs from
+  structured validator feedback instead of local semantic heuristics.
 - Model text cannot change deterministic numeric output.
 
 ### Acceptance check
@@ -758,6 +792,13 @@ recalculation.
 KNOW-003 through KNOW-005, ROUTE-002, ROUTE-003.
 
 ## Step 10: Implement the bounded read-only query engine
+
+Status: minimal core implemented and deployed. The model can propose up to six
+strictly validated investigation steps from an application-owned catalog. The
+first platform operations are registered and execute through one fixed,
+read-only snapshot with local row/result bounds and provenance. Generic
+filtering, grouping, aggregation, pagination, relationship traversal, queueing,
+cancellation, and full status/timeout semantics remain pending.
 
 ### Scope
 
@@ -780,6 +821,20 @@ adding broad domain coverage.
 7. Reject mutation-shaped APIs and validate non-mutation independently of the
    planner.
 8. Choose and record initial step, object, byte, page, and time bounds.
+9. Publish an application-owned capability catalog of registered domains,
+   operations, typed arguments, output fields, relationships, and limitations
+   for the planner and runtime-owned capability answers.
+10. Keep language understanding in the model. Do not add a local query-intent
+    taxonomy, semantic regex catalog, or one hard-coded handler per question.
+11. Replace catalog growth as the primary model interface with a compact,
+    familiar read-only Lua-shaped query syntax. Parse it into a restricted AST,
+    validate only allowlisted Factorio reads and bounded control flow, and
+    compile it to trusted local templates; never execute the model text.
+12. Reject assignments, mutation-capable methods, dynamic evaluation,
+    metaprogramming, recursion, unrestricted globals, command registration, and
+    unbounded iteration structurally. Do not rely on a textual denylist.
+13. Retain the current registered operations as a tested fallback while the
+    compiled interface is developed and compared for prompt size and accuracy.
 
 ### Tests
 
@@ -789,6 +844,15 @@ adding broad domain coverage.
 - Pagination, aggregation, timeout, partial results, and provenance propagation.
 - Fuzzed plan input cannot escape the registered operation set.
 - Static and staged checks confirm templates perform no mutation.
+- Capability/schema questions use the registered catalog and cannot cause the
+  model to invent fields or trigger arbitrary API reflection.
+- Natural paraphrases produce model-authored structured plans without adding
+  local phrase rules; unrelated conversation performs no RCON.
+- Restricted Lua-shaped plans compile to the same bounded read-only executor;
+  equivalent mutation, escape, reflection, and resource-exhaustion attempts are
+  rejected before RCON.
+- Prompt fixtures demonstrate that the fixed syntax contract is compact and
+  does not require restating a growing operation catalog on every request.
 
 ### Acceptance check
 
@@ -796,11 +860,28 @@ A mocked multi-step plan filters and aggregates a bounded dataset with complete
 provenance, while mutation and arbitrary-code adversarial plans are rejected.
 A harmless staged query confirms the compiler/executor contract.
 
+### Next Step 10 increment
+
+Design and prototype the parser/compiler boundary before adding more canned
+domain queries. Start with logistics and platform reads already covered by the
+trusted adapters, so compiled queries can be compared directly against known
+answers and load behavior. Measure prompt characters/tokens, plan validity,
+RCON command/result size, execution time, and correction frequency. Do not
+remove the existing operations or activate compiled model queries publicly until
+offline adversarial tests and harmless no-public live comparisons pass.
+
 ### Primary requirements
 
 STATE-006, STATE-007, STATE-009 through STATE-012, QUAL-003, QUAL-006.
 
 ## Step 11: Add broad live-state domain adapters and investigations
+
+Status: platform and initial logistics/storage vertical slices implemented;
+broad domain coverage remains pending. Platform coverage distinguishes display
+name, platform surface, stopped orbital location, and transit connection.
+Logistics coverage exposes bounded network identity/location, robot availability,
+member counts, stored item totals, and sampled logistic-container inventories
+and requests.
 
 ### Scope
 
@@ -814,15 +895,92 @@ support coherent multi-step answers.
    filters, requests, and controls; logistics; trains; space platforms;
    electric networks; statistics; pollution; resources; research; and map
    positions.
-2. Add name/prototype/surface resolution with ambiguity handling.
+2. Add exact authoritative name/prototype/surface lookup that returns zero, one,
+   or multiple candidates. The model resolves candidates from context or asks a
+   clarification; local code never silently chooses a fuzzy semantic match.
 3. Support bounded cross-domain relationships and joins.
 4. Let the model propose only structured plans and validated arguments.
-5. Synthesize public answers from provenance-bearing results without dumping
-   raw records or hiding incompleteness.
+5. Have the model synthesize public answers from provenance-bearing results
+   without dumping raw records or hiding incompleteness; adapters return facts
+   and relationships, not locally inferred conclusions.
 6. Produce coordinates only from observed validated positions and render GPS
    links through trusted local code.
 7. Record the first-release coverage and any Factorio API limitations per
    domain.
+
+### First vertical slice: space platforms
+
+Implement this slice before the other Step 11 domains because post-Step-6 live
+testing immediately exercised it and exposed the limitations of treating a
+platform surface as a platform record.
+
+1. Inspect and record the Factorio 2.1.12 API representation for platform stable
+   identity, displayed name, internal surface identity, current location/status,
+   schedule, hub inventory, logistic requests, and cargo relationships.
+2. Add registered platform discovery and inventory operations using the Step 10
+   schema. Keep display name and internal surface identifier distinct.
+3. Support bounded selection, projection, item filtering, counting, and the
+   relationship from a platform to its hub inventory, requests, and schedule.
+4. Preserve object identities and the latest structured result per player so
+   the model can resolve `that platform`, `which one`, and provenance follow-ups.
+5. Answer platform capability/field questions from the registered capability
+   catalog. Unsupported fields must be explicit rather than model-invented.
+6. Stage these live questions without public delivery before activation:
+   `What platforms exist?`, `What is that platform's displayed name?`,
+   `Does any platform contain space science?`, `How much does each contain?`,
+   `What is each requesting?`, and `Where is each going?`.
+
+Implemented evidence (2026-07-21): schema/adversarial fixtures and hosted
+planner/synthesis smokes passed; harmless live identity+cargo and
+requests+schedule smokes passed; the complete suite reached 143 tests including
+the post-deployment literal-bracket regression. The managed listener
+was activated as PID 24400 and the iteration was announced publicly. Initial
+player testing then exposed a renderer ambiguity for rich-text platform names;
+the renderer now spells unsafe brackets as `left-bracket` and `right-bracket`
+instead of silently deleting them.
+
+After the platform slice, expand in evidence-driven order: logistic networks and
+storage; production/consumption statistics; electric power and pollution;
+trains/stations/schedules/cargo; bounded entity/inventory inspection; then
+resources and observed map positions. Surfaces/planets, forces/progression, and
+players are expanded as required by those relationships. Every domain remains
+pending until its adapter contract, bounds, fixtures, and harmless live smoke
+are recorded.
+
+### Second vertical slice: logistics and storage
+
+Implemented 2026-07-21 with four model-selectable operations:
+`list_networks`, `count_items`, `inspect_contents`, and `inspect_containers`.
+Exact network IDs
+or custom names and exact surface/item/container prototypes are locally
+validated. `count_items` uses Factorio's authoritative logistic-network count
+for one exact item and distinguishes all members, providers (bot-available
+supply), and storage. Exact-item container inspection applies surface,
+prototype, numeric-network, and item scope before its bound and returns at most
+128 relevant containers. Broader fixed templates return at most 32 networks,
+128 item rows per network, 64 unscoped containers, and 32 inventory/request rows per container;
+limit hits are marked partial and synthesis must not claim exhaustive coverage.
+Templates were split at application-owned boundaries after live RCON exposed
+the command-length ceiling. Hosted/live no-public smokes correctly reported
+Nauvis steel and construction-robot availability and inspected a requester
+chest in network 2. Platform location semantics were corrected at the same time:
+`stopped_at_location` means stopped in orbit at the named space location, while
+the `surface` field is only the platform's internal map surface.
+
+Player feedback also replaced spelled-out trusted platform tags with a narrow
+trusted-token renderer: exact live names such as `[item=space-science-pack]`
+may render as Factorio icons, while arbitrary model-authored rich text remains
+disabled.
+
+The quota-safe breadth follow-up permits six steps, gives the planner one
+schema-correction retry, mechanically compacts prior observations to 8,000
+characters, and limits model-visible tool context to 16,000 characters. The
+separate 200 KB result ceiling remains an RCON transport guard, not permission
+to send that entire payload to the model. Provider token usage and safe
+remaining-quota headers are archived when Groq supplies them. Hosted/live
+no-public smokes reported 504 provider-available steel plates in Nauvis network
+2 and 101 steel plates physically present in its requester chests. The full
+dependency-free suite now passes 149 tests.
 
 ### Tests
 
@@ -831,6 +989,9 @@ support coherent multi-step answers.
   snapshots, and unsupported fields.
 - Aquilo logistic-chest/quantum-processor investigation.
 - Space-platform resource origin/destination/cargo/request investigation.
+- Platform display identity is not inferred from its internal surface name.
+- Platform item-filter questions inspect authoritative hub cargo and distinguish
+  empty, unavailable, partial, and unsupported results.
 - Resource/map recommendations never invent patches or coordinates.
 - Broad surface queries remain bounded and honest about partial coverage.
 
@@ -854,22 +1015,26 @@ live world.
 
 ### Work
 
-1. Define the versioned `GhostDesign` schema for Factorio version, surface,
+1. Let the model interpret the requested layout and propose or revise a typed
+   design; local code does not invent, optimize, or semantically improve it.
+2. Define the versioned `GhostDesign` schema for Factorio version, surface,
    anchor, prototypes, exact centers, directions, qualities, recipes, filters,
    priorities, control behavior, wires, and module requests.
-2. Implement blueprint decode, compact JSON validation, and encode/decode
+3. Implement blueprint decode, compact JSON validation, and encode/decode
    round-trip checks.
-3. Reject duplicate centers, unknown/unsupported prototypes, invalid settings,
+4. Reject duplicate centers, unknown/unsupported prototypes, invalid settings,
    invalid coordinates, incompatible versions, direct construction, tiles,
    destruction, deconstruction, inventory/player/research/force mutation, and
    unbounded operations.
-4. Convert validated designs into deterministic representative-test,
+5. Return precise structured validation errors to the model for explanation or
+   a revised design; validators do not choose design alternatives.
+6. Convert validated designs into deterministic representative-test,
    preflight, bounded-batch, audit, and scoped-cleanup plans.
-5. Require a distinctive exact marker and explicit surface/anchor.
-6. Keep raw model-authored Lua/RCON disabled. Any future proposal to enable it
+7. Require a distinctive exact marker and explicit surface/anchor.
+8. Keep raw model-authored Lua/RCON disabled. Any future proposal to enable it
    requires a separate recorded design decision and must reduce to the same
    structured allowlist.
-7. Create immutable design hashes and full placement audit records.
+9. Create immutable design hashes and full placement audit records.
 
 ### Tests
 
@@ -881,6 +1046,8 @@ live world.
 - Batch plans are small, deterministic, and reproduce expected positions.
 - Cleanup plans include only original expected positions and matching
   prototypes.
+- Local code either validates the proposed layout or returns structured errors;
+  it does not generate or optimize layouts on the model's behalf.
 
 ### Acceptance check
 
@@ -913,8 +1080,10 @@ authority checks, incremental execution, audit, and safe recovery.
 5. Scan the complete footprint for rails, entities, tiles, water, and
    collisions; call `surface.can_place_entity` for every planned entity and
    abort the main placement if any required position fails.
-6. Place small bounded batches and audit every batch. Stop on timeout, missing
-   response, mismatch, or server health concern; audit before any retry.
+6. Place small bounded batches and audit every batch. Stop on explicit measured
+   conditions: timeout, missing confirmation, configured response-time or queue
+   threshold, audit mismatch, or operator abort. Audit before any retry; do not
+   add a heuristic that the server merely `seems unhealthy`.
 7. Verify exact prototypes, center positions, directions, qualities, recipes,
    filters/priorities, control behavior, wires, and module requests.
 8. Implement separately authorized scoped cleanup/replacement using the
@@ -935,6 +1104,8 @@ authority checks, incremental execution, audit, and safe recovery.
 - Cleanup excludes unrelated entities, rails, markers, and nonmatching
   prototypes.
 - Restart resumes or safely halts from every state without duplicate placement.
+- Every automatic stop maps to one configured signal or exact audit condition;
+  model judgment cannot waive or create placement safety gates.
 
 ### Acceptance check
 
@@ -962,10 +1133,13 @@ to each owning step and complete its recorded deferred items:
   delivery/commit reconciliation.
 - Step 5 follow-up: complete rendering, byte budgets, pagination, rich text/GPS,
   artifact/command content policy, Unicode hardening, retries, and delivery
-  reconciliation.
-- Step 6 follow-up: model-directed state-needs planning over locally validated
-  read-only tools, authoritative current and historical state, authority
-  declines, runtime self-description, provenance, and explicit result status.
+  reconciliation. Post-Step-6 chat specifically reconfirmed duplicated reply
+  prefixes, leaked Markdown markers, and overlong-response fallback behavior.
+- Step 6 follow-up: model-directed state-needs planning over four locally
+  validated read-only tools and per-player provenance context is complete and
+  deployed. Still pending here are the remaining authoritative direct routes:
+  historical state, authority declines, runtime self-description, and complete
+  stale/partial/unavailable policy. Broad investigation belongs to Steps 10-11.
 
 These are follow-up passes of Steps 3-6, not new Step 14 responsibilities. Their
 timing will be reviewed separately after the prototype milestone.
@@ -984,6 +1158,8 @@ rollback, and only then activate it publicly.
    placement status, and placement abort through the narrow project launcher.
 2. Report log freshness, cursor lag, archive health, queue depth, provider/RCON
    state, renderer rejections, delivery failures, and active placement state.
+   The model may summarize these measurements, but configured thresholds and
+   exact outcomes remain authoritative.
 3. Enforce bounded queues, per-player ordering, serial read-only RCON, serial
    delivery, and exclusive mutation placement.
 4. Add failure containment for every external dependency and event type.
@@ -1001,6 +1177,9 @@ rollback, and only then activate it publicly.
    data retention, health, recovery, and known limitations.
 11. Activate public replies only after explicit management approval. Retire or
     disable the POC listener so both bots cannot respond concurrently.
+12. Keep health, rollback, queue admission, mutation leases, test pass/fail, and
+    activation permission application/operator-owned; the model may explain
+    evidence but cannot decide or override these outcomes.
 
 ### Tests
 
@@ -1031,6 +1210,15 @@ their owning earlier steps.
 
 These choices are intentionally resolved when evidence becomes available:
 
+- Across Steps 8-14, the model owns natural-language understanding, ambiguity
+  resolution, comparison framing, tool/calculator/design planning,
+  clarification wording, and answer synthesis. Local code is limited to
+  authenticated identity/authority, typed schema and capability validation,
+  authoritative lookup, deterministic calculation, bounded query compilation
+  and execution, provenance, rendering safety, explicit operational thresholds,
+  and controlled effects. Do not build semantic regex catalogs, fuzzy intent
+  engines, prose classifiers, or question-specific handler trees.
+
 - Step 2 records archive rotation thresholds. The first release uses a tagged
   UTF-8 text log plus small atomic flat-text state files and adds neither JSON
   storage nor SQLite.
@@ -1056,12 +1244,12 @@ Update this section after each completed step:
 | 3 | First pass complete | 2026-07-21 | Durable complete-line reader, flat-text cursor, chat/join/leave normalization, archive-before-cursor ordering; 90 tests passing. |
 | 4 | First pass complete | 2026-07-21 | Deterministic invocation/self-loop handling and durable welcome intents with required Jimbo instruction; 103 tests passing. |
 | 5 | Minimal bridge complete | 2026-07-21 | One-line renderer, fixed-wrapper transport, serial archived delivery, welcome completion, live smoke confirmation; 113 tests passing. |
-| 6 | Basic follow-up live | 2026-07-21 | Fixed read-only live snapshot is deployed; model-directed state-needs planning is designed as the next Step 6 follow-up; 132 tests passing. |
-| 7 | Complete/live | 2026-07-21 | Real Groq gateway, separated trusted context, three delivery-committed exchanges per player, hosted smoke, and active full-bot listener; Step 7 tests included in the 132-test suite. |
+| 6 | Model planner live; other routes pending | 2026-07-21 | Four-tool model-directed state-needs planning, strict local validation, fixed read-only execution, provenance follow-ups, hosted/live smokes, and managed deployment; remaining direct routes stay attached to Step 6; 137 tests passing. |
+| 7 | Complete/live | 2026-07-21 | Real Groq gateway, separated trusted context, three delivery-committed exchanges per player, hosted smoke, and active full-bot listener; Step 7 tests included in the 137-test suite. |
 | 8 | Not started | - | - |
 | 9 | Not started | - | - |
-| 10 | Not started | - | - |
-| 11 | Not started | - | - |
+| 10 | Minimal core live; expansion pending | 2026-07-21 | Six-step catalog/schema validation, one correction retry, separate transport/model-context bounds, quota observability, fixed read-only execution, provenance, and adversarial rejection. |
+| 11 | Platform + logistics slices implemented; other domains pending | 2026-07-21 | Platform identity/orbit/transit, cargo/requests/schedule plus targeted logistic provider/storage counts and scoped container inspection; 149 tests and harmless live smokes pass. |
 | 12 | Not started | - | - |
 | 13 | Not started | - | - |
 | 14 | Not started | - | - |

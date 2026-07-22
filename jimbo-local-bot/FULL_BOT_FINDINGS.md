@@ -512,3 +512,55 @@ These findings should not trigger more POC prompt patches or one-off knowledge
 rules. The canonical conversation archive is also a full-bot requirement, not a
 reason to reopen POC logging. These findings are requirements evidence for
 designing the full chatbot.
+
+## Read-only query-interface decision (2026-07-21)
+
+Recent logistics testing showed that adding one registered operation at a time
+can answer specific questions safely, but risks creating both a canned-query
+catalog and a proprietary schema that consumes prompt bandwidth. The live data
+is already available to ordinary players; confidentiality is not the reason for
+the execution boundary. The boundary instead protects world integrity, server
+availability, bounded RCON/model traffic, provenance, and reproducibility.
+
+The selected direction is a compact read-only Lua-shaped model interface that
+uses familiar Factorio concepts without directly executing model-authored Lua.
+Local code will parse an allowlisted syntax, reject mutation and unbounded
+behavior structurally, and compile accepted queries into trusted execution. The
+current registered operations remain the fallback and comparison baseline. A
+denylist or the instruction “read-only” alone is not considered sufficient.
+
+## Post-Step-6 live-state findings (2026-07-21, 18:03-18:05 server time)
+
+These observations occurred after deployment of the model-directed four-tool
+state-needs planner and are evidence for Steps 10 and 11 rather than POC prompt
+patches.
+
+1. `Jimbo give me a list of all space platforms in the game right now please`
+   correctly caused the model planner to select `get_available_surfaces`, but
+   the result exposed `platform-1`. A player immediately clarified that this was
+   an index/internal name rather than the desired platform display identity.
+2. `what is that platform's name?` reused the prior observation without another
+   RCON call, but the available result could not distinguish surface identity
+   from platform display name, so Jimbo repeated `platform-1` as though proven.
+3. `how do you know that?` successfully reused per-player provenance and
+   identified the fixed read-only surface query. This validates the model-owned
+   follow-up approach and argues against a local semantic follow-up classifier.
+4. Players asked which keys were available for platform data. With no trusted
+   capability catalog, Jimbo invented plausible fields such as `modules`,
+   `power`, and `orbit`. Runtime capability and schema answers must come from an
+   application-owned registered catalog.
+5. `do any of them contain [item=space-science-pack]` selected the surface tool,
+   then honestly admitted that platform inventories were unavailable. Platform
+   hub cargo and item-filtered inventory inspection are the clearest first
+   expansion of live state.
+6. The same exchange exposed presentation defects outside the investigation
+   scope: occasional duplicated `Jimbo to <player>` prefixes, Markdown markers
+   reaching public chat, and long responses falling back instead of producing a
+   shorter synthesis. Retain these as Step 5 renderer follow-up work; do not hide
+   them inside the Step 10/11 implementation.
+
+Design consequence: implement the bounded generic investigation contract in
+Step 10, then use space-platform identity/cargo/requests/schedules as the first
+Step 11 vertical slice. The model interprets intent and proposes typed plans;
+local code owns only the capability catalog, validation, fixed read-only query
+compilation/execution, bounds, provenance, and result storage.

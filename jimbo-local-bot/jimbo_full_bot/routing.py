@@ -70,3 +70,19 @@ class MinimalConversationRouter:
             allowed_tool_families=("fixed_live_snapshot",) if live_query else (),
         )
         return ConversationHandoff(plan=plan, context=STATIC_SERVER_CONTEXT, live_query=live_query)
+
+    def conversation_only(self, decision: InvocationDecision) -> ConversationHandoff | None:
+        """Build the handoff without attempting local natural-language intent parsing."""
+        handoff = self.route(decision)
+        if handoff is None:
+            return None
+        plan = RequestPlan(
+            correlation_id=handoff.plan.correlation_id,
+            event_id=handoff.plan.event_id,
+            actor=handoff.plan.actor,
+            request_text=handoff.plan.request_text,
+            route=RouteKind.CONVERSATION,
+            authority=handoff.plan.authority,
+            allowed_tool_families=("state_needs_plan",),
+        )
+        return ConversationHandoff(plan=plan, context=STATIC_SERVER_CONTEXT)

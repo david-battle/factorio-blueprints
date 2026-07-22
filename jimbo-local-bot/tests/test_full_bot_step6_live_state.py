@@ -30,6 +30,24 @@ class FixedLiveStateTests(unittest.TestCase):
             self.assertEqual(state.answer("surfaces"), "Available surfaces: aquilo, nauvis.")
             self.assertEqual(command.read_bytes(), original)
 
+    @patch("jimbo_full_bot.live_state.subprocess.run")
+    def test_selected_tools_share_one_fixed_snapshot_with_provenance(self, run: object) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            command = Path(directory) / "command.txt"
+            command.write_text("/players\n", encoding="utf-8")
+            run.return_value = CompletedProcess([], 0,
+                "JIMBO_FULL_STATE|players=Alice|research=none|progress=0.000|tick=3600|surfaces=nauvis", "")
+            provider = FixedLiveStateProvider(
+                wrapper_path=Path("wrapper.ps1"), command_path=command, timeout_seconds=5
+            )
+            results = provider.execute(("get_connected_players", "get_game_time"))
+            self.assertEqual(run.call_count, 1)
+            self.assertEqual(results[0].values["operation"], "get_connected_players")
+            self.assertEqual(results[1].values["operation"], "get_game_time")
+            self.assertEqual(results[0].provenance.collected_at,
+                             results[1].provenance.collected_at)
+            self.assertTrue(results[0].provenance.complete)
+
     def test_direct_answers_are_bounded_and_transparent(self) -> None:
         from jimbo_full_bot.live_state import LiveServerState
         state = LiveServerState((), None, 0.0, 0, ())

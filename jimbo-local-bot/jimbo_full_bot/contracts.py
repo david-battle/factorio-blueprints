@@ -8,6 +8,14 @@ from enum import StrEnum
 from typing import Mapping
 
 
+STATE_TOOL_NAMES = (
+    "get_connected_players",
+    "get_current_research",
+    "get_game_time",
+    "get_available_surfaces",
+)
+
+
 class EventKind(StrEnum):
     PUBLIC_CHAT = "public_chat"
     PLAYER_JOIN = "player_join"
@@ -116,6 +124,14 @@ class RequestPlan:
     route: RouteKind
     authority: AuthorityDecision
     allowed_tool_families: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class StateNeedsPlan:
+    """Provider-neutral, code-free selection of approved read-only operations."""
+
+    tools: tuple[str, ...] = ()
+    investigation_steps: tuple[Mapping[str, object], ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

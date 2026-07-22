@@ -907,6 +907,66 @@ def main() -> int:
         if reconfigure is not None:
             reconfigure(encoding="utf-8", errors="replace")
 
+    if "--full-bot-step6-smoke" in sys.argv[1:]:
+        if len(sys.argv[1:]) != 2 or sys.argv[1] != "--full-bot-step6-smoke":
+            raise SystemExit("usage: jimbo_bot.py --full-bot-step6-smoke PROMPT")
+        from jimbo_full_bot.config import FullBotConfig
+        from jimbo_full_bot.interactions import InvocationDecision
+        from jimbo_full_bot.live_state import FixedLiveStateProvider
+        from jimbo_full_bot.model import GroqModelGateway
+        from jimbo_full_bot.platform_state import PlatformInvestigationProvider
+        from jimbo_full_bot.logistics_state import LogisticsInvestigationProvider
+        from jimbo_full_bot.routing import MinimalConversationRouter
+
+        config = FullBotConfig().validate()
+        handoff = MinimalConversationRouter(config).conversation_only(
+            InvocationDecision("step6-smoke", "cli", True, sys.argv[2], "accepted")
+        )
+        assert handoff is not None
+        gateway = GroqModelGateway.from_key_file(
+            config.api_key_path,
+            model=config.model,
+            timeout_seconds=config.provider_timeout_seconds,
+        )
+        state_plan = gateway.plan_state_needs(handoff.plan)
+        print("Validated Step 6 tools: " + (", ".join(state_plan.tools) or "none"), flush=True)
+        results = FixedLiveStateProvider(
+            wrapper_path=config.rcon_wrapper_path,
+            command_path=config.rcon_command_path,
+            timeout_seconds=config.rcon_timeout_seconds,
+        ).execute(state_plan.tools)
+        providers = {
+            "space_platforms": PlatformInvestigationProvider,
+            "logistics": LogisticsInvestigationProvider,
+        }
+        for domain, provider_type in providers.items():
+            steps = tuple(step for step in state_plan.investigation_steps if step.get("domain") == domain)
+            if steps:
+                results = tuple(results) + provider_type(
+                    wrapper_path=config.rcon_wrapper_path,
+                    command_path=config.rcon_command_path,
+                    timeout_seconds=config.rcon_timeout_seconds,
+                ).execute(steps)
+        if state_plan.investigation_steps:
+            print(
+                "Validated investigation steps: " +
+                json.dumps(state_plan.investigation_steps, ensure_ascii=False),
+                flush=True,
+            )
+        context = handoff.context
+        if results:
+            context = context.replace(
+                "No fresh live-game snapshot was collected for this request. Do not claim "
+                "to know current players, research, map locations, inventories, production, "
+                "or other current-save facts.",
+                "Fresh live observations were collected only for the operations in the "
+                "trusted tool-results message. Treat all other current-save facts as unknown.",
+            )
+        print(gateway.generate(
+            handoff.plan, tool_results=results, trusted_context=context
+        ), flush=True)
+        return 0
+
     if "--full-bot-smoke" in sys.argv[1:]:
         if len(sys.argv[1:]) != 2 or sys.argv[1] != "--full-bot-smoke":
             raise SystemExit("usage: jimbo_bot.py --full-bot-smoke PROMPT")

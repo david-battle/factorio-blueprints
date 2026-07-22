@@ -19,6 +19,8 @@ POWERSHELL_PATH = Path(r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.e
 RCON_SUCCESS_MARKER = "JIMBO_FULL_REPLY_SENT"
 CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
 WHITESPACE_RE = re.compile(r"\s+")
+BOT_PREFIX_RE = re.compile(r"^Jimbo\s+to\s+[^:]{1,32}:\s*", re.IGNORECASE)
+TRUSTED_RICH_NAME_RE = re.compile(r"^\[(?:item|planet|entity|fluid|quality)=[a-z0-9][a-z0-9-]{0,99}\]$")
 OVERLONG_FALLBACK = "My reply was too long for chat. Please ask for a shorter answer."
 EMPTY_FALLBACK = "I don't have a response yet."
 ASCII_TRANSLATION = str.maketrans(
@@ -42,11 +44,14 @@ class MinimalRenderer:
         self.character_limit = character_limit
 
     def render_reply(
-        self, correlation_id: str, recipient: str, response: str
+        self, correlation_id: str, recipient: str, response: str,
+        *, trusted_rich_text: tuple[str, ...] = (),
     ) -> RenderedMessage:
         safe_recipient = self._plain_text(recipient)[:32] or "player"
         prefix = f"Jimbo to {safe_recipient}: "
-        body = self._plain_text(response) or EMPTY_FALLBACK
+        body = BOT_PREFIX_RE.sub(
+            "", self._plain_text(response, trusted_rich_text=trusted_rich_text)
+        ).strip() or EMPTY_FALLBACK
         return self._render(correlation_id, safe_recipient, prefix, body)
 
     def render_welcome(self, intent: WelcomeIntent) -> RenderedMessage:
@@ -58,20 +63,36 @@ class MinimalRenderer:
     ) -> RenderedMessage:
         text = prefix + body
         if len(text) > self.character_limit:
+            available = self.character_limit - len(prefix)
+            shortened = body[: available + 1]
+            if len(shortened) > available:
+                shortened = shortened[:available].rsplit(" ", 1)[0].rstrip(" ,;:-")
+            text = prefix + (shortened + "..." if len(shortened) + 3 <= available else shortened)
+        if len(text) > self.character_limit or not text[len(prefix):].strip():
             text = prefix + OVERLONG_FALLBACK
         if len(text) > self.character_limit:
             raise ValueError("reply prefix leaves no room for the fallback")
         return RenderedMessage(correlation_id, recipient, text, len(text))
 
     @staticmethod
-    def _plain_text(value: str) -> str:
-        # Brackets are removed only to contain Lua long strings and disable
-        # Factorio rich-text interpretation in this minimal renderer.
+    def _plain_text(value: str, *, trusted_rich_text: tuple[str, ...] = ()) -> str:
+        placeholders: dict[str, str] = {}
+        for index, candidate in enumerate(dict.fromkeys(trusted_rich_text)):
+            if TRUSTED_RICH_NAME_RE.fullmatch(candidate):
+                token = f"JIMBOTRUSTEDRICHTOKEN{index}"
+                value = value.replace(candidate, token)
+                placeholders[token] = candidate
+        # Untrusted brackets are spelled out so model-authored rich text stays
+        # inert and literal values are not silently changed.
         value = CONTROL_RE.sub(" ", value)
-        value = value.replace("[", "").replace("]", "")
+        value = value.replace("[", " left-bracket ").replace("]", " right-bracket ")
+        value = value.replace("**", "").replace("__", "").replace("`", "")
         value = value.translate(ASCII_TRANSLATION)
         value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode()
-        return WHITESPACE_RE.sub(" ", value).strip()
+        value = WHITESPACE_RE.sub(" ", value).strip()
+        for token, candidate in placeholders.items():
+            value = value.replace(token, candidate)
+        return value
 
 
 def build_print_command(message: RenderedMessage) -> str:

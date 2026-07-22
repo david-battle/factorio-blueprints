@@ -70,11 +70,13 @@ The append-only text archive remains the self-contained record of truth. Small v
 
 ### 3.3 Router and policy engine
 
-The router remains deterministic for invocation, authority, preference commands,
-placement requests, prohibited actions, and runtime-owned facts. For ordinary
-informational requests, a bounded model planning pass decides whether fresh
-game state is needed and may propose only registered read-only operations. It
-produces a typed `RequestPlan` with one route:
+The router remains deterministic only where application-owned enforcement is
+required: invocation, authenticated actor identity, authority, configured
+capability boundaries, and runtime-owned facts. The model interprets preference
+requests, calculations, investigations, placement discussions, ambiguity, and
+ordinary conversation by proposing typed plans. Local code validates those
+plans and enforces ownership and capability policy; it does not maintain a
+parallel semantic intent classifier. A typed `RequestPlan` selects one route:
 
 - `direct_runtime_fact` for identity, limits, provider, health, and configuration;
 - `direct_archive_query` for joins, leaves, and previously-seen questions;
@@ -98,14 +100,16 @@ provenance are supplied as trusted tool results.
 ### 3.4 Conversation orchestrator
 
 The orchestrator owns one correlation ID from accepted invocation through
-delivery. It loads the last three completed exchanges for the requesting
-player, applies deterministic preferences, and performs at most one
-state-needs planning pass. A strict plan such as
+delivery. It loads the last three completed exchanges and explicit stored
+preferences for the requesting player, then performs one state-needs planning
+pass. A strict plan such as
 `{"tools":["get_connected_players"]}` is locally parsed and validated. If the
 plan contains approved tools, the orchestrator executes them through the serial
 read-only RCON path, then makes one answer pass with trusted results and
 provenance. If no tool is requested, it proceeds directly to the answer pass.
-There is no recursive tool loop.
+There is no recursive tool loop. If the planner's structured output fails local
+schema validation, the gateway may make exactly one correction attempt using
+the validation error; no RCON executes for either rejected plan.
 
 The initial planner allowlist is `get_connected_players`,
 `get_current_research`, `get_game_time`, and `get_available_surfaces`. The
@@ -120,6 +124,14 @@ The gateway exposes a provider-neutral interface and retains Groq `openai/gpt-os
 
 Prompts separate trusted application facts, untrusted player text, recent conversation, and tool results. Tool results carry provenance and completeness. The gateway never receives RCON credentials and never directly calls Factorio, files, or the network beyond the configured model API.
 
+Model-visible state is separately bounded from RCON transport. Prior structured
+observations are mechanically compacted to identity, position, location, and
+requested count fields within 8,000 characters. Current tool data is supplied
+in full only within 16,000 characters; beyond that, the model receives
+provenance, summaries, warnings, and an explicit omission notice. Provider
+token usage and non-secret remaining request/token quota headers are retained
+in the local archive when available so limits can be tuned from evidence.
+
 ## 4. Read-only investigation subsystem
 
 ### 4.1 Query model
@@ -129,6 +141,12 @@ players, current research, game time, and available surfaces. The model chooses
 zero or more of those operations through a strict structured plan; local code
 validates the names, maximum count, and absence of extra fields before any RCON
 call. Unknown or malformed proposals execute nothing.
+
+This first slice is deployed. Natural-language intent, compound questions, and
+provenance follow-ups are model-owned. Local application code is deliberately
+limited to schema and allowlist validation, fixed read-only execution, result
+provenance, and safety boundaries. The former phrase matcher is rollout fallback
+only and must not grow into a parallel local intent-classification system.
 
 Broader live-state access is implemented as a small safe query language rather
 than one command per anticipated question. The model may later propose a JSON
@@ -149,15 +167,82 @@ investigation plan containing only registered operations and typed arguments:
 
 Registered primitives cover discovery, filtering, projection, counting, grouping, aggregation, and relationship traversal. Domain adapters expose surfaces/planets, forces, players, entities/ghosts, inventories and settings, logistics, trains, platforms, electric networks, statistics, pollution, resources, research, and positions where the Factorio API makes them observable.
 
+The first broader vertical slice is space platforms. Live player testing showed
+that the current surface list exposes an internal platform surface identifier
+such as `platform-1`, which is not sufficient proof of the platform's displayed
+name or its cargo. The platform adapter therefore keeps stable object identity,
+display name, internal surface identity, location/status, schedule, hub cargo,
+and logistic requests as distinct fields where Factorio exposes them. It must
+support model-planned questions about platform identity, location, inventory,
+requests, and routes without treating a surface name as a display name.
+
+The planner receives an application-owned capability catalog describing the
+registered domains, operations, arguments, output fields, relationships, and
+known limitations. Capability/schema questions are answered from this catalog,
+not invented by the model and not discovered through arbitrary Lua reflection.
+The initial broader plan shape is intentionally small:
+
+```json
+{
+  "steps": [
+    {"op": "list_objects", "domain": "space_platforms",
+     "select": ["id", "name", "surface", "location", "status"]},
+    {"op": "inspect_inventory", "input": 0,
+     "item": "space-science-pack"}
+  ]
+}
+```
+
+This schema is extended only through registered typed operations and fields.
+The model interprets the question and proposes the plan; local code does not
+maintain a question taxonomy or semantic regex catalog.
+
+The target interface should not become a large proprietary DSL whose catalog
+must be repeatedly taught to the model. The next Step 10 expansion will test a
+compact read-only Lua-shaped query syntax using familiar Factorio object names
+and ordinary selection, iteration, filtering, projection, counting, grouping,
+and aggregation. Model output is source text only for a local parser: it is
+accepted into a restricted AST, checked against allowlisted read properties and
+methods, bounded, and compiled into trusted application-owned templates. It is
+never sent directly to RCON. Assignments, mutation-capable calls, command
+registration, dynamic evaluation, metaprogramming, recursion, unrestricted
+globals, and unbounded iteration are rejected structurally rather than with a
+textual denylist. The current registered operations remain the stable fallback.
+
+This boundary protects server integrity and availability, not secrecy of game
+state already visible to players. It also bounds RCON traffic, response size,
+model quota, and reproducibility. A parser/allowlist or equivalent capability-
+isolated execution environment is required before enabling this interface;
+model familiarity with RCON alone is not a safety proof.
+
+The deployed logistics slice also exposes targeted exact-item counts for all
+network members, providers, or storage, plus exact-item container inspection.
+These operations aggregate or scope inside the trusted Factorio template before
+returning rows. They answer broad quantity questions without dumping every
+network inventory or relying on local language heuristics.
+
 ### 4.2 Safety and execution
 
-The plan validator rejects unknown operations/fields, mutation-shaped APIs, arbitrary code, excessive limits, unbounded scans, invalid prototypes, and unsupported cross-domain joins. Local code compiles an accepted plan into predefined read-only Lua templates. Templates return compact JSON through `rcon.print` and have explicit surface/force scope, maximum visited objects, maximum result bytes, and execution deadline.
+The plan validator rejects unknown operations/fields, mutation-shaped APIs, arbitrary code, excessive limits, unbounded scans, invalid prototypes, and unsupported cross-domain joins. Local code compiles an accepted plan into predefined read-only Lua templates. Templates return compact JSON through `rcon.print` and have explicit surface/force scope, maximum visited objects, maximum result bytes, and execution deadline. The current 200 KB result ceiling protects RCON transport and parsing; the smaller model-context budget above independently protects provider quota.
 
 Large work is paginated or aggregated server-side in bounded increments. The executor uses a dedicated serial queue so investigations cannot overwhelm the server. Each result reports `complete`, `partial`, `timeout`, `unavailable`, or `stale`, plus collection time, scope, filters, counts, object identities, and warnings. The synthesizer must preserve those qualifiers.
 
+The latest successfully delivered structured investigation remains available
+as bounded per-player working context so the model can resolve references such
+as `which one`, `what is its real name`, and `how do you know`. Application code
+stores and supplies the result but does not interpret the follow-up locally.
+
 ### 4.3 Deterministic calculations
 
-Calculations use a versioned local data model and explicit input schema. Inputs include recipe/item, quality, machine, crafting speed, modules/beacons, belt throughput, game version, and the requested comparison metric. Missing material inputs yield a clarification rather than guessed defaults. Output contains assumptions, formula inputs, result units, rounding method, and source version.
+Calculations use a versioned local data model and explicit input schema. Inputs include recipe/item, quality, machine, crafting speed, modules/beacons, belt throughput, game version, and the requested comparison metric. Missing material inputs produce structured validator feedback from which the model asks a clarification rather than guessing defaults. Output contains assumptions, formula inputs, result units, rounding method, and source version.
+
+The model decides when calculation is appropriate, resolves conversational
+terminology, proposes typed calculator inputs and comparison dimensions, and
+asks any clarification. Local code performs only authoritative prototype/unit
+validation and deterministic arithmetic. Missing or ambiguous inputs are
+returned to the model as structured candidates or missing fields; local code
+does not interpret natural language, decide what `best` means, or compose the
+clarification itself.
 
 ## 5. Ghost and blueprint placement subsystem
 
@@ -190,7 +275,7 @@ Final audit compares every expected prototype and center position and verifies s
 
 ## 6. Rendering and delivery
 
-The response renderer accepts structured content, not arbitrary rich text. Dynamic model/player text is escaped and normalized separately from trusted locally constructed tokens such as validated GPS links. It removes unsupported Markdown and control characters, collapses line breaks, protects commands/coordinates/names from preference transforms, and measures the final encoded byte length against the configured Factorio chat budget.
+The response renderer accepts structured content, not arbitrary rich text. Dynamic model/player text is escaped and normalized separately from trusted locally constructed tokens such as validated GPS links. It removes unsupported Markdown and control characters, collapses line breaks, protects commands/coordinates/names from preference transforms, and measures the final encoded byte length against the configured Factorio chat budget. Untrusted square brackets are spelled out rather than silently deleted. An exact rich-text-only platform name retrieved from trusted live state may pass through a narrow local tag allowlist so Factorio renders its intended icon; model-authored or unsupported tags remain inert.
 
 Oversized prose is summarized or deliberately paginated. Opaque artifacts are never truncated: they are delivered only if a deterministic generator produced them, validation passed, and the complete artifact fits. Otherwise Jimbo declines with a useful explanation. Command-shaped, Lua, RCON, shell, encoded-payload, and blueprint-like output is detected on initial and follow-up turns.
 
@@ -200,7 +285,17 @@ The delivery queue serializes public output, applies timeout/backoff, records th
 
 Join events bypass invocation but not deduplication or maintenance controls. A deterministic template chooses `Welcome, <name>! Begin queries with Jimbo.` for first seen and `Welcome back, <name>! Begin queries with Jimbo.` for a durably seen player. The wording may be refined, but every template must retain the explicit `Jimbo` invocation instruction and remain compatible with the supported `Hey Jimbo` form. Seen identity is keyed by casefolded name and retains latest display spelling, first-seen time, and last-seen time. No model call is made and no history detail is disclosed. Operators can disable or temporarily suppress greetings.
 
-Durable preferences use an allowlisted schema initially containing `response_mode` (`facts_only` or `facts_and_advice`) and approved presentation transforms. Only the affected player may set, inspect, reset, or edit their preferences. Application code applies transforms after factual rendering with protected spans and a readable fallback.
+Durable preferences use an allowlisted schema initially containing `response_mode` (`facts_only` or `facts_and_advice`) and approved mechanical presentation transforms. Only the affected player may set, inspect, reset, or edit their preferences; application code enforces that ownership and supplies a readable fallback.
+
+The model interprets a preference request and proposes a strict operation such
+as `{"operation":"set","response_mode":"facts_only"}`. Local code checks the
+authenticated owner, validates the small allowlist, and stores or returns the
+value. For response modes, the model produces explicitly labeled structured
+sections such as facts, assumptions, warnings, and advice; local code may omit
+an explicitly tagged advice section but does not semantically classify prose.
+Deterministic presentation transforms are limited to mechanical operations that
+cannot alter meaning; unsupported transforms fall back to the untransformed
+model response.
 
 Social prompts remain model-handled within PG-13 behavior. The application blocks impersonation, unattributed relays, targeted harassment, private-history disclosure, and unsafe actions. Presence never implies AFK state, availability, consent, or willingness to perform work.
 
@@ -225,9 +320,15 @@ The listener stays responsive by separating ingestion from bounded work queues. 
 
 Every external call has a timeout and classified outcome. One failed event cannot terminate ingestion. Retries are limited to idempotent operations; world-changing placement is never blindly retried. Health reports cover log freshness, cursor lag, archive writes, queue depth, provider status, RCON status, renderer rejections, delivery failures, and active placement state. Metrics remain local and must not disclose public cost/quota details.
 
+Operational and placement stop decisions use explicit configured signals such
+as timeout, missing confirmation, measured response threshold, queue bound,
+audit mismatch, or operator abort. Local code must not introduce a heuristic
+notion that the server merely `seems unhealthy`. The model may summarize health
+evidence but cannot determine authoritative health, rollback, or activation.
+
 ## 10. Deployment and operator controls
 
-Implementation, staging, smoke validation, and public activation are separate gates. The existing fixed project launcher remains the operational entry point and should gain narrowly scoped actions through its validated action file only when implementation reaches them. Required controls include status, start, stop, restart, public replies on/off, welcomes on/off/suppress, queue drain, health summary, and placement abort.
+Implementation, staging, smoke validation, and public activation are separate gates. The existing fixed project launcher remains the operational entry point and should gain narrowly scoped actions through its validated action file only when implementation reaches them. Required controls include status, start, stop, restart, public replies on/off, welcomes on/off/suppress, queue drain, health summary, and placement abort. Every newly activated testing iteration must announce itself in public chat with a short capability/limitation summary so players know what changed and what to test.
 
 Recommended rollout:
 
@@ -270,6 +371,10 @@ Decisions fixed by this design:
 - A separate management-only structured ghost-placement state machine.
 - Ephemeral three-exchange per-player conversation memory.
 - Application-owned rendering, preferences, welcomes, authority, and self-description.
+- Model-owned language understanding, ambiguity resolution, comparison framing,
+  tool/calculator/design planning, clarification wording, and answer synthesis;
+  no local semantic regex catalog, fuzzy intent engine, or question-specific
+  handler layer.
 
 Choices intentionally deferred until implementation evidence is available:
 

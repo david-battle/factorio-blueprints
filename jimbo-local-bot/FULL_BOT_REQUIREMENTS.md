@@ -173,8 +173,10 @@ instead of silently converting `best` into one unstated metric.
 ### 4.4 Live server and historical state
 
 STATE-001: Live-state access must use predefined read-only queries or locally
-constructed queries with typed, validated, bounded inputs. The model must not
-author or select arbitrary Lua/RCON.
+constructed queries with typed, validated, bounded inputs. The model may author
+a restricted Lua-shaped read-only query for local parsing and compilation, but
+must not author or select arbitrary executable Lua/RCON, and model text must
+never be passed directly to RCON.
 
 STATE-002: Current presence must be reported independently from historical
 presence. A player's assertion must not override an authoritative current
@@ -215,10 +217,12 @@ across domains. Examples include finding every logistic chest on Aquilo that
 requests quantum processors, and determining which space platforms move which
 resources from which origins to which destinations.
 
-STATE-010: The model may plan an investigation and select structured read-only
-operations and validated arguments. It must not author Lua, RCON, filesystem
-commands, or unrestricted code. Application code must translate the structured
-plan into locally controlled read-only queries. This read-only rule does not
+STATE-010: The model may plan an investigation using structured read-only
+operations or a compact restricted syntax closely matching familiar Factorio
+Lua reads. Application code must parse and validate the plan, reject unsupported
+syntax and APIs, and compile it into locally controlled read-only queries. Raw
+model text must not enter RCON, and the model must not author unrestricted Lua,
+RCON, filesystem commands, or unrestricted code. This read-only rule does not
 prohibit the separate, explicitly authorized ghost-placement execution path.
 
 STATE-011: Read-only query execution must enforce non-mutation independently of
@@ -644,6 +648,14 @@ Resolved decisions:
   Support composable structured investigation across entities, logistics,
   trains, platforms, surfaces, forces, statistics, inventories, schedules, and
   relationships rather than limiting release scope to a short canned tool list.
+- DEC-008A: The data itself is not confidential from players; the protected
+  boundary is privileged execution, server stability, bounded result/context
+  volume, and auditable non-mutation. Avoid a large proprietary query language
+  that must be retaught in every prompt. Prefer a compact Lua-shaped read-only
+  syntax that uses the model's existing Factorio/Lua knowledge, is parsed into
+  an allowlisted subset, and is compiled to trusted local execution. Keep the
+  current registered operations as a reliable fallback. A textual denylist or
+  direct execution of model-authored Lua is insufficient.
 - DEC-009: Validated entity-ghost and blueprint-ghost placement for construction
   bots is an essential first-release capability and the only world-changing
   action class in scope. It may execute Lua/RCON and may narrowly admit model-

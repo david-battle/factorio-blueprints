@@ -32,8 +32,13 @@ class MinimalRendererTests(unittest.TestCase):
             "request-1", "Flürki[red]", "hello\n  åäö\tworld"
         )
 
-        self.assertEqual(rendered.recipient, "Flurkired")
-        self.assertEqual(rendered.text, "Jimbo to Flurkired: hello aao world")
+        self.assertEqual(
+            rendered.recipient, "Flurki left-bracket red right-br"
+        )
+        self.assertEqual(
+            rendered.text,
+            "Jimbo to Flurki left-bracket red right-br: hello aao world",
+        )
         self.assertNotIn("\n", rendered.text)
 
     def test_typographic_punctuation_becomes_readable_ascii(self) -> None:
@@ -42,13 +47,47 @@ class MinimalRendererTests(unittest.TestCase):
         )
         self.assertEqual(rendered.text, "Jimbo to Alice: I'm chat-only-for now...")
 
-    def test_overlong_reply_uses_complete_fallback_instead_of_truncation(self) -> None:
+    def test_overlong_reply_is_shortened_to_the_chat_budget(self) -> None:
         rendered = MinimalRenderer(character_limit=100).render_reply(
-            "request-1", "Alice", "x" * 500
+            "request-1", "Alice", "word " * 100
         )
 
-        self.assertEqual(rendered.text, "Jimbo to Alice: " + OVERLONG_FALLBACK)
         self.assertLessEqual(len(rendered.text), 100)
+        self.assertTrue(rendered.text.endswith("..."))
+        self.assertNotIn(OVERLONG_FALLBACK, rendered.text)
+
+    def test_removes_model_prefix_and_markdown_residue(self) -> None:
+        rendered = MinimalRenderer().render_reply(
+            "request-1", "Alice", "Jimbo to Alice: **Platform One** has `10` science."
+        )
+        self.assertEqual(
+            rendered.text, "Jimbo to Alice: Platform One has 10 science."
+        )
+
+    def test_spells_out_literal_brackets_without_enabling_rich_text(self) -> None:
+        rendered = MinimalRenderer().render_reply(
+            "request-1", "Alice", 'The exact name is "[item=space-science-pack]".'
+        )
+        self.assertEqual(
+            rendered.text,
+            'Jimbo to Alice: The exact name is " left-bracket item=space-science-pack right-bracket ".',
+        )
+        self.assertNotIn("[", rendered.text)
+
+    def test_preserves_only_exact_locally_trusted_rich_name(self) -> None:
+        renderer = MinimalRenderer()
+        trusted = renderer.render_reply(
+            "request-1", "Alice", "The platform is [item=space-science-pack].",
+            trusted_rich_text=("[item=space-science-pack]",),
+        )
+        untrusted = renderer.render_reply(
+            "request-2", "Alice", "Try [color=red]danger[/color].",
+            trusted_rich_text=("[color=red]",),
+        )
+        self.assertEqual(
+            trusted.text, "Jimbo to Alice: The platform is [item=space-science-pack]."
+        )
+        self.assertNotIn("[", untrusted.text)
 
     def test_slash_and_command_shaped_text_remains_inert_printed_text(self) -> None:
         rendered = MinimalRenderer().render_reply(
