@@ -2,57 +2,36 @@
 
 from __future__ import annotations
 
-import subprocess
-import tempfile
 import unittest
-from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock
 
 from jimbo_full_bot.contracts import ResultStatus
 from jimbo_full_bot.freeform_rcon import FreeformRconError, FreeformRconProvider
 
 
 class FreeformRconProviderTests(unittest.TestCase):
-    def provider(self, root: Path) -> FreeformRconProvider:
-        return FreeformRconProvider(
-            wrapper_path=root / "wrapper.ps1",
-            command_path=root / "command.txt",
-            timeout_seconds=3,
+    def provider(self) -> FreeformRconProvider:
+        return FreeformRconProvider(transport=MagicMock())
+
+    def test_executes_model_command_and_captures_output(self) -> None:
+        mock_transport = MagicMock()
+        mock_transport.command.return_value = '{"count":7}\n'
+        result = FreeformRconProvider(transport=mock_transport).execute(
+            "/silent-command rcon.print(helpers.table_to_json({count=7}))"
         )
+        mock_transport.command.assert_called_once()
+        sent_command = mock_transport.command.call_args[0][0]
+        self.assertIn("/silent-command rcon.print(helpers.table_to_json({count=7}))", sent_command)
+        self.assertEqual(result.status, ResultStatus.COMPLETE)
+        self.assertIn('"count":7', result.values["output"])
 
-    @patch("jimbo_full_bot.freeform_rcon.subprocess.run")
-    def test_executes_model_command_captures_output_and_restores_file(self, run) -> None:
-        with tempfile.TemporaryDirectory() as folder:
-            root = Path(folder)
-            command_path = root / "command.txt"
-            command_path.write_text("/players\n", encoding="utf-8")
-            observed = []
-
-            def complete(*args, **kwargs):
-                observed.append(command_path.read_text(encoding="utf-8"))
-                return subprocess.CompletedProcess(args[0], 0, "{\"count\":7}\n", "")
-
-            run.side_effect = complete
-            result = self.provider(root).execute(
-                "/silent-command rcon.print(helpers.table_to_json({count=7}))"
+    def test_failure_raises_freeform_rcon_error(self) -> None:
+        mock_transport = MagicMock()
+        mock_transport.command.side_effect = Exception("connection refused")
+        with self.assertRaises(FreeformRconError):
+            FreeformRconProvider(transport=mock_transport).execute(
+                "/silent-command rcon.print(1)"
             )
-            self.assertEqual(observed, [
-                "/silent-command rcon.print(helpers.table_to_json({count=7}))\n"
-            ])
-            self.assertEqual(command_path.read_text(encoding="utf-8"), "/players\n")
-            self.assertEqual(result.status, ResultStatus.COMPLETE)
-            self.assertIn('"count":7', result.values["output"])
-
-    @patch("jimbo_full_bot.freeform_rcon.subprocess.run")
-    def test_failure_still_restores_command_file(self, run) -> None:
-        with tempfile.TemporaryDirectory() as folder:
-            root = Path(folder)
-            command_path = root / "command.txt"
-            command_path.write_text("/players\n", encoding="utf-8")
-            run.return_value = subprocess.CompletedProcess([], 1, "", "bad command")
-            with self.assertRaises(FreeformRconError):
-                self.provider(root).execute("/silent-command rcon.print(1)")
-            self.assertEqual(command_path.read_text(encoding="utf-8"), "/players\n")
 
 
 if __name__ == "__main__":

@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import re
-import subprocess
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from pathlib import Path
 
 from .contracts import Provenance, ResultStatus, ToolResult
-from .delivery import POWERSHELL_PATH
+from .rcon_transport import DirectRconTransport
 
 
 SNAPSHOT_COMMAND = (
@@ -57,27 +55,17 @@ class LiveServerState:
 
 
 class FixedLiveStateProvider:
-    def __init__(self, *, wrapper_path: Path, command_path: Path, timeout_seconds: float) -> None:
-        self.wrapper_path = wrapper_path
-        self.command_path = command_path
-        self.timeout_seconds = timeout_seconds
+    def __init__(self, *, transport: DirectRconTransport) -> None:
+        self.transport = transport
 
     def collect(self) -> LiveServerState:
-        original = self.command_path.read_bytes()
         try:
-            self.command_path.write_text(SNAPSHOT_COMMAND + "\n", encoding="utf-8")
-            completed = subprocess.run(
-                [str(POWERSHELL_PATH), "-NoProfile", "-File", str(self.wrapper_path)],
-                capture_output=True, text=True, timeout=self.timeout_seconds, check=False,
-            )
-        except (OSError, subprocess.SubprocessError) as error:
+            output = self.transport.command(SNAPSHOT_COMMAND)
+        except Exception as error:
             raise LiveStateError(f"live-state query failed: {error}") from error
-        finally:
-            self.command_path.write_bytes(original)
-        output = (completed.stdout + "\n" + completed.stderr).strip()
         match = RESULT_RE.search(output)
-        if completed.returncode != 0 or match is None:
-            raise LiveStateError(f"live-state query was not confirmed (exit {completed.returncode})")
+        if match is None:
+            raise LiveStateError("live-state query was not confirmed")
         return LiveServerState(
             players=_items(match.group("players")),
             research=None if match.group("research") == "none" else match.group("research"),

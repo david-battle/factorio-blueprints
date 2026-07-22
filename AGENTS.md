@@ -258,24 +258,30 @@ multiples of 32 and keep their outer nominal bounds on multiples of 32.
   and `jimbo-local-bot/FULL_BOT_FINDINGS.md`. The resume note is the concise
   operational handoff; the requirements and findings are the normative design input.
 
-- Python 3.13 is installed at
-  `C:\Users\dlbat\AppData\Local\Programs\Python\Python313\python.exe`. A
-  restricted shell can make this user-profile executable appear missing even
-  when it is installed and working. Do not infer that Python was removed from a
-  sandboxed `CommandNotFoundException`; use an approved project launcher or
-  verify the exact path with the necessary host permission.
+- **Linux (preferred):** The bot runs natively under WSL (Ubuntu 26.04, Python 3.14)
+  with a virtual environment at `/mnt/d/jimbo-venv`. The full bot uses a
+  pure-Python RCON transport (`DirectRconTransport` wrapping `mcrcon`) with no
+  Windows dependencies.
+- **Windows (legacy):** Python 3.13 is installed at
+  `C:\Users\dlbat\AppData\Local\Programs\Python\Python313\python.exe`. The
+  PowerShell launcher still works but is no longer the primary deployment path.
 - For routine Jimbo bot tests and listener lifecycle operations, change only
-  `jimbo-local-bot/tools/jimbo-action.json`, then invoke this fixed command
-  byte-for-byte without arguments:
+  `jimbo-local-bot/tools/jimbo-action.json`, then invoke the appropriate launcher:
 
+  **Linux:**
+  ```bash
+  cd jimbo-local-bot && ./tools/jimbo-project.sh
+  ```
+
+  **Windows:**
   ```powershell
   & 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -NoProfile -ExecutionPolicy Bypass -File 'D:\ChatGPT-Factorio-Playground\factorio-blueprints\jimbo-local-bot\tools\jimbo-project.ps1'
   ```
 
-- The Jimbo launcher accepts only `test`, `bot`, `start`, `stop`, `restart`, and
+- Both launchers accept only `test`, `bot`, `start`, `stop`, `restart`, and
   `status`. Background lifecycle actions use the ignored runtime PID file and
-  `start`/`restart` pass arguments only to `jimbo_bot.py`. Keep the approved launcher stable;
-  do not modify or broaden it to execute unrelated Python files or arbitrary
+  `start`/`restart` pass arguments only to `jimbo_bot.py`. Keep the launchers stable;
+  do not modify or broaden them to execute unrelated Python files or arbitrary
   shell commands. Add narrowly scoped behavior to the project code instead.
 - The active managed listener is the full bot and is launched with
   `--full-bot`; the POC remains historical/fallback code. Always use the status
@@ -284,10 +290,9 @@ multiples of 32 and keep their outer nominal bounds on multiples of 32.
   diagnostic commands in one shell invocation can cause a sandbox-only access
   denial while it checks the user-profile Python executable, even though the
   identical standalone launcher succeeds.
-- Normalize model-generated chat to readable ASCII before the Windows
-  PowerShell/RCON boundary. Curly apostrophes, nonbreaking hyphens, and dashes
-  previously appeared as `???` in Factorio even though the UTF-8 archive was
-  correct.
+- Normalize model-generated chat to readable ASCII before the RCON boundary.
+  Curly apostrophes, nonbreaking hyphens, and dashes previously appeared as
+  `???` in Factorio even though the UTF-8 archive was correct.
 - Basic live state currently uses deterministic phrase routing to one fixed
   read-only snapshot for players, research/progress, game time, and surfaces.
   The Step 6 design uses one model state-needs planning pass over locally

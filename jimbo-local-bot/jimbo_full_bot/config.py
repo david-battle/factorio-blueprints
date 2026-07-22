@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, fields, replace
 from pathlib import Path
 from typing import Any
@@ -9,10 +10,29 @@ from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 REPOSITORY_ROOT = PROJECT_ROOT.parent
-DEFAULT_SERVER_LOG = Path(r"D:\factorio-server\server-console.log")
+
+_DEFAULT_SERVER_LOG = Path(r"D:\factorio-server\server-console.log")
+_DEFAULT_OPENCODE_AUTH = Path(r"C:\Users\dlbat\.local\share\opencode\auth.json")
+
+# Cross-platform defaults: use env vars when set, otherwise WSL /mnt/d paths.
+DEFAULT_SERVER_LOG = Path(os.environ.get(
+    "JIMBO_SERVER_LOG",
+    str(_DEFAULT_SERVER_LOG) if _DEFAULT_SERVER_LOG.exists() else "/mnt/d/factorio-server/server-console.log",
+))
 DEFAULT_RUNTIME_DIR = PROJECT_ROOT / "runtime"
 DEFAULT_GROQ_KEY = DEFAULT_RUNTIME_DIR / "groq-api-key.txt"
-DEFAULT_OPENCODE_AUTH = Path(r"C:\Users\dlbat\.local\share\opencode\auth.json")
+DEFAULT_OPENCODE_AUTH = Path(os.environ.get(
+    "JIMBO_AUTH_FILE",
+    str(_DEFAULT_OPENCODE_AUTH) if _DEFAULT_OPENCODE_AUTH.exists() else str(Path.home() / ".local/share/opencode/auth.json"),
+))
+DEFAULT_RCON_HOST = os.environ.get("JIMBO_RCON_HOST", "127.0.0.1")
+DEFAULT_RCON_PORT = int(os.environ.get("JIMBO_RCON_PORT", "27015"))
+_DEFAULT_RCON_PW = Path(r"D:\factorio-server\config\rconpw")
+DEFAULT_RCON_PASSWORD_FILE = Path(os.environ.get(
+    "JIMBO_RCON_PASSWORD_FILE",
+    str(_DEFAULT_RCON_PW) if _DEFAULT_RCON_PW.exists() else "/mnt/d/factorio-server/config/rconpw",
+))
+# Legacy paths kept for backward compatibility; unused when direct RCON is active.
 DEFAULT_RCON_WRAPPER = REPOSITORY_ROOT / "tools" / "factorio-rcon.ps1"
 DEFAULT_RCON_COMMAND = REPOSITORY_ROOT / "tools" / "rcon-command.txt"
 
@@ -37,6 +57,9 @@ class FullBotConfig:
     server_log_path: Path = DEFAULT_SERVER_LOG
     runtime_dir: Path = DEFAULT_RUNTIME_DIR
     api_key_path: Path = DEFAULT_OPENCODE_AUTH
+    rcon_host: str = DEFAULT_RCON_HOST
+    rcon_port: int = DEFAULT_RCON_PORT
+    rcon_password_file: Path = DEFAULT_RCON_PASSWORD_FILE
     rcon_wrapper_path: Path = DEFAULT_RCON_WRAPPER
     rcon_command_path: Path = DEFAULT_RCON_COMMAND
     provider_timeout_seconds: float = 60.0
@@ -74,6 +97,7 @@ class FullBotConfig:
             "api_key_path",
             "rcon_wrapper_path",
             "rcon_command_path",
+            "rcon_password_file",
         ):
             value = getattr(self, name)
             if not isinstance(value, Path) or not str(value):

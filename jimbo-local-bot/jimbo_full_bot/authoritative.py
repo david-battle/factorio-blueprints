@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import re
-import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Mapping, Sequence
@@ -12,7 +11,7 @@ from typing import Mapping, Sequence
 from .archive import TextEventArchive
 from .config import FullBotConfig, REPOSITORY_ROOT
 from .contracts import EventKind, NormalizedEvent, Provenance, ResultStatus, ToolResult
-from .delivery import POWERSHELL_PATH
+from .rcon_transport import DirectRconTransport
 
 
 PERMISSION_RESULT_RE = re.compile(r"JIMBO_PERMISSIONS\|(?P<json>\{.*\})")
@@ -24,38 +23,26 @@ class AuthoritativeFactError(RuntimeError):
 
 
 class PermissionProvider:
-    def __init__(self, *, wrapper_path: Path, command_path: Path, timeout_seconds: float) -> None:
-        self.wrapper_path = wrapper_path
-        self.command_path = command_path
-        self.timeout_seconds = timeout_seconds
+    def __init__(self, *, transport: DirectRconTransport) -> None:
+        self.transport = transport
 
     def execute(self, steps: Sequence[Mapping[str, object]]) -> tuple[ToolResult, ...]:
         if not steps:
             return ()
         results: list[ToolResult] = []
-        original = self.command_path.read_bytes()
-        try:
-            for step in steps:
-                self.command_path.write_text(_permission_command(step) + "\n", encoding="utf-8")
-                completed = subprocess.run(
-                    [str(POWERSHELL_PATH), "-NoProfile", "-File", str(self.wrapper_path)],
-                    capture_output=True, text=True, timeout=self.timeout_seconds, check=False,
-                )
-                output = (completed.stdout + "\n" + completed.stderr).strip()
-                match = PERMISSION_RESULT_RE.search(output)
-                if completed.returncode != 0 or match is None:
-                    raise AuthoritativeFactError(
-                        f"permission query was not confirmed (exit {completed.returncode})"
-                    )
-                try:
-                    payload = json.loads(match.group("json"))
-                except json.JSONDecodeError as error:
-                    raise AuthoritativeFactError("permission query returned invalid JSON") from error
-                results.append(_permission_result(step, payload))
-        except (OSError, subprocess.SubprocessError) as error:
-            raise AuthoritativeFactError(f"permission query failed: {error}") from error
-        finally:
-            self.command_path.write_bytes(original)
+        for step in steps:
+            try:
+                output = self.transport.command(_permission_command(step))
+            except Exception as error:
+                raise AuthoritativeFactError(f"permission query failed: {error}") from error
+            match = PERMISSION_RESULT_RE.search(output)
+            if match is None:
+                raise AuthoritativeFactError("permission query was not confirmed")
+            try:
+                payload = json.loads(match.group("json"))
+            except json.JSONDecodeError as error:
+                raise AuthoritativeFactError("permission query returned invalid JSON") from error
+            results.append(_permission_result(step, payload))
         return tuple(results)
 
 

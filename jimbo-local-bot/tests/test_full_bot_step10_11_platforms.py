@@ -3,11 +3,8 @@
 from __future__ import annotations
 
 import json
-import tempfile
 import unittest
-from pathlib import Path
-from subprocess import CompletedProcess
-from unittest.mock import patch
+from unittest.mock import MagicMock
 
 from jimbo_full_bot.contracts import ResultStatus
 from jimbo_full_bot.investigation import InvestigationPlanError, validate_steps
@@ -48,51 +45,37 @@ class InvestigationValidationTests(unittest.TestCase):
 
 
 class PlatformProviderTests(unittest.TestCase):
-    @patch("jimbo_full_bot.platform_state.subprocess.run")
     def test_one_fixed_snapshot_supports_projection_inventory_requests_and_schedule(
-        self, run: object
+        self,
     ) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            command = Path(directory) / "command.txt"
-            command.write_text("/players\n", encoding="utf-8")
-            original = command.read_bytes()
-            run.return_value = CompletedProcess(
-                [], 0, PLATFORM_MARKER + json.dumps(SNAPSHOT, separators=(",", ":")), ""
-            )
-            provider = PlatformInvestigationProvider(
-                wrapper_path=Path("wrapper.ps1"), command_path=command, timeout_seconds=5
-            )
-            results = provider.execute((
-                {"op": "list_objects", "domain": "space_platforms",
-                 "select": ["id", "name", "surface", "location", "location_kind"]},
-                {"op": "inspect_inventory", "domain": "space_platforms",
-                 "platform": 1, "item": "space-science-pack"},
-                {"op": "list_requests", "domain": "space_platforms", "platform": 1},
-                {"op": "get_schedule", "domain": "space_platforms", "platform": 1},
-            ))
-            self.assertEqual(run.call_count, 2)
-            self.assertEqual(command.read_bytes(), original)
-            self.assertEqual(results[0].values["results"][0]["name"], "Science Ship")
-            self.assertEqual(results[0].values["results"][0]["location_kind"], "stopped_at_location")
-            self.assertEqual(results[1].values["results"][0]["items"][0]["count"], 10)
-            self.assertEqual(results[2].values["results"][0]["requests"][0]["name"], "solar-panel")
-            self.assertEqual(results[3].values["results"][0]["schedule"]["current"], 1)
-            self.assertTrue(all(result.provenance is not None for result in results))
+        mock_transport = MagicMock()
+        mock_transport.command.return_value = PLATFORM_MARKER + json.dumps(SNAPSHOT, separators=(",", ":"))
+        provider = PlatformInvestigationProvider(transport=mock_transport)
+        results = provider.execute((
+            {"op": "list_objects", "domain": "space_platforms",
+             "select": ["id", "name", "surface", "location", "location_kind"]},
+            {"op": "inspect_inventory", "domain": "space_platforms",
+             "platform": 1, "item": "space-science-pack"},
+            {"op": "list_requests", "domain": "space_platforms", "platform": 1},
+            {"op": "get_schedule", "domain": "space_platforms", "platform": 1},
+        ))
+        self.assertEqual(mock_transport.command.call_count, 2)
+        self.assertEqual(results[0].values["results"][0]["name"], "Science Ship")
+        self.assertEqual(results[0].values["results"][0]["location_kind"], "stopped_at_location")
+        self.assertEqual(results[1].values["results"][0]["items"][0]["count"], 10)
+        self.assertEqual(results[2].values["results"][0]["requests"][0]["name"], "solar-panel")
+        self.assertEqual(results[3].values["results"][0]["schedule"]["current"], 1)
+        self.assertTrue(all(result.provenance is not None for result in results))
 
-    @patch("jimbo_full_bot.platform_state.subprocess.run")
-    def test_exact_reference_miss_returns_candidates_without_fuzzy_choice(self, run: object) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            command = Path(directory) / "command.txt"
-            command.write_text("/players\n", encoding="utf-8")
-            run.return_value = CompletedProcess([], 0, PLATFORM_MARKER + json.dumps(SNAPSHOT), "")
-            result = PlatformInvestigationProvider(
-                wrapper_path=Path("wrapper.ps1"), command_path=command, timeout_seconds=5
-            ).execute(({
-                "op": "inspect_inventory", "domain": "space_platforms",
-                "platform": "science",
-            },))[0]
-            self.assertEqual(result.status, ResultStatus.UNKNOWN)
-            self.assertEqual(len(result.values["candidates"]), 2)
+    def test_exact_reference_miss_returns_candidates_without_fuzzy_choice(self) -> None:
+        mock_transport = MagicMock()
+        mock_transport.command.return_value = PLATFORM_MARKER + json.dumps(SNAPSHOT)
+        result = PlatformInvestigationProvider(transport=mock_transport).execute(({
+            "op": "inspect_inventory", "domain": "space_platforms",
+            "platform": "science",
+        },))[0]
+        self.assertEqual(result.status, ResultStatus.UNKNOWN)
+        self.assertEqual(len(result.values["candidates"]), 2)
 
 
 if __name__ == "__main__":

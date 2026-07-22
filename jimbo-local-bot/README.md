@@ -3,7 +3,7 @@
 Jimbo is a Factorio chat bot for the local dedicated server. It watches newly
 appended public chat in the server console log, sends explicitly addressed
 questions to a language model, and posts a short reply back into the game
-through the repository's RCON wrapper.
+through a pure-Python RCON transport.
 
 The currently deployed configuration uses OpenCode Zen `big-pickle` (free,
 OpenAI-compatible API). Groq `openai/gpt-oss-120b` is available as a fallback
@@ -43,18 +43,45 @@ known bad Factorio API patterns before execution.
 
 ## Requirements and setup
 
+### Linux (preferred)
+
+- Python 3.14 under WSL (Ubuntu 26.04).
+- A virtual environment at `/mnt/d/jimbo-venv` with `mcrcon>=0.7.0`:
+
+  ```bash
+  sudo apt-get install -y python3.14-venv python3-pip
+  python3 -m venv --without-pip /mnt/d/jimbo-venv
+  curl -sS https://bootstrap.pypa.io/get-pip.py | /mnt/d/jimbo-venv/bin/python3
+  /mnt/d/jimbo-venv/bin/pip install -r requirements.txt
+  ```
+
+- The Factorio dedicated-server console log at `/mnt/d/factorio-server/server-console.log`.
+- RCON on `127.0.0.1:27015` (WSL localhost reaches Windows host).
+- The API key file (see below) is read from `/mnt/d` mapped paths or the
+  `JIMBO_AUTH_FILE` env var.
+
+### Windows (legacy)
+
 - Python 3.13 at
   `C:\Users\dlbat\AppData\Local\Programs\Python\Python313\python.exe`.
 - The Factorio dedicated-server console log at
   `D:\factorio-server\server-console.log`.
-- The repository RCON wrapper and its existing machine-local credential setup.
+- The PowerShell RCON wrapper at `tools/factorio-rcon.ps1` and its existing
+  machine-local credential setup.
+
+### API keys
+
 - For the default OpenCode Zen provider, an API key in:
 
   ```text
   C:\Users\dlbat\.local\share\opencode\auth.json
   ```
 
-  under `{"opencode": {"key": "..."}}`. For Groq fallback, a key in:
+  under `{"opencode": {"key": "..."}}`. On Linux this is read via
+  `/mnt/d/Users/dlbat/.local/share/opencode/auth.json` or the
+  `JIMBO_AUTH_FILE` env var.
+
+  For Groq fallback, a key in:
 
   ```text
   jimbo-local-bot/runtime/groq-api-key.txt
@@ -65,10 +92,15 @@ key. See [GROQ_SETUP.md](GROQ_SETUP.md) for Groq-specific key setup.
 
 ## Start, stop, test, and inspect
 
-Routine operations use the fixed project launcher. Edit only
-`tools/jimbo-action.json`, then run this command exactly as written from the
-repository:
+Routine operations use the project launcher. Edit only
+`tools/jimbo-action.json`, then run the appropriate launcher:
 
+**Linux (preferred):**
+```bash
+cd jimbo-local-bot && ./tools/jimbo-project.sh
+```
+
+**Windows:**
 ```powershell
 & 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -NoProfile -ExecutionPolicy Bypass -File 'D:\ChatGPT-Factorio-Playground\factorio-blueprints\jimbo-local-bot\tools\jimbo-project.ps1'
 ```
@@ -109,11 +141,10 @@ accepted or rejected requests, provider responses, sanitized public messages,
 confirmed RCON sends, and errors. It does not intentionally record unrelated
 public chat, credentials, or environment variables.
 
-The source Factorio chat log remains:
+The source Factorio chat log is at:
 
-```text
-D:\factorio-server\server-console.log
-```
+- Linux: `/mnt/d/factorio-server/server-console.log`
+- Windows: `D:\factorio-server\server-console.log`
 
 The durable log position is stored in the ignored runtime file:
 
@@ -131,11 +162,12 @@ to the current end of the log.
 ## Safety boundaries
 
 - The model can compose free-form Factorio Lua/RCON commands for any player.
-- Generated commands are executed through a fixed RCON wrapper with operational
-  framing, serialization, attribution, archiving, timeout, and no blind retry.
+- Generated commands are executed through a pure-Python RCON transport
+  (`DirectRconTransport` wrapping `mcrcon`) with operational framing,
+  serialization, attribution, archiving, timeout, and no blind retry.
 - Replies are reduced to one line, stripped of Factorio formatting brackets,
-  normalized to conservative ASCII for the Windows RCON path, and limited to
-  220 characters before insertion into a fixed RCON command.
+  normalized to conservative ASCII, and limited to 220 characters before
+  insertion into the RCON command.
 - Server-authored messages are ignored to prevent reply loops.
 - Requests are processed serially with a per-player cooldown, one pending
   request per player, and a bounded queue.
@@ -175,8 +207,8 @@ are allowed when they materially verify Factorio behavior.
 
 Step 1 provides only a side-effect-free offline shell:
 
-```powershell
-& 'C:\Users\dlbat\AppData\Local\Programs\Python\Python313\python.exe' -m jimbo_full_bot --offline
+```bash
+/mnt/d/jimbo-venv/bin/python3 -m jimbo_full_bot --offline
 ```
 
 The command reports validated redacted configuration. It does not read the API
@@ -199,7 +231,7 @@ provided by the minimal Step 5 bridge, and the real hosted model path is
 required in Step 7.
 
 Full Bot Step 5 adds the minimal delivery bridge: one-line plain-text rendering,
-the fixed RCON wrapper transport, serialized sending, exact archive records,
+the pure-Python RCON transport, serialized sending, exact archive records,
 confirmed-delivery deduplication, and welcome completion. Public delivery is
 enabled only by the explicit Step 7 live configuration.
 Aggressive content filtering and rich rendering remain a later Step 5 follow-up.

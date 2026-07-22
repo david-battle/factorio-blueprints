@@ -4,18 +4,17 @@ from __future__ import annotations
 
 import hashlib
 import re
-import subprocess
 import threading
 import unicodedata
 from datetime import UTC, datetime
-from pathlib import Path
+
 from .archive import ArchiveRecord, TextEventArchive, redact_sensitive
 from .contracts import DeliveryResult, RenderedMessage, ResultStatus
 from .interactions import WelcomeIntent, WelcomeService
+from .rcon_transport import DirectRconTransport
 from .state import FlatTextStateStore
 
 
-POWERSHELL_PATH = Path(r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe")
 RCON_SUCCESS_MARKER = "JIMBO_FULL_REPLY_SENT"
 CONTROL_RE = re.compile(r"[\x00-\x1f\x7f]")
 WHITESPACE_RE = re.compile(r"\s+")
@@ -110,40 +109,18 @@ class RconDeliveryTransport:
     def __init__(
         self,
         *,
-        wrapper_path: Path,
-        command_path: Path,
-        timeout_seconds: float = 15.0,
+        transport: DirectRconTransport,
     ) -> None:
-        self.wrapper_path = wrapper_path
-        self.command_path = command_path
-        self.timeout_seconds = timeout_seconds
+        self.transport = transport
 
     def deliver(self, message: RenderedMessage) -> DeliveryResult:
         command = build_print_command(message)
-        original = self.command_path.read_bytes()
         try:
-            self.command_path.write_text(command + "\n", encoding="utf-8")
-            completed = subprocess.run(
-                [
-                    str(POWERSHELL_PATH),
-                    "-NoProfile",
-                    "-File",
-                    str(self.wrapper_path),
-                ],
-                capture_output=True,
-                text=True,
-                timeout=self.timeout_seconds,
-                check=False,
-            )
-        except (OSError, subprocess.SubprocessError) as error:
+            output = self.transport.command(command)
+        except Exception as error:
             raise DeliveryError(f"RCON delivery failed: {error}") from error
-        finally:
-            self.command_path.write_bytes(original)
-        output = (completed.stdout + "\n" + completed.stderr).strip()
-        if completed.returncode != 0 or RCON_SUCCESS_MARKER not in output:
-            raise DeliveryError(
-                f"RCON delivery was not confirmed (exit {completed.returncode})"
-            )
+        if RCON_SUCCESS_MARKER not in output:
+            raise DeliveryError("RCON delivery was not confirmed")
         return DeliveryResult(
             correlation_id=message.correlation_id,
             status=ResultStatus.COMPLETE,

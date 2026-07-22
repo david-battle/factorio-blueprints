@@ -7,8 +7,7 @@ import tempfile
 import unittest
 from datetime import UTC, datetime
 from pathlib import Path
-from subprocess import CompletedProcess
-from unittest.mock import patch
+from unittest.mock import MagicMock
 
 from jimbo_full_bot.archive import TextEventArchive
 from jimbo_full_bot.authoritative import (
@@ -38,10 +37,7 @@ class AuthoritativeFactTests(unittest.TestCase):
         config = FullBotConfig.offline().with_overrides(runtime_dir=root)
         return AuthoritativeFactProvider(
             config, TextEventArchive(root / "archive"), history, FakeModel(),
-            PermissionProvider(
-                wrapper_path=Path("wrapper.ps1"), command_path=root / "command.txt",
-                timeout_seconds=5,
-            ),
+            PermissionProvider(transport=MagicMock()),
         )
 
     def test_runtime_and_server_identity_are_configuration_owned(self) -> None:
@@ -85,55 +81,38 @@ class AuthoritativeFactTests(unittest.TestCase):
             self.assertEqual(missing.status, ResultStatus.UNKNOWN)
             self.assertIn("does not prove", missing.warnings[0])
 
-    @patch("jimbo_full_bot.authoritative.subprocess.run")
-    def test_permission_results_distinguish_admins_groups_and_actions(self, run: object) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            command = root / "command.txt"
-            command.write_text("/players\n", encoding="utf-8")
-            original = command.read_bytes()
-            payloads = iter((
-                {"admins": ["Alice"]},
-                {"player": "Bob", "found": True, "admin": False,
-                 "group": "Default", "action": "ban", "input_action": "admin_action",
-                 "action_known": True, "allowed": False},
-            ))
-            def completed(*_args, **_kwargs):
-                self.assertIn("helpers.table_to_json", command.read_text(encoding="utf-8"))
-                return CompletedProcess(
-                    [], 0, "JIMBO_PERMISSIONS|" + json.dumps(next(payloads)), ""
-                )
-            run.side_effect = completed
-            results = PermissionProvider(
-                wrapper_path=Path("wrapper.ps1"), command_path=command, timeout_seconds=5,
-            ).execute((
-                {"op": "list_admins"},
-                {"op": "player_permissions", "player": "Bob", "action": "ban"},
-            ))
-            self.assertIn("not server ownership", results[0].summary)
-            self.assertNotIn("moderator", results[0].summary.casefold())
-            self.assertIn("not allowed", results[1].summary)
-            self.assertIn("input action=admin_action", results[1].summary)
-            self.assertEqual(command.read_bytes(), original)
+    def test_permission_results_distinguish_admins_groups_and_actions(self) -> None:
+        mock_transport = MagicMock()
+        payloads = iter((
+            "JIMBO_PERMISSIONS|" + json.dumps({"admins": ["Alice"]}),
+            "JIMBO_PERMISSIONS|" + json.dumps({
+                "player": "Bob", "found": True, "admin": False,
+                "group": "Default", "action": "ban", "input_action": "admin_action",
+                "action_known": True, "allowed": False,
+            }),
+        ))
+        mock_transport.command.side_effect = lambda _cmd: next(payloads)
+        results = PermissionProvider(transport=mock_transport).execute((
+            {"op": "list_admins"},
+            {"op": "player_permissions", "player": "Bob", "action": "ban"},
+        ))
+        self.assertIn("not server ownership", results[0].summary)
+        self.assertNotIn("moderator", results[0].summary.casefold())
+        self.assertIn("not allowed", results[1].summary)
+        self.assertIn("input action=admin_action", results[1].summary)
 
-    @patch("jimbo_full_bot.authoritative.subprocess.run")
-    def test_connected_admin_query_uses_connected_players_only(self, run: object) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            command = Path(directory) / "command.txt"
-            command.write_text("/players\n", encoding="utf-8")
-            def completed(*_args, **_kwargs):
-                current = command.read_text(encoding="utf-8")
-                self.assertIn("game.connected_players", current)
-                self.assertNotIn("pairs(game.players)", current)
-                return CompletedProcess(
-                    [], 0, 'JIMBO_PERMISSIONS|{"admins":["Alice"]}', ""
-                )
-            run.side_effect = completed
-            result = PermissionProvider(
-                wrapper_path=Path("wrapper.ps1"), command_path=command, timeout_seconds=5,
-            ).execute(({"op": "list_admins", "connected_only": True},))[0]
-            self.assertIn("Currently connected", result.summary)
-            self.assertTrue(result.values["connected_only"])
+    def test_connected_admin_query_uses_connected_players_only(self) -> None:
+        mock_transport = MagicMock()
+        def check_command(cmd):
+            self.assertIn("game.connected_players", cmd)
+            self.assertNotIn("pairs(game.players)", cmd)
+            return 'JIMBO_PERMISSIONS|{"admins":["Alice"]}'
+        mock_transport.command.side_effect = check_command
+        result = PermissionProvider(transport=mock_transport).execute((
+            {"op": "list_admins", "connected_only": True},
+        ))[0]
+        self.assertIn("Currently connected", result.summary)
+        self.assertTrue(result.values["connected_only"])
 
     def test_direct_answer_uses_exact_application_summaries(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

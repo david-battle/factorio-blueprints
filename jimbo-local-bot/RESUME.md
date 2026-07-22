@@ -11,13 +11,16 @@ are needed; it is authoritative but intentionally long.
 - POC Steps 1, 2, 3, 4, 5, 5.5, 5.75, 5.8, and 6 are complete.
 - Full Bot Steps 1-7 are complete and deployed. The live bot uses OpenCode Zen
   `big-pickle` as the default model provider, with Groq available as a fallback.
-  API key is read from `C:\Users\dlbat\.local\share\opencode\auth.json`.
+- **Linux migration complete.** The bot now runs natively under WSL with Python
+  3.14 and a pure-Python RCON transport (`mcrcon`). No Windows-specific
+  dependencies remain in the full bot codebase. The POC (`jimbo_bot.py`) still
+  uses the old PowerShell+exe RCON path and is not part of the active deployment.
 - Free-form model-authored Lua/RCON is deployed for every player. The model can
   compose arbitrary Factorio commands; local code applies operational framing,
   serialization, attribution, archiving, timeout, and retry with linear backoff
   for transient errors (5xx, 429, network). A post-processor fixes known bad
   Factorio API patterns (e.g. `game.space_platforms` → `game.forces.player.platforms`).
-- The complete dependency-free test suite has 171 passing tests.
+- **171/171 tests pass** on both Windows Python 3.13 and native Linux Python 3.14.
 - The POC is declared proven. Do not add more ambitious POC features; the next
   phase is a separate full-chatbot design.
 - Player testing findings through the original supplemental 15:18:03 server-time
@@ -78,14 +81,61 @@ are needed; it is authoritative but intentionally long.
 - Step 5.8 requires leading `jimbo` or `hey jimbo`, keeps the last three
   completed exchanges separately per player in memory, and sends structured
   history. Memory is deliberately lost on restart.
-- The OpenCode Zen API key is read from `C:\Users\dlbat\.local\share\opencode\auth.json`.
-  The Groq key remains at `runtime/groq-api-key.txt` for fallback use.
-  The entire runtime directory is ignored. Never print, transcribe, or commit any key.
+- The OpenCode Zen API key is read from `C:\Users\dlbat\.local\share\opencode\auth.json`
+  (Windows) or `~/.local/share/opencode/auth.json` (WSL, via env var
+  `JIMBO_AUTH_FILE` or `/mnt/d` fallback). The Groq key remains at
+  `runtime/groq-api-key.txt` for fallback use. The entire runtime directory is
+  ignored. Never print, transcribe, or commit any key.
+
+## Linux deployment
+
+The bot runs natively under WSL (Ubuntu 26.04, Python 3.14). Key facts:
+
+- **Virtual environment:** `/mnt/d/jimbo-venv` with `mcrcon>=0.7.0` installed.
+- **RCON transport:** `DirectRconTransport` in `jimbo_full_bot/rcon_transport.py`
+  wraps `mcrcon.MCRcon` for pure-Python Source RCON over TCP. No PowerShell,
+  no `rcon.exe`, no temp-file race condition.
+- **Config resolution:** `config.py` uses env vars (`JIMBO_SERVER_LOG`,
+  `JIMBO_RCON_HOST`, `JIMBO_RCON_PORT`, `JIMBO_RCON_PASSWORD_FILE`,
+  `JIMBO_AUTH_FILE`) with `/mnt/d/...` fallbacks when Windows paths don't exist.
+- **Bash launcher:** `tools/jimbo-project.sh` auto-detects the venv and supports
+  the same actions as the PowerShell launcher (test, bot, start, stop, restart, status).
+- **Windows PowerShell launcher** (`tools/jimbo-project.ps1`) still works for
+  Windows-native operation but is no longer the primary deployment path.
+- The server console log is read via `/mnt/d/factorio-server/server-console.log`.
+- RCON connects to `127.0.0.1:27015` (WSL localhost reaches Windows host).
+
+### WSL setup
+
+```bash
+sudo apt-get install -y python3.14-venv python3-pip
+python3 -m venv --without-pip /mnt/d/jimbo-venv
+curl -sS https://bootstrap.pypa.io/get-pip.py | /mnt/d/jimbo-venv/bin/python3
+/mnt/d/jimbo-venv/bin/pip install -r /mnt/d/ChatGPT-Factorio-Playground/factorio-blueprints/jimbo-local-bot/requirements.txt
+```
+
+### Running tests on Linux
+
+```bash
+cd /mnt/d/ChatGPT-Factorio-Playground/factorio-blueprints/jimbo-local-bot
+/mnt/d/jimbo-venv/bin/python3 -m unittest discover -s tests -v
+```
 
 ## Listener operations
 
-Change only `tools/jimbo-action.json`, then run the exact fixed launcher from
-the repository `AGENTS.md`. Supported actions are:
+Change only `tools/jimbo-action.json`, then run the launcher.
+
+**Linux (preferred):**
+```bash
+cd jimbo-local-bot && ./tools/jimbo-project.sh
+```
+
+**Windows (still supported):**
+```powershell
+& 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -NoProfile -ExecutionPolicy Bypass -File 'D:\ChatGPT-Factorio-Playground\factorio-blueprints\jimbo-local-bot\tools\jimbo-project.ps1'
+```
+
+Supported actions are:
 
 - `{"action":"status","arguments":[]}`
 - `{"action":"start","arguments":["--full-bot"]}`
@@ -133,9 +183,11 @@ archive are under ignored `runtime/` paths.
 - A repeated CLI `--prompt` sequence exists for console-only contextual smoke
   tests. Do not add `--send-to` when using multiple prompts.
 - The full-bot canonical archive is `runtime/full-bot-archive/events.log` with
-  retained numbered segments. Factorio's raw chat remains in
-  `D:\factorio-server\server-console.log`; server-generated `game.print` replies
-  are visible in the canonical archive even when absent from the console log.
+  retained numbered segments. Factorio's raw chat remains in the server console
+  log (`D:\factorio-server\server-console.log` on Windows,
+  `/mnt/d/factorio-server/server-console.log` on Linux); server-generated
+  `game.print` replies are visible in the canonical archive even when absent
+  from the console log.
 - Never reset, truncate, or discard either log. Players are continuing to use
   the live full bot and later conversations may be useful design evidence.
 - The old POC transcript remains append-only historical evidence. The new
@@ -149,12 +201,8 @@ archive are under ignored `runtime/` paths.
 
 The POC implementation, findings, and requirements baseline are committed on
 `main`. The full bot is the active implementation with OpenCode Zen big-pickle
-as the default provider. Verify the working tree and latest commit after restart.
-Earlier relevant commits are:
-
-- `85bd820 Complete Jimbo chatbot proof of concept`
-- `bf3e27b Capture Jimbo full bot design findings`
-- `552503f Capture additional Jimbo player findings`
+as the default provider, running natively on Linux via WSL. Verify the working
+tree and latest commit after restart.
 
 The user-facing `README.md` documents setup, operation, testing, diagnostics,
 boundaries, and current limitations.
@@ -162,16 +210,20 @@ boundaries, and current limitations.
 ### Latest handoff (2026-07-22)
 
 - The managed full listener is running (query status for current PID).
-- The bot now uses OpenCode Zen `big-pickle` (free, OpenAI-compatible API at
+- The bot uses OpenCode Zen `big-pickle` (free, OpenAI-compatible API at
   `https://opencode.ai/zen/v1`) as the default model provider.
+- **The bot runs natively on Linux** (WSL Ubuntu 26.04, Python 3.14) with a
+  pure-Python `mcrcon`-based RCON transport. No Windows dependencies in the
+  full bot codebase.
 - Free-form model-authored Lua/RCON is deployed for every player. The model
   composes Factorio commands; local code applies operational framing,
   serialization, archiving, timeout, and retry with linear backoff (1s-5s)
   for transient errors (5xx, 429, network). A post-processor corrects known
   bad Factorio API patterns before execution.
-- The complete dependency-free suite passes 171 tests. Automated
-  model/provider tests remain mocked and consume no provider quota. Tests may
-  invoke live RCON when authoritative Factorio execution is materially useful.
+- The complete suite passes **171 tests** on both Windows Python 3.13 and
+  native Linux Python 3.14. Automated model/provider tests remain mocked and
+  consume no provider quota. Tests may invoke live RCON when authoritative
+  Factorio execution is materially useful.
 
 ### Remaining-step summary
 
@@ -194,8 +246,8 @@ boundaries, and current limitations.
 
 1. Read this file, `FULL_BOT_REQUIREMENTS.md`, and `FULL_BOT_FINDINGS.md`.
 2. Run `git status` and preserve any user changes.
-3. If touching the live bot, query listener status through the fixed project
-   launcher before assuming its state.
+3. If touching the live bot, query listener status through the project
+   launcher (bash on Linux, PowerShell on Windows) before assuming its state.
 4. Do not clear runtime files or the Factorio server console log.
 5. Treat chat after the latest recorded findings cutoff as uncaptured evidence unless
    the user explicitly requests another review.

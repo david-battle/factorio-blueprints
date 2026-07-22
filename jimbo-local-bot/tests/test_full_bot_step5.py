@@ -8,8 +8,7 @@ import time
 import unittest
 from datetime import UTC, datetime
 from pathlib import Path
-from subprocess import CompletedProcess
-from unittest.mock import patch
+from unittest.mock import MagicMock
 
 from jimbo_full_bot.archive import TextEventArchive
 from jimbo_full_bot.contracts import DeliveryResult, EventKind, NormalizedEvent, ResultStatus
@@ -102,44 +101,27 @@ class MinimalRendererTests(unittest.TestCase):
 
 
 class RconDeliveryTransportTests(unittest.TestCase):
-    @patch("jimbo_full_bot.delivery.subprocess.run")
-    def test_uses_fixed_wrapper_and_restores_command_file(self, run: object) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            command_path = Path(directory) / "rcon-command.txt"
-            command_path.write_text("/players\n", encoding="utf-8")
-            original = command_path.read_bytes()
+    def test_uses_transport_and_confirms_success(self) -> None:
+        mock_transport = MagicMock()
+        mock_transport.command.return_value = RCON_SUCCESS_MARKER
+        message = MinimalRenderer().render_reply("request-1", "Alice", "hello")
+        result = RconDeliveryTransport(transport=mock_transport).deliver(message)
 
-            def confirm(*_: object, **__: object) -> CompletedProcess[str]:
-                written = command_path.read_text("utf-8")
-                self.assertIn("game.print([[Jimbo to Alice: hello]])", written)
-                return CompletedProcess([], 0, RCON_SUCCESS_MARKER, "")
+        self.assertEqual(result.status, ResultStatus.COMPLETE)
+        self.assertEqual(result.exact_text, message.text)
+        mock_transport.command.assert_called_once()
+        sent_command = mock_transport.command.call_args[0][0]
+        self.assertIn("game.print([[Jimbo to Alice: hello]])", sent_command)
 
-            run.side_effect = confirm
-            message = MinimalRenderer().render_reply("request-1", "Alice", "hello")
-            result = RconDeliveryTransport(
-                wrapper_path=Path("fixed-wrapper.ps1"),
-                command_path=command_path,
-            ).deliver(message)
+    def test_requires_confirmation_and_does_not_retry(self) -> None:
+        mock_transport = MagicMock()
+        mock_transport.command.return_value = "no marker"
+        message = MinimalRenderer().render_reply("request-1", "Alice", "hello")
 
-            self.assertEqual(result.status, ResultStatus.COMPLETE)
-            self.assertEqual(result.exact_text, message.text)
-            self.assertEqual(command_path.read_bytes(), original)
+        with self.assertRaises(DeliveryError):
+            RconDeliveryTransport(transport=mock_transport).deliver(message)
 
-    @patch("jimbo_full_bot.delivery.subprocess.run")
-    def test_requires_confirmation_and_does_not_retry(self, run: object) -> None:
-        run.return_value = CompletedProcess([], 0, "no marker", "")
-        with tempfile.TemporaryDirectory() as directory:
-            command_path = Path(directory) / "rcon-command.txt"
-            command_path.write_text("/players\n", encoding="utf-8")
-            message = MinimalRenderer().render_reply("request-1", "Alice", "hello")
-
-            with self.assertRaises(DeliveryError):
-                RconDeliveryTransport(
-                    wrapper_path=Path("fixed-wrapper.ps1"),
-                    command_path=command_path,
-                ).deliver(message)
-
-            self.assertEqual(run.call_count, 1)
+        self.assertEqual(mock_transport.command.call_count, 1)
 
 
 class FakeTransport:

@@ -29,6 +29,7 @@ from .live_state import FixedLiveStateProvider, LiveStateError
 from .freeform_rcon import FreeformRconError, FreeformRconProvider
 from .platform_state import PlatformInvestigationProvider, PlatformStateError
 from .logistics_state import LogisticsInvestigationProvider, LogisticsStateError
+from .rcon_transport import DirectRconTransport, RconTransportError
 from .state_planning import StatePlanError
 from .routing import MinimalConversationRouter
 from .state import FlatTextStateStore
@@ -54,12 +55,14 @@ class FullBotRuntime:
         self.classifier = InvocationClassifier()
         self.router = MinimalConversationRouter(config)
         self.renderer = MinimalRenderer(character_limit=config.chat_character_limit)
+        self.transport = DirectRconTransport.from_password_file(
+            config.rcon_password_file,
+            host=config.rcon_host,
+            port=config.rcon_port,
+            timeout=config.rcon_timeout_seconds,
+        )
         self.delivery = MinimalDeliveryWorker(
-            transport=RconDeliveryTransport(
-                wrapper_path=config.rcon_wrapper_path,
-                command_path=config.rcon_command_path,
-                timeout_seconds=config.rcon_timeout_seconds,
-            ),
+            transport=RconDeliveryTransport(transport=self.transport),
             archive=self.archive,
             state=self.state,
             enabled=config.public_replies_enabled,
@@ -68,26 +71,10 @@ class FullBotRuntime:
         self.history_events = self._seed_seen_players()
         self.memory = ConversationMemory(3)
         self.recent_observations: dict[str, tuple[ToolResult, ...]] = {}
-        self.live_state = FixedLiveStateProvider(
-            wrapper_path=config.rcon_wrapper_path,
-            command_path=config.rcon_command_path,
-            timeout_seconds=config.rcon_timeout_seconds,
-        )
-        self.freeform_rcon = FreeformRconProvider(
-            wrapper_path=config.rcon_wrapper_path,
-            command_path=config.rcon_command_path,
-            timeout_seconds=config.rcon_timeout_seconds,
-        )
-        self.platform_state = PlatformInvestigationProvider(
-            wrapper_path=config.rcon_wrapper_path,
-            command_path=config.rcon_command_path,
-            timeout_seconds=config.rcon_timeout_seconds,
-        )
-        self.logistics_state = LogisticsInvestigationProvider(
-            wrapper_path=config.rcon_wrapper_path,
-            command_path=config.rcon_command_path,
-            timeout_seconds=config.rcon_timeout_seconds,
-        )
+        self.live_state = FixedLiveStateProvider(transport=self.transport)
+        self.freeform_rcon = FreeformRconProvider(transport=self.transport)
+        self.platform_state = PlatformInvestigationProvider(transport=self.transport)
+        self.logistics_state = LogisticsInvestigationProvider(transport=self.transport)
         if config.provider == "opencode":
             self.model = model or GroqModelGateway.from_auth_json(
                 config.api_key_path,
@@ -104,11 +91,7 @@ class FullBotRuntime:
             )
         self.authoritative = AuthoritativeFactProvider(
             config, self.archive, self.history_events, self.model,
-            PermissionProvider(
-                wrapper_path=config.rcon_wrapper_path,
-                command_path=config.rcon_command_path,
-                timeout_seconds=config.rcon_timeout_seconds,
-            ),
+            PermissionProvider(transport=self.transport),
         )
 
     def _seed_seen_players(self) -> tuple[NormalizedEvent, ...]:
@@ -394,8 +377,9 @@ class FullBotRuntime:
 
 
 def live_config() -> FullBotConfig:
+    from .config import DEFAULT_OPENCODE_AUTH
     key_dir = DEFAULT_RUNTIME_DIR
-    opencode_auth = Path(r"C:\Users\dlbat\.local\share\opencode\auth.json")
+    opencode_auth = Path(DEFAULT_OPENCODE_AUTH)
     if opencode_auth.is_file():
         try:
             auth = json.loads(opencode_auth.read_text(encoding="utf-8"))

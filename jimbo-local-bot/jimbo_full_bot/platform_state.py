@@ -4,14 +4,12 @@ from __future__ import annotations
 
 import json
 import re
-import subprocess
 from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
-from pathlib import Path
 
 from .contracts import Provenance, ResultStatus, ToolResult
-from .delivery import POWERSHELL_PATH
 from .investigation import InvestigationStep, validate_steps
+from .rcon_transport import DirectRconTransport
 
 
 MAX_RESULT_BYTES = 200_000
@@ -45,30 +43,18 @@ class PlatformStateError(RuntimeError):
 
 
 class PlatformInvestigationProvider:
-    def __init__(self, *, wrapper_path: Path, command_path: Path, timeout_seconds: float) -> None:
-        self.wrapper_path = wrapper_path
-        self.command_path = command_path
-        self.timeout_seconds = timeout_seconds
+    def __init__(self, *, transport: DirectRconTransport) -> None:
+        self.transport = transport
 
     def collect(self, command: str = PLATFORM_OBJECT_COMMAND) -> Mapping[str, object]:
-        original = self.command_path.read_bytes()
         try:
-            self.command_path.write_text(command + "\n", encoding="utf-8")
-            completed = subprocess.run(
-                [str(POWERSHELL_PATH), "-NoProfile", "-File", str(self.wrapper_path)],
-                capture_output=True, text=True, timeout=self.timeout_seconds, check=False,
-            )
-        except (OSError, subprocess.SubprocessError) as error:
+            output = self.transport.command(command)
+        except Exception as error:
             raise PlatformStateError(f"platform query failed: {error}") from error
-        finally:
-            self.command_path.write_bytes(original)
-        output = completed.stdout + "\n" + completed.stderr
         match = PLATFORM_RESULT_RE.search(output)
-        if completed.returncode != 0 or match is None:
+        if match is None:
             detail = " ".join(output.split())[-500:]
-            raise PlatformStateError(
-                f"platform query was not confirmed (exit {completed.returncode}): {detail}"
-            )
+            raise PlatformStateError(f"platform query was not confirmed: {detail}")
         raw = match.group("json")
         if len(raw.encode("utf-8")) > MAX_RESULT_BYTES:
             raise PlatformStateError("platform query exceeded the result byte limit")
