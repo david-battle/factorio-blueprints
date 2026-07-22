@@ -9,9 +9,9 @@ Build the first full release of Jimbo the Jr. Engineer as specified by
 turning the completed proof of concept into an open-ended patch series.
 
 The full bot must preserve the proven public-chat loop while adding durable
-event ingestion, deterministic authority and routing, broad bounded read-only
+event ingestion, deterministic routing, broad bounded read-only
 investigation, deterministic calculations, player preferences, automatic
-welcomes, a canonical archive, and management-only ghost placement.
+welcomes, a canonical archive, and player-requested ghost placement.
 
 ## Source-of-truth order
 
@@ -50,6 +50,12 @@ Every completed step must:
 - map new tests to the relevant stable requirement IDs;
 - record material decisions and deferred work in this document;
 - leave the working tree understandable and the bot recoverable.
+
+Security features are opt-in project scope. Do not volunteer, plan, or implement
+a new restriction—including a Lua/RCON execution restriction—unless `dlbattle`
+explicitly requests that specific feature. Existing recorded controls remain as
+currently documented until separately revisited; unrelated feature work must not
+silently expand them.
 
 Live validation is permitted only when a step explicitly calls for it. Live
 RCON must use the repository's fixed wrapper and follow the incremental safety
@@ -312,8 +318,11 @@ model call or general conversational reply.
 2. Add narrowly defined and tested minor-variant tolerance without triggering
    on `jimbob`, quotations, third-person discussion, or unrelated text.
 3. Identify and suppress Jimbo's own delivered public records.
-4. Implement case-insensitive seen-player state with latest display spelling.
-5. Generate deterministic first-seen and returning-player greetings.
+4. Implement permanent case-insensitive seen-player state with latest display
+   spelling and no time/session/save expiry.
+5. Seed/rebuild seen-player state from all retained join, leave, and public-chat
+   evidence before generating deterministic first-ever and returning greetings;
+   historical replay never emits a greeting.
 6. Every welcome and welcome-back message must instruct players to begin their
    queries with `Jimbo`; the template must remain short and compatible with
    `Hey Jimbo`.
@@ -527,6 +536,15 @@ current players/research, action classification and useful authority declines,
 archive/history queries, runtime self-description, stale/partial status
 handling, and the complete routing catalog.
 
+The runtime self-description follow-up must cover the failures observed during
+overnight testing: actual provider/model rather than an invented GPT-4 identity;
+known versus undisclosed parameter count; per-request/context/output limits;
+observed token usage and remaining quota when instrumentation supplies them;
+Jimbo's memory and learning behavior; deployed revision; enabled tools/domains;
+and provenance answers explaining exactly which configured fact, archive query,
+or live observation supported an answer. These are runtime fact records, not a
+larger personality prompt.
+
 ### Step 6 basic live-state follow-up result (2026-07-21)
 
 - Added deterministic phrase routing for connected players, current research
@@ -548,6 +566,10 @@ handling, and the complete routing catalog.
   fix and verified running as PID 22476.
 
 ### Step 6 target follow-up: model-directed state-needs planning
+
+Historical deployed milestone: the strict four-tool behavior below records the
+initial live slice, not the final Step 10 execution boundary. Step 10 supersedes
+its no-free-form-code restriction with permissive model-authored Lua/RCON.
 
 Replace phrase matching as the primary state-needs decision mechanism with one
 bounded model planning pass while preserving local ownership of every executable
@@ -641,14 +663,16 @@ deterministic boundaries.
    fallback.
    This implementation pass must include the real hosted call path; a stub-only
    gateway is insufficient.
-2. Separate trusted facts, tool provenance, untrusted player text, recent
-   conversation, and policy instructions in requests.
+2. Separate trusted facts, tool provenance, player text, recent conversation,
+   and technical capability instructions in requests. Do not add moderation or
+   acceptable-behavior instructions on behalf of the server.
 3. Add the last three completed exchanges separately per player in memory.
 4. Commit history only after a player-visible reply is successfully delivered.
 5. Resolve short follow-ups against recent subject matter and ask concise
    clarifications for material ambiguity.
-6. Support harmless non-Factorio conversation and PG-13 personality while
-   preserving runtime-owned capability statements.
+6. Support non-Factorio conversation, banter, and role-play without a local or
+   model-based moderation gate while preserving runtime-owned capability
+   statements.
 7. Prevent disclosure of raw prompts, hidden context, credentials, reasoning,
    or another player's conversation.
 
@@ -682,7 +706,7 @@ Status: complete; the playable full-bot prototype is active.
 - Added a replaceable standard-library Groq gateway using
   `openai/gpt-oss-120b`, the existing ignored key file, a bounded timeout, and
   no automatic Ollama fallback.
-- Provider messages keep runtime policy, trusted static context, bounded
+- Provider messages keep technical runtime instructions, trusted static context, bounded
   per-player history, and untrusted current player text in distinct messages.
 - Added case-insensitive per-player memory containing at most the last three
   exchanges. Memory is committed only after confirmed public delivery and is
@@ -724,8 +748,8 @@ memory.
    not require recognizing factual spans or understanding meaning.
 6. Preserve commands, coordinates, names, recipes, quantities, and units by
    construction in structured fields or leave the response untransformed.
-7. Supply a readable untransformed fallback when a transformation is unsafe or
-   unsupported.
+7. Supply a readable untransformed fallback when a transformation would corrupt
+   meaning or is unsupported.
 
 ### Tests
 
@@ -734,8 +758,8 @@ memory.
 - Model-produced structured facts-only output omits only the tagged advice
   section without removing material assumptions or warnings.
 - Local code does not infer facts versus advice from arbitrary prose.
-- Mechanical transformations cannot corrupt structured factual values or create
-  executable-looking output.
+- Mechanical transformations cannot corrupt structured factual values or change
+  the player's intended text category.
 - Unsupported transformations use the readable fallback.
 
 ### Acceptance check
@@ -791,7 +815,7 @@ recalculation.
 
 KNOW-003 through KNOW-005, ROUTE-002, ROUTE-003.
 
-## Step 10: Implement the bounded read-only query engine
+## Step 10: Implement the model-authored live query/action engine
 
 Status: minimal core implemented and deployed. The model can propose up to six
 strictly validated investigation steps from an application-owned catalog. The
@@ -802,73 +826,70 @@ cancellation, and full status/timeout semantics remain pending.
 
 ### Scope
 
-Build the safe structured discovery/filter/projection/aggregation engine before
-adding broad domain coverage.
+Build a permissive model-directed investigation and player-equivalent action
+engine before adding broad domain coverage.
 
 ### Work
 
-1. Define the versioned JSON investigation-plan schema and registered operation
-   allowlist.
-2. Implement validation for types, fields, scopes, limits, references, maximum
-   steps, result bytes, and execution time.
-3. Compile accepted operations into trusted read-only Lua/RCON templates; never
-   execute model-authored code.
+1. Retain the existing registered-operation schema as a reliable convenience,
+   not a mandatory allowlist for everything Jimbo may do.
+2. Let the model propose Lua/RCON directly when that is simpler than extending
+   the registered catalog.
+3. Apply lightweight checks for one complete command, obvious truncation,
+   practical size/time limits, and obvious mismatch with the requested task;
+   lean toward allowing execution when the check is uncertain.
 4. Implement discovery, filtering, projection, counting, grouping,
    aggregation, pagination, and relationship traversal primitives.
-5. Add a serial bounded RCON investigation queue and cancellation/timeouts.
+5. Add a serial RCON queue and cancellation/timeouts.
 6. Return provenance and `complete`, `partial`, `timeout`, `unavailable`, or
    `stale` status for every result.
-7. Reject mutation-shaped APIs and validate non-mutation independently of the
-   planner.
+7. Support map pings/tags, ghost placement, and unrestricted deconstruction
+   marking; do not directly construct/remove entities or place/remove tiles.
 8. Choose and record initial step, object, byte, page, and time bounds.
 9. Publish an application-owned capability catalog of registered domains,
    operations, typed arguments, output fields, relationships, and limitations
    for the planner and runtime-owned capability answers.
 10. Keep language understanding in the model. Do not add a local query-intent
     taxonomy, semantic regex catalog, or one hard-coded handler per question.
-11. Replace catalog growth as the primary model interface with a compact,
-    familiar read-only Lua-shaped query syntax. Parse it into a restricted AST,
-    validate only allowlisted Factorio reads and bounded control flow, and
-    compile it to trusted local templates; never execute the model text.
-12. Reject assignments, mutation-capable methods, dynamic evaluation,
-    metaprogramming, recursion, unrestricted globals, command registration, and
-    unbounded iteration structurally. Do not rely on a textual denylist.
+11. Use familiar Factorio Lua/RCON as the primary escape hatch so the model does
+    not need an ever-growing proprietary tool catalog.
+12. Have the model exercise judgment about requests that go too far. Local code
+    should not attempt to replace that judgment with an exhaustive mutation,
+    syntax, or behavior classifier.
 13. Retain the current registered operations as a tested fallback while the
     compiled interface is developed and compared for prompt size and accuracy.
 
 ### Tests
 
-- Valid plan parsing/compilation and invalid operation/field/type rejection.
-- Mutation attempts, arbitrary Lua/RCON, unbounded iteration, excessive joins,
-  and oversized projections fail before RCON.
+- Registered-plan compatibility plus direct model-authored Lua/RCON attempts.
+- Lightweight checks catch obvious truncation, malformed framing, runaway-size
+  requests, direct entity/tile construction, direct removal, and tile placement.
 - Pagination, aggregation, timeout, partial results, and provenance propagation.
 - Fuzzed plan input cannot escape the registered operation set.
-- Static and staged checks confirm templates perform no mutation.
+- Staged checks confirm supported mutations create ghosts, deconstruction orders,
+  or map pings rather than direct construction/removal.
 - Capability/schema questions use the registered catalog and cannot cause the
   model to invent fields or trigger arbitrary API reflection.
 - Natural paraphrases produce model-authored structured plans without adding
   local phrase rules; unrelated conversation performs no RCON.
-- Restricted Lua-shaped plans compile to the same bounded read-only executor;
-  equivalent mutation, escape, reflection, and resource-exhaustion attempts are
-  rejected before RCON.
+- Model-authored Lua/RCON is attempted, observed, and corrected when the selected
+  model makes practical syntax or API mistakes.
 - Prompt fixtures demonstrate that the fixed syntax contract is compact and
   does not require restating a growing operation catalog on every request.
 
 ### Acceptance check
 
-A mocked multi-step plan filters and aggregates a bounded dataset with complete
-provenance, while mutation and arbitrary-code adversarial plans are rejected.
-A harmless staged query confirms the compiler/executor contract.
+A mocked multi-step investigation filters and aggregates data with provenance.
+Staged attempts demonstrate direct model-authored queries, map pings, ghost
+creation, and deconstruction marking with lightweight checks and observed results.
 
 ### Next Step 10 increment
 
-Design and prototype the parser/compiler boundary before adding more canned
-domain queries. Start with logistics and platform reads already covered by the
-trusted adapters, so compiled queries can be compared directly against known
-answers and load behavior. Measure prompt characters/tokens, plan validity,
-RCON command/result size, execution time, and correction frequency. Do not
-remove the existing operations or activate compiled model queries publicly until
-offline adversarial tests and harmless no-public live comparisons pass.
+Prototype direct model-authored Lua/RCON alongside the existing logistics and
+platform adapters so answers and reliability can be compared. Measure syntax/API
+success, correction frequency, RCON size/time, and observed results. Keep the
+registered operations as fallback, but do not require a restricted parser or
+security proof before trying staged model-authored commands.
 
 ### Primary requirements
 
@@ -903,10 +924,13 @@ support coherent multi-step answers.
 5. Have the model synthesize public answers from provenance-bearing results
    without dumping raw records or hiding incompleteness; adapters return facts
    and relationships, not locally inferred conclusions.
-6. Produce coordinates only from observed validated positions and render GPS
-   links through trusted local code.
+6. Ingest player pings/tags as observations and let Jimbo create useful pings,
+   tags, and GPS links. Preserve whether a coordinate was observed or generated.
 7. Record the first-release coverage and any Factorio API limitations per
    domain.
+8. Add a small human-authored server identity record for owner/management
+   contact, server purpose/philosophy, and any explicitly configured moderator
+   roster. Keep these facts distinct from live Factorio admin flags.
 
 ### First vertical slice: space platforms
 
@@ -939,8 +963,9 @@ player testing then exposed a renderer ambiguity for rich-text platform names;
 the renderer now spells unsafe brackets as `left-bracket` and `right-bracket`
 instead of silently deleting them.
 
-After the platform slice, expand in evidence-driven order: logistic networks and
-storage; production/consumption statistics; electric power and pollution;
+After the platform slice, expand in evidence-driven order: all player inventories
+and personal logistic requests without cross-player privacy filtering; logistic
+networks and storage; production/consumption statistics; electric power and pollution;
 trains/stations/schedules/cargo; bounded entity/inventory inspection; then
 resources and observed map positions. Surfaces/planets, forces/progression, and
 players are expanded as required by those relationships. Every domain remains
@@ -982,6 +1007,36 @@ no-public smokes reported 504 provider-available steel plates in Nauvis network
 2 and 101 steel plates physically present in its requester chests. The full
 dependency-free suite now passes 149 tests.
 
+### Next evidence-driven slice: server identity, administration, and permissions
+
+Morning testing at 04:05-04:08 server time asked who administers the server, who
+the moderators are, and whether Jimbo can inspect user permissions. Plan this as
+the next small server-knowledge slice:
+
+1. Add application-owned configured facts for server owner/management contact,
+   server purpose/philosophy, and whether a distinct moderator roster exists.
+   The initial human-authored facts should identify `dlbattle` as the project
+   owner/management contact and must not infer hierarchy from Factorio flags.
+2. Add bounded read-only Factorio observations for current player admin flags,
+   permission groups, group membership, and effective permissions for an exact
+   player identity where the API exposes them.
+3. Normalize reliable promote/demote and permission-group log events into the
+   archive so historical changes can be answered separately from current state.
+4. Answer `who is in charge?`, `who are the admins?`, `who are the moderators?`,
+   `can this player ban?`, and `what permissions does this player have?` with
+   explicit source and collection time. Say when no separate moderator roster is
+   configured rather than inventing one.
+5. Extend runtime-owned self-knowledge at the same time for `who is Jimbo?`,
+   active model/provider, model metadata actually known, deployed revision,
+   tools/domains, memory/learning behavior, context/output limits, observed token
+   usage/quota, and `how did you know that?` provenance.
+6. Keep model synthesis conversational, but supply these facts as authoritative
+   structured context so the model cannot replace them with generic claims about
+   GPT-4, imagined permissions, or a fictional server organization.
+
+Planning note: this slice adds knowledge only. It does not add moderation,
+permission enforcement, Lua restrictions, or any other security feature.
+
 ### Tests
 
 - Adapter contract fixtures for every supported domain.
@@ -992,6 +1047,10 @@ dependency-free suite now passes 149 tests.
 - Platform display identity is not inferred from its internal surface name.
 - Platform item-filter questions inspect authoritative hub cargo and distinguish
   empty, unavailable, partial, and unsupported results.
+- Configured owner/moderator facts remain distinct from live admin and permission
+  state; current and historical answers are labeled explicitly.
+- Runtime self-knowledge reports actual instrumentation and preserves unknowns
+  for undisclosed model metadata.
 - Resource/map recommendations never invent patches or coordinates.
 - Broad surface queries remain bounded and honest about partial coverage.
 
@@ -1006,12 +1065,12 @@ staged validation path.
 
 STATE-005 through STATE-012, ROUTE-003 through ROUTE-005, QUAL-006.
 
-## Step 12: Implement offline ghost-design validation and planning
+## Step 12: Implement offline ghost-design generation and trial planning
 
 ### Scope
 
-Build and test the complete structured placement contract without mutating the
-live world.
+Build and test structured and model-authored placement attempts without mutating
+the live world.
 
 ### Work
 
@@ -1020,51 +1079,51 @@ live world.
 2. Define the versioned `GhostDesign` schema for Factorio version, surface,
    anchor, prototypes, exact centers, directions, qualities, recipes, filters,
    priorities, control behavior, wires, and module requests.
-3. Implement blueprint decode, compact JSON validation, and encode/decode
-   round-trip checks.
-4. Reject duplicate centers, unknown/unsupported prototypes, invalid settings,
-   invalid coordinates, incompatible versions, direct construction, tiles,
-   destruction, deconstruction, inventory/player/research/force mutation, and
-   unbounded operations.
-5. Return precise structured validation errors to the model for explanation or
-   a revised design; validators do not choose design alternatives.
-6. Convert validated designs into deterministic representative-test,
-   preflight, bounded-batch, audit, and scoped-cleanup plans.
+3. Implement blueprint decode/encode helpers where useful for placement, but let
+   the model generate or display blueprint strings without artifact-specific
+   validation beyond the ordinary message-length limit.
+4. Catch obvious design mistakes when practical. Placement produces entity or
+   blueprint ghosts rather than direct construction or tile placement;
+   deconstruction produces Factorio deconstruction orders.
+5. Return parse/check observations to the model for explanation or revision;
+   lightweight checks do not need to prove the whole design valid.
+6. Convert proposed designs into representative-test, preflight, batch, audit,
+   and player-requested deconstruction plans.
 7. Require a distinctive exact marker and explicit surface/anchor.
-8. Keep raw model-authored Lua/RCON disabled. Any future proposal to enable it
-   requires a separate recorded design decision and must reduce to the same
-   structured allowlist.
+8. Let the model author Lua/RCON and run lightweight checks for obvious
+   truncation, likely syntax/API mistakes, and direct construction/tile placement
+   before staged execution. Prefer attempting and observing over rejecting.
 9. Create immutable design hashes and full placement audit records.
 
 ### Tests
 
-- Valid entity design and blueprint round trip.
+- Structured entity design plus generated blueprint decoding when used live.
 - Factorio version, quality, direction, entity-center, footprint, recipe,
   filter, priority, wire, and module preservation.
-- Duplicate, collision-shaped, unsupported, mutation-shaped, and unbounded
-  designs fail validation.
+- Obvious duplicate, collision-shaped, unsupported, and runaway-size mistakes are
+  surfaced for model correction when practical.
 - Batch plans are small, deterministic, and reproduce expected positions.
-- Cleanup plans include only original expected positions and matching
-  prototypes.
-- Local code either validates the proposed layout or returns structured errors;
-  it does not generate or optimize layouts on the model's behalf.
+- Deconstruction plans may cover any player-described area or objects and use
+  ordinary deconstruction orders rather than direct removal.
+- Local code reports lightweight check results; the model generates and revises
+  layouts and Lua/RCON.
 
 ### Acceptance check
 
-A representative multi-prototype design round-trips through the structured
-format and produces deterministic marker, preflight, small-batch, audit, and
-cleanup plans without executing RCON.
+A representative multi-prototype design produces a structured or model-authored
+attempt, lightweight review observations, and ghost/deconstruction audit plans
+without executing RCON.
 
 ### Primary requirements
 
 AUTH-006, ART-002, GHOST-001 through GHOST-004, GHOST-007 through GHOST-010.
 
-## Step 13: Implement management-only live ghost placement
+## Step 13: Implement player-requested live ghost placement
 
 ### Scope
 
-Connect the validated placement plans to the dedicated live RCON pipeline with
-authority checks, incremental execution, audit, and safe recovery.
+Connect validated placement plans for any requesting player to the dedicated
+live RCON pipeline with attribution, incremental execution, audit, and recovery.
 
 ### Work
 
@@ -1072,44 +1131,44 @@ authority checks, incremental execution, audit, and safe recovery.
    `DISCUSS -> DRAFT -> VALIDATED -> MARKER_TEST ->
    AWAIT_LOCATION_CONFIRMATION -> PREFLIGHT -> BATCH_PLACE -> AUDIT ->
    COMPLETE`, with `ABORTED` transitions.
-2. Recheck case-insensitive `dlbattle` authority at every state-changing
-   transition and before every live batch.
+2. Preserve the requesting player identity through every transition and batch;
+   do not gate placement on management or Factorio admin status.
 3. Establish and report a distinctive exact marker GPS coordinate.
 4. Validate and place one representative ghost of every prototype, audit it,
    and require location confirmation before material placement.
-5. Scan the complete footprint for rails, entities, tiles, water, and
-   collisions; call `surface.can_place_entity` for every planned entity and
-   abort the main placement if any required position fails.
+5. Inspect the footprint for rails, entities, tiles, water, and collisions;
+   report conflicts and normally attempt placeable ghosts rather than enforcing
+   an all-or-nothing abort policy.
 6. Place small bounded batches and audit every batch. Stop on explicit measured
    conditions: timeout, missing confirmation, configured response-time or queue
    threshold, audit mismatch, or operator abort. Audit before any retry; do not
    add a heuristic that the server merely `seems unhealthy`.
 7. Verify exact prototypes, center positions, directions, qualities, recipes,
    filters/priorities, control behavior, wires, and module requests.
-8. Implement separately authorized scoped cleanup/replacement using the
-   original design positions and matching prototypes only.
-9. Archive requester, authority decision, design hash, anchor, validation,
+8. Implement player-requested deconstruction marking for any described area or
+   objects; do not limit it to a prior design or matching prototypes.
+9. Archive requester, design hash, anchor, validation,
    commands, RCON results, batches, audits, failures, and final state.
-10. Provide operator abort and an exclusive mutation lease. There is no general
-    Lua/RCON executor.
+10. Provide operator abort and serialize live mutations so concurrent attempts
+    remain observable. Model-authored Lua/RCON uses the Step 10 execution path.
 
 ### Tests
 
-- Ordinary player, Factorio admin, spoofed identity, casing, and prompt-based
-  authority attacks cannot reach live placement.
-- Authority is checked again after pause/restart and before every batch.
-- Marker rejection, collision, rail, water, representative mismatch, timeout,
-  partial execution, audit mismatch, and abort stop later batches.
+- Ordinary players and Factorio admins have equal access to live ghost placement;
+  requester identity and casing remain correctly attributed.
+- Requester attribution survives pause/restart and remains attached to every batch.
+- Marker/location errors, timeout, and unknown execution state stop for audit;
+  ordinary collisions/partial placement are reported for model/requester choice.
 - A timed-out command enters unknown/audit state and is never blindly retried.
-- Cleanup excludes unrelated entities, rails, markers, and nonmatching
-  prototypes.
+- Deconstruction fixtures show that any player-described scope can be marked and
+  that Jimbo does not directly remove entities or tiles.
 - Restart resumes or safely halts from every state without duplicate placement.
-- Every automatic stop maps to one configured signal or exact audit condition;
-  model judgment cannot waive or create placement safety gates.
+- Automatic stops are limited to transport/unknown-state conditions; ordinary
+  placement choices remain with the model and requester.
 
 ### Acceptance check
 
-After all mocked failure cases pass, perform a management-authorized staged live
+After all mocked failure cases pass, perform a player-requested staged live
 validation: place and audit one representative marker/ghost at a confirmed safe
 location, then exercise a tiny multi-batch design. Stop immediately on any
 timeout or mismatch. Verify every expected live ghost before declaring success.
@@ -1130,9 +1189,11 @@ to each owning step and complete its recorded deferred items:
   log chunking.
 - Step 4 follow-up: carefully scoped invocation variants, canonical decision
   records, runtime flag wiring, concurrent state locking, and greeting
-  delivery/commit reconciliation.
+  delivery/commit reconciliation. Also migrate permanent seen-player state from
+  all retained chat/join/leave evidence so pre-launch players are returning.
 - Step 5 follow-up: complete rendering, byte budgets, pagination, rich text/GPS,
-  artifact/command content policy, Unicode hardening, retries, and delivery
+  artifact integrity, strict separation of displayed commands from execution,
+  Unicode hardening, retries, and delivery
   reconciliation. Post-Step-6 chat specifically reconfirmed duplicated reply
   prefixes, leaked Markdown markers, and overlong-response fallback behavior.
 - Step 6 follow-up: model-directed state-needs planning over four locally
@@ -1160,8 +1221,8 @@ rollback, and only then activate it publicly.
    state, renderer rejections, delivery failures, and active placement state.
    The model may summarize these measurements, but configured thresholds and
    exact outcomes remain authoritative.
-3. Enforce bounded queues, per-player ordering, serial read-only RCON, serial
-   delivery, and exclusive mutation placement.
+3. Enforce bounded queues, per-player ordering, serialized live RCON/delivery,
+   and observable mutation attempts.
 4. Add failure containment for every external dependency and event type.
 5. Verify that all required follow-up passes belonging to earlier steps are
    complete; do not implement their missing scope inside Step 14.
@@ -1169,7 +1230,7 @@ rollback, and only then activate it publicly.
 7. Run the 25 initial acceptance scenarios from `FULL_BOT_REQUIREMENTS.md`,
    including the amended welcome instruction behavior.
 8. Run staged provider, read-only RCON, rendering/delivery, welcome, restart,
-   archive rebuild, and management-only placement smoke tests.
+   archive rebuild, and player-requested placement smoke tests.
 9. Rehearse rollback: stop admission, suppress greetings, drain/cancel safe
    work, preserve archive/state, and audit rather than auto-clean partial
    placement.
@@ -1187,7 +1248,7 @@ rollback, and only then activate it publicly.
 - Concurrent-player ordering and bounded admission under load.
 - Provider, archive, renderer, queue, delivery, and RCON failure injection.
 - Complete ASCII/Unicode/invalid-input, exact-byte-boundary, rich-text
-  injection, trusted GPS, pagination, opaque-artifact, command-shaped follow-up,
+  transport escaping, trusted GPS, pagination, opaque-artifact, displayed-command,
   and exact-sent-text renderer fixtures.
 - Restart/rotation/truncation deduplication and archive/index recovery.
 - All 25 acceptance scenarios pass with evidence.
@@ -1219,19 +1280,28 @@ These choices are intentionally resolved when evidence becomes available:
   and controlled effects. Do not build semantic regex catalogs, fuzzy intent
   engines, prose classifiers, or question-specific handler trees.
 
+- No step may add automated moderation, behavioral scoring, intent/sentiment
+  policing, harassment/impersonation classifiers, or acceptable-content gates.
+  Human owners and administrators decide what player behavior is acceptable.
+  Local enforcement is limited to authenticated identity, configured capability
+  authorization, schema/prototype validation, resource bounds, transport
+  integrity, and keeping displayed text separate from executors. These controls
+  answer "can Jimbo technically do this through this interface?", never "is this
+  player behaving acceptably?"
+
 - Step 2 records archive rotation thresholds. The first release uses a tagged
   UTF-8 text log plus small atomic flat-text state files and adds neither JSON
   storage nor SQLite.
 - Step 5 measures and records the chat byte budget and pagination policy.
-- Step 10 records read-only query step/object/byte/page/time bounds.
+- Step 10 records practical query/action byte/time bounds and lightweight checks.
 - Step 11 records first-release domain coverage and Factorio API limitations.
-- Step 12 keeps raw model-authored placement Lua/RCON disabled unless a separate
-  reviewed design decision proves it necessary and safe.
+- Step 12 permits model-authored placement Lua/RCON and records observed model
+  reliability plus lightweight mistake checks that prove useful.
 - Step 14 records the provider concurrency setting after ordered load tests.
 
-None of these gates permits weakening the authority boundary, read-only
-enforcement, placement validation, archive retention, or honest unknown/partial
-result behavior.
+None of these gates permits hiding unknown/partial results or discarding the
+archive. They do not create a general read-only, mutation, or player-behavior
+security boundary.
 
 ## Completion record
 

@@ -130,29 +130,28 @@ are needed; it is authoritative but intentionally long.
   explicit measured operational thresholds, and controlled effects. Do not add
   semantic regex catalogs, fuzzy intent engines, prose classifiers, or
   question-specific handler trees.
-- The next read-only architecture increment is a Step 10 parser/compiler
-  prototype for a compact Lua-shaped query syntax. The model should reuse its
-  Factorio/Lua knowledge instead of receiving an ever-growing proprietary tool
-  catalog. Model text is never executed: local code parses a restricted AST,
-  permits only allowlisted reads and bounded control flow, and compiles trusted
-  queries. Assignments, mutating methods, dynamic evaluation, metaprogramming,
-  recursion, unrestricted globals, and unbounded iteration are rejected
-  structurally. Existing registered operations remain the live fallback until
-  adversarial offline tests and harmless no-public comparisons pass.
-- Jimbo is Jimbo the Jr. Engineer. Harmless non-Factorio conversation is in
-  scope, and the model may supply the detailed conversational personality.
+- The next Step 10 architecture increment permits model-authored Factorio
+  Lua/RCON alongside the existing registered-operation fallback. Use lightweight
+  checks for complete framing, obvious truncation/model mistakes, practical
+  byte/time limits, and the explicit construction boundary; lean toward trying
+  and observing rather than rejecting. A restricted AST or formal security proof
+  is not required.
+- Jimbo is Jimbo the Jr. Engineer. Non-Factorio conversation is in scope, and
+  the model may supply the detailed conversational personality without being
+  assigned server-moderation responsibility.
 - Keep the last three completed exchanges separately per player. Do not build a
   dedicated persistent conversation-memory system, but do not deliberately
   suppress persistence that naturally arises from the eventual architecture.
 - The model is the primary generic Factorio knowledge source. Broad RCON-backed
   read-only investigation is authoritative for this live game and should answer
   questions that players could otherwise resolve through laborious inspection.
-- Management-authorized ghost and blueprint-ghost placement for construction
-  bots is an essential first-release feature and the sole world-changing action
-  class. Its dedicated validated pipeline may execute Lua/RCON and may narrowly
-  accept model-authored Lua/RCON; the general execution prohibition remains.
+- Player-requested ghost/blueprint-ghost placement, unrestricted deconstruction
+  marking for construction bots, and map pings/tags are available equally to
+  every player. Jimbo does not directly construct/remove entities or tiles and
+  has no dedicated combat feature. Model-authored Lua/RCON is permitted with
+  lightweight practical checks.
 - Archive all public chat for this single-server project. Long-artifact delivery,
-  public cost/quota disclosure, formal latency optimization, explicit additional-
+  a cost/quota dashboard, formal latency optimization, explicit additional-
   language support, and welcome reconnect-grace tuning are out of scope.
 - The live bot uses Groq `openai/gpt-oss-120b`, with no automatic Ollama
   fallback. The local Ollama/Qwen path remains implemented but was too weak for
@@ -183,14 +182,32 @@ archive are under ignored `runtime/` paths.
 
 ## Important behavior and boundaries
 
-- Public replies are the only live model action. Current live-state selection is
-  model-planned over validated registered operations; deterministic phrase
-  matching is fallback-only. The planned restricted Lua-shaped interface is
-  parsed and compiled locally and will never pass model text directly to RCON.
-  The model cannot access credentials/files or authorize world-changing actions.
+- Project philosophy: maximize player freedom. Human owners and administrators,
+  not application scripts, Jimbo's conversation model, auxiliary classifiers,
+  or Codex, decide what player behavior is acceptable. Do not add automated
+  moderation, behavioral scoring, intent/sentiment policing, harassment or
+  impersonation classifiers, or acceptable-content gates. Keep this separate
+  from technical capability authorization, bounded execution, credential
+  protection, protocol integrity, and the rule that displayed text is never
+  executed merely because it appeared in chat.
+- Seen-player memory for welcome-back classification is permanent for this
+  server. Seed it from all retained join, leave, and public-chat evidence, not
+  only joins processed after full-bot launch; historical reconstruction must not
+  emit greetings.
+- Do not volunteer, design, or implement new security features unless `dlbattle`
+  explicitly asks for that specific feature. This includes restrictions around
+  Lua or RCON execution. When planning unrelated capabilities, record only the
+  minimum technical behavior needed for the requested feature and do not add
+  speculative hardening as an automatic companion task.
+- Current live-state selection uses validated registered operations and a
+  fallback phrase matcher. The next Step 10 path permits model-authored
+  Factorio Lua/RCON with lightweight framing, obvious-mistake, size/time, and
+  explicit construction-boundary checks; it does not require a restricted AST
+  or security proof. Existing registered operations remain fallback.
 - Unrelated public chat is not sent to Groq. Only explicit leading invocations
   are processed.
-- `dlbattle` is the management authority for live chat behavior.
+- `dlbattle` is the management authority for bot operations, but every player
+  may request ghost placement, deconstruction marking, and map pings/tags.
 - Routine tests are mocked and must not consume Groq quota or invoke RCON.
 - A repeated CLI `--prompt` sequence exists for console-only contextual smoke
   tests. Do not add `--send-to` when using multiple prompts.
@@ -221,12 +238,28 @@ Earlier relevant commits are:
 - `552503f Capture additional Jimbo player findings`
 
 The user-facing `README.md` documents setup, operation, testing, diagnostics,
-safety boundaries, and current limitations. The next implementation task is the
-recorded Step 10 restricted-query parser/compiler prototype. Begin with
-logistics and platform reads already supported by trusted adapters; compare
-answers, prompt size, plan validity, RCON volume, execution time, and correction
-frequency. Keep existing operations live as fallback and do not publicly enable
-compiled model queries before adversarial tests and harmless no-public smokes.
+boundaries, and current limitations. The likely next implementation task is the
+revised Step 10 permissive model-authored Lua/RCON path. Begin beside logistics
+and platform operations already supported by trusted adapters; compare syntax/API
+success, corrections, RCON size/time, and observed results. Keep registered
+operations as fallback and use staged attempts before public activation.
+
+### Remaining-step summary
+
+1. Complete.
+2. Complete.
+3. Finish polling, missing-file recovery, read races, timestamps, and log chunking.
+4. Finish invocation variants, greeting reconciliation, and permanent seen-player reconstruction from retained chat/join/leave history.
+5. Finish byte budgets, pagination, Unicode/rich text, artifact delivery, retries, and delivery reconciliation.
+6. Add direct historical/runtime answers, server identity/admin/permissions, self-knowledge, and partial/unavailable handling.
+7. Complete/live.
+8. Add durable per-player response/presentation preferences.
+9. Add deterministic recipes, throughput, power, module, and ratio calculations.
+10. Add permissive model-authored Lua/RCON with lightweight checks and observed correction; retain registered tools as fallback.
+11. Expand live knowledge to all player inventories/logistic requests, permissions, production, power, pollution, trains, entities, resources, maps, and pings.
+12. Build offline ghost-design generation, blueprint decoding, model-authored command trials, and lightweight review.
+13. Implement live player-requested ghost placement and unrestricted bot deconstruction marking with attribution and auditing.
+14. Finish operations, tests, acceptance, rollback rehearsal, documentation, and activation.
 
 ## Fresh-session checklist
 

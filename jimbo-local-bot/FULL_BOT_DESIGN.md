@@ -10,7 +10,8 @@ The recommended shape is a dependency-light Python modular monolith with an appe
 
 The architecture follows five rules:
 
-1. Application code owns authority, policy, runtime truth, and final rendering.
+1. Application code owns technical capability authorization, runtime truth, and
+   transport rendering; it does not own social or behavioral policy.
 2. Model output is untrusted text or a proposed typed plan, never permission.
 3. Read-only investigation and ghost placement use different schemas, validators, executors, queues, and audit records.
 4. Unknown, stale, partial, and failed are first-class result states.
@@ -32,14 +33,14 @@ The architecture follows five rules:
 Factorio server-console.log
         |
         v
- Event Ingestor -> Canonical Archive -> Router/Policy -> Conversation Orchestrator
+ Event Ingestor -> Canonical Archive -> Capability Router -> Conversation Orchestrator
                                            |                    |
                                            |              Model Gateway
                                            |                    |
                       +--------------------+--------------------+
                       |                                         |
              Read-only Investigation                    Ghost Placement
-             planner + safe executor              management-only pipeline
+             planner + safe executor               player-request pipeline
                       |                                         |
                       +--------------------+--------------------+
                                            |
@@ -50,7 +51,11 @@ Factorio server-console.log
                                       Factorio chat
 ```
 
-There is no general command executor. The only component allowed to submit world-changing RCON is the dedicated ghost-placement executor after management authorization and placement validation.
+The live execution path may run model-authored Lua/RCON for investigations and
+supported player-equivalent actions after lightweight practical checks. Ghost
+placement does not require management status. Direct entity/tile construction,
+direct removal, direct tile placement, and dedicated combat automation are not
+product features.
 
 ## 3. Logical architecture
 
@@ -68,14 +73,14 @@ The canonical archive is an append-only UTF-8 text log. The initial policy rotat
 
 The append-only text archive remains the self-contained record of truth. Small versioned flat-text files hold mutable operational state such as cursors, seen players, preferences, delivery deduplication, runtime flags, and placement progress. These files use a documented line-oriented key/value or tabular format. Each update uses write-to-temporary-file, flush, and atomic replace. Query indexes are derived in memory from the archive or state files. Archive writes are flushed before an event is acknowledged as consumed. Secrets and full hidden prompts are excluded by construction.
 
-### 3.3 Router and policy engine
+### 3.3 Capability router
 
 The router remains deterministic only where application-owned enforcement is
 required: invocation, authenticated actor identity, authority, configured
 capability boundaries, and runtime-owned facts. The model interprets preference
 requests, calculations, investigations, placement discussions, ambiguity, and
 ordinary conversation by proposing typed plans. Local code validates those
-plans and enforces ownership and capability policy; it does not maintain a
+plans and enforces ownership and configured capability authorization; it does not maintain a
 parallel semantic intent classifier. A typed `RequestPlan` selects one route:
 
 - `direct_runtime_fact` for identity, limits, provider, health, and configuration;
@@ -83,14 +88,15 @@ parallel semantic intent classifier. A typed `RequestPlan` selects one route:
 - `direct_live_query` for simple current state such as online players or research;
 - `calculation` for ratios, throughput, crafting, modules, power, and furnaces;
 - `investigation` for multi-step live-state questions;
-- `conversation` for generic Factorio or harmless general conversation;
+- `conversation` for generic Factorio or general conversation;
 - `preference_command` for inspect/set/reset;
 - `ghost_design` or `ghost_place` for the dedicated placement workflow;
-- `decline` for unsupported or unauthorized actions.
+- `decline` for technically unsupported or unauthorized operations, not speech.
 
-Before orchestration, the policy engine attaches an application-owned authority
-decision, artifact/output restrictions, allowed tool families, maximum planning
-passes, and chat budget. The model cannot widen these fields. A model proposal
+Before orchestration, the capability router attaches an application-owned
+authorization decision, allowed tool families, maximum planning passes, and
+chat budget. It does not attach acceptable-content rules. The model cannot widen
+technical execution fields. A model proposal
 is data, not permission: local code rejects unknown operations or arguments and
 maps accepted operations to locally authored read-only RCON implementations.
 Direct runtime and policy facts remain application-rendered. Live observations
@@ -131,6 +137,21 @@ in full only within 16,000 characters; beyond that, the model receives
 provenance, summaries, warnings, and an explicit omission notice. Provider
 token usage and non-secret remaining request/token quota headers are retained
 in the local archive when available so limits can be tuned from evidence.
+
+### 3.6 Runtime and server fact provider
+
+A small application-owned fact provider supplies Jimbo's actual provider/model,
+deployed revision, enabled capabilities, data sources, memory/restart behavior,
+context/output limits, renderer behavior, and available token/quota telemetry.
+It also loads human-authored server identity facts: owner/management contact,
+server purpose/philosophy, and any distinct moderator roster. These facts are
+versioned configuration, not model recollection.
+
+Live Factorio administration remains a separate observation domain exposing
+current admin flags, permission groups, memberships, and effective permissions
+where available. Archive-derived promotion/demotion history is a third source.
+Every answer labels which source it used so `in charge`, `admin`, `moderator`,
+and `has permission` do not collapse into one invented role.
 
 ## 4. Read-only investigation subsystem
 
@@ -198,22 +219,19 @@ The model interprets the question and proposes the plan; local code does not
 maintain a question taxonomy or semantic regex catalog.
 
 The target interface should not become a large proprietary DSL whose catalog
-must be repeatedly taught to the model. The next Step 10 expansion will test a
-compact read-only Lua-shaped query syntax using familiar Factorio object names
-and ordinary selection, iteration, filtering, projection, counting, grouping,
-and aggregation. Model output is source text only for a local parser: it is
-accepted into a restricted AST, checked against allowlisted read properties and
-methods, bounded, and compiled into trusted application-owned templates. It is
-never sent directly to RCON. Assignments, mutation-capable calls, command
-registration, dynamic evaluation, metaprogramming, recursion, unrestricted
-globals, and unbounded iteration are rejected structurally rather than with a
-textual denylist. The current registered operations remain the stable fallback.
+must be repeatedly taught to the model. The next Step 10 expansion will allow
+the model to author familiar Factorio Lua/RCON directly for investigations and
+supported player-equivalent actions. Local code applies lightweight command-
+framing, obvious-truncation, size/time, and explicit product-boundary checks,
+then attempts the command and observes the result. It does not require a
+restricted AST or proof of perfect well-formedness. The current registered
+operations remain the stable fallback.
 
-This boundary protects server integrity and availability, not secrecy of game
-state already visible to players. It also bounds RCON traffic, response size,
-model quota, and reproducibility. A parser/allowlist or equivalent capability-
-isolated execution environment is required before enabling this interface;
-model familiarity with RCON alone is not a safety proof.
+Practical byte/time bounds protect transport and keep failures observable. The
+model decides when a request goes too far; local code does not replace that
+judgment with a rigid behavior or mutation classifier. Occasional permissive
+leakage is an accepted tradeoff, and additional restrictions are added only when
+explicitly requested from observed need.
 
 The deployed logistics slice also exposes targeted exact-item counts for all
 network members, providers, or storage, plus exact-item container inspection.
@@ -221,9 +239,19 @@ These operations aggregate or scope inside the trusted Factorio template before
 returning rows. They answer broad quantity questions without dumping every
 network inventory or relying on local language heuristics.
 
-### 4.2 Safety and execution
+Player inventory inspection is intentionally broad: Jimbo may inspect every
+player's inventories and personal logistic requests so players can trace items
+that moved through shared logistics. No cross-player privacy filter is planned.
 
-The plan validator rejects unknown operations/fields, mutation-shaped APIs, arbitrary code, excessive limits, unbounded scans, invalid prototypes, and unsupported cross-domain joins. Local code compiles an accepted plan into predefined read-only Lua templates. Templates return compact JSON through `rcon.print` and have explicit surface/force scope, maximum visited objects, maximum result bytes, and execution deadline. The current 200 KB result ceiling protects RCON transport and parsing; the smaller model-context budget above independently protects provider quota.
+### 4.2 Lightweight review and execution
+
+Registered plans retain schema validation and trusted templates. Direct model-
+authored Lua/RCON receives lightweight checks for complete framing, obvious
+truncation, practical size/time limits, and the explicit construction boundary:
+ghosts rather than direct entity/tile construction, deconstruction orders rather
+than direct removal, and no direct tile placement. Map pings/tags are supported.
+The current 200 KB result ceiling protects RCON transport and parsing; the smaller
+model-context budget independently protects provider quota.
 
 Large work is paginated or aggregated server-side in bounded increments. The executor uses a dedicated serial queue so investigations cannot overwhelm the server. Each result reports `complete`, `partial`, `timeout`, `unavailable`, or `stale`, plus collection time, scope, filters, counts, object identities, and warnings. The synthesizer must preserve those qualifiers.
 
@@ -248,7 +276,7 @@ clarification itself.
 
 ### 5.1 State machine
 
-Placement is a management-only, explicitly staged workflow:
+Placement is available to every player through an explicitly staged workflow:
 
 ```text
 DISCUSS -> DRAFT -> VALIDATED -> MARKER_TEST -> AWAIT_LOCATION_CONFIRMATION
@@ -257,13 +285,17 @@ DISCUSS -> DRAFT -> VALIDATED -> MARKER_TEST -> AWAIT_LOCATION_CONFIRMATION
                          +-> ABORTED <--+
 ```
 
-Discussion and design requests from ordinary players may produce non-executable design advice, but only a request whose authenticated chat actor is `dlbattle` can enter `VALIDATED` or later. Authority is rechecked at every transition that can mutate the world.
+Every authenticated chat player may take a placement request through `VALIDATED`
+and later states. The requester identity is retained for attribution and
+conversation continuity, not used as an authorization gate.
 
 ### 5.2 Structured design contract
 
-The preferred contract is a `GhostDesign` document containing Factorio version, surface, exact anchor, entity prototypes, center positions, directions, qualities, recipes, recipe qualities, filters, priorities, control behavior, wire connections, module requests, and design provenance. Blueprint input must decode, validate, and round-trip before conversion into this structure. Duplicate centers, unknown prototypes, invalid directions, out-of-bounds positions, and unsupported settings fail validation.
+The preferred contract is a `GhostDesign` document containing Factorio version, surface, exact anchor, entity prototypes, center positions, directions, qualities, recipes, recipe qualities, filters, priorities, control behavior, wire connections, module requests, and design provenance. Blueprint text may also be generated or displayed subject only to the ordinary message-length path. Decode what is needed when attempting placement and report Factorio's observed result.
 
-Raw model-authored Lua/RCON is disabled by default. If later enabled, it is accepted only as an input language to the placement parser and must reduce to the same `GhostDesign` allowlist; text that cannot be proven equivalent is rejected. It never enters a general executor.
+Model-authored Lua/RCON is allowed. Lightweight checks aim to catch obvious
+truncation, likely syntax/API mistakes, direct construction/removal, and direct
+tile placement; uncertain cases lean toward attempting and observing.
 
 ### 5.3 Preflight and incremental execution
 
@@ -271,19 +303,31 @@ The system first establishes a distinctive exact marker and reports its GPS coor
 
 Preflight scans the complete footprint for tiles, rails, entities, water, and collision. `surface.can_place_entity` is evaluated for every planned entity; failure aborts the entire placement before the main batches. Large placements are divided into small bounded batches with a response and audit after every batch. Timeout means unknown execution state: the pipeline stops and audits before any retry.
 
-Final audit compares every expected prototype and center position and verifies settings that granular ghosts may lose. Cleanup is a separate management-authorized plan derived from the original expected-position set and limited to matching prototypes; it never removes unrelated entities, rails, or player markers.
+Final audit compares expected ghosts and settings against observed results.
+Any player may request deconstruction marking for any described area or objects,
+whether or not Jimbo placed them. Jimbo issues ordinary deconstruction orders;
+construction bots perform the removal.
 
 ## 6. Rendering and delivery
 
-The response renderer accepts structured content, not arbitrary rich text. Dynamic model/player text is escaped and normalized separately from trusted locally constructed tokens such as validated GPS links. It removes unsupported Markdown and control characters, collapses line breaks, protects commands/coordinates/names from preference transforms, and measures the final encoded byte length against the configured Factorio chat budget. Untrusted square brackets are spelled out rather than silently deleted. An exact rich-text-only platform name retrieved from trusted live state may pass through a narrow local tag allowlist so Factorio renders its intended icon; model-authored or unsupported tags remain inert.
+The response renderer preserves player/model expression as far as the Factorio
+chat transport permits. It normalizes only transport-breaking control characters,
+line structure, encoding, and the final byte budget. Rich text and command-shaped
+text may be displayed; display never routes content to Lua, RCON, shell, or slash-
+command execution. Trusted structured values such as queried GPS coordinates may
+still use a local renderer so Jimbo can distinguish observed data from generated
+text.
 
-Oversized prose is summarized or deliberately paginated. Opaque artifacts are never truncated: they are delivered only if a deterministic generator produced them, validation passed, and the complete artifact fits. Otherwise Jimbo declines with a useful explanation. Command-shaped, Lua, RCON, shell, encoded-payload, and blueprint-like output is detected on initial and follow-up turns.
+Oversized prose and artifacts use the same measured chat length and pagination
+behavior. No blueprint- or encoded-content-specific restriction is added.
+Jimbo reports whether Factorio actually accepted an artifact, but generated text may otherwise be discussed or
+displayed with an honest statement of its validation status.
 
 The delivery queue serializes public output, applies timeout/backoff, records the exact sent text and RCON result, and detects self-authored chat records. Delivery failure is visible to operations and prevents memory commit.
 
 ## 7. Welcomes, preferences, and social behavior
 
-Join events bypass invocation but not deduplication or maintenance controls. A deterministic template chooses `Welcome, <name>! Begin queries with Jimbo.` for first seen and `Welcome back, <name>! Begin queries with Jimbo.` for a durably seen player. The wording may be refined, but every template must retain the explicit `Jimbo` invocation instruction and remain compatible with the supported `Hey Jimbo` form. Seen identity is keyed by casefolded name and retains latest display spelling, first-seen time, and last-seen time. No model call is made and no history detail is disclosed. Operators can disable or temporarily suppress greetings.
+Join events bypass invocation but not deduplication or maintenance controls. A deterministic template chooses `Welcome, <name>! Begin queries with Jimbo.` only when no retained server evidence has ever mentioned that player, and `Welcome back, <name>! Begin queries with Jimbo.` otherwise. Seen identity is permanent for this server, keyed by casefolded name, and retains latest display spelling, first-seen time, and last-seen time. Startup/migration seeds it from all available archived/server-log joins, leaves, and public chat without emitting historical greetings. No model call is made. Operators can disable or temporarily suppress greetings.
 
 Durable preferences use an allowlisted schema initially containing `response_mode` (`facts_only` or `facts_and_advice`) and approved mechanical presentation transforms. Only the affected player may set, inspect, reset, or edit their preferences; application code enforces that ownership and supplies a readable fallback.
 
@@ -297,7 +341,13 @@ Deterministic presentation transforms are limited to mechanical operations that
 cannot alter meaning; unsupported transforms fall back to the untransformed
 model response.
 
-Social prompts remain model-handled within PG-13 behavior. The application blocks impersonation, unattributed relays, targeted harassment, private-history disclosure, and unsafe actions. Presence never implies AFK state, availability, consent, or willingness to perform work.
+Social prompts, banter, role-play, and non-Factorio conversation go to the model
+without an application-level moderation pass. Neither local rules nor an
+auxiliary model classifies harassment, impersonation, intent, sentiment, or
+acceptable behavior. Humans administer player conduct. Technical capability
+checks remain separate: chat text is not executable input, and a request can use
+only operations that Jimbo actually implements and that the requesting identity
+is configured to invoke.
 
 ## 8. Data design
 
@@ -316,9 +366,9 @@ All timestamps are UTC ISO 8601. File formats are versioned and migrated forward
 
 ## 9. Concurrency, failure, and observability
 
-The listener stays responsive by separating ingestion from bounded work queues. Per-player invocation ordering is preserved; different players may wait concurrently on provider calls. Read-only RCON uses a serial bounded queue, delivery uses a serial queue, and placement has an exclusive mutation lease. Queue admission limits produce a friendly busy response rather than unbounded memory growth.
+The listener stays responsive by separating ingestion from bounded work queues. Per-player invocation ordering is preserved; different players may wait concurrently on provider calls. Live RCON and delivery use serialized queues so attempts and outcomes remain observable. Queue admission limits produce a friendly busy response rather than unbounded memory growth.
 
-Every external call has a timeout and classified outcome. One failed event cannot terminate ingestion. Retries are limited to idempotent operations; world-changing placement is never blindly retried. Health reports cover log freshness, cursor lag, archive writes, queue depth, provider status, RCON status, renderer rejections, delivery failures, and active placement state. Metrics remain local and must not disclose public cost/quota details.
+Every external call has a timeout and classified outcome. One failed event cannot terminate ingestion. Retries are limited to idempotent operations; world-changing placement is never blindly retried. Health reports cover log freshness, cursor lag, archive writes, queue depth, provider status, RCON status, renderer rejections, delivery failures, and active placement state. Credentials remain local; public cost/quota detail follows explicit human configuration.
 
 Operational and placement stop decisions use explicit configured signals such
 as timeout, missing confirmation, measured response threshold, queue bound,
@@ -337,25 +387,26 @@ Recommended rollout:
 3. Add the calculation engine and a small set of read-only query primitives, then expand domains through adapter contracts.
 4. Run staged live read-only smoke tests with harmless bounded queries.
 5. Build ghost placement independently, beginning with offline validation and one representative marker ghost.
-6. Complete authority, collision, batching, timeout/audit, and cleanup tests before management-only live activation.
+6. Complete player-attribution, collision, batching, timeout/audit, and cleanup tests before live activation.
 7. Enable public replies only after acceptance scenarios pass and rollback controls are rehearsed.
 
-Rollback stops new admission, drains or cancels non-mutating work, leaves the archive intact, and never auto-cleans partially placed ghosts. A partial placement is audited and resolved through a separately authorized recovery plan.
+Rollback stops new admission, drains or cancels non-mutating work, leaves the archive intact, and never auto-cleans partially placed ghosts. A partial placement is audited and resolved through a separately requested recovery plan.
 
 ## 11. Test strategy and acceptance
 
-Routine tests mock the provider and RCON. Contract tests validate schemas, prompt boundaries, query compilation, renderer encoding, archive replay, and provider replacement. Property/fuzz tests cover log fragments, rotations, invocation variants, Unicode, rich-text escaping, command-shaped output, bounded query plans, and placement coordinates.
+Routine tests mock the provider and RCON. Contract tests validate schemas, prompt boundaries, query compilation, renderer encoding, archive replay, and provider replacement. Property/fuzz tests cover log fragments, rotations, invocation variants, Unicode, rich-text transport, displayed-command non-execution, bounded query plans, and placement coordinates.
 
 Requirement-level tests must include:
 
 - replay after stop/restart, truncation, and rotation without duplicate reply or greeting, with every delivered welcome and welcome-back message instructing the player to begin queries with `Jimbo`;
-- authority spoofing, admin-status irrelevance, ordinary-player placement attempts, and authority recheck;
+- permanent seen-player reconstruction from chat/join/leave history, including a pre-launch chat/leave followed by a first bot-observed join receiving `Welcome back`;
+- equal placement access across players, admin-status irrelevance, requester attribution, and restart continuity;
 - direct runtime/live/archive answers that cannot be contradicted by the model;
 - unknown/stale/partial tool outcomes and multi-step investigation provenance;
 - three completed exchanges per player with failure/delivery exclusions;
 - preference ownership, reset, protected factual spans, and readable fallback;
-- artifact round-trip validation, command-shaped follow-ups, and Unicode byte budgets;
-- marker, collision, representative prototype, small-batch, timeout audit, exact-position audit, and scoped cleanup placement cases;
+- artifact validation status, displayed-command non-execution, and Unicode byte budgets;
+- marker, representative prototype, model-authored command correction, timeout audit, unrestricted deconstruction marking, and map-ping cases;
 - queue isolation, failure containment, and provider/RCON timeouts.
 
 The 25 scenarios in `FULL_BOT_REQUIREMENTS.md` remain the initial end-to-end acceptance suite. Each implementation increment must map tests to stable requirement IDs.
@@ -367,8 +418,8 @@ Decisions fixed by this design:
 - Python modular monolith, append-only UTF-8 text archive, small atomic flat-text state files, and rebuilt in-memory indexes; no first-release JSON or SQLite storage dependency.
 - Groq provider initially, behind a replaceable gateway, with no automatic Ollama fallback.
 - Deterministic-first routing and direct authoritative answers.
-- Structured, bounded read-only query plans compiled to trusted templates.
-- A separate management-only structured ghost-placement state machine.
+- Registered query plans plus permissive model-authored Lua/RCON with lightweight practical checks.
+- A separate player-requested structured ghost-placement state machine.
 - Ephemeral three-exchange per-player conversation memory.
 - Application-owned rendering, preferences, welcomes, authority, and self-description.
 - Model-owned language understanding, ambiguity resolution, comparison framing,
@@ -380,7 +431,7 @@ Choices intentionally deferred until implementation evidence is available:
 
 - Archive maintenance tooling beyond retained 10 MB numbered segments.
 - The initial breadth and pagination size of each read-only domain adapter.
-- Whether any raw model-authored placement language is ever worth enabling; default remains disabled.
+- Which lightweight checks improve the selected model's observed Lua/RCON reliability without becoming a restrictive security framework.
 - Exact chat byte budget and safe pagination count, which must be measured against the deployed server path.
 - Whether concurrency beyond one provider request at a time improves experience without harming ordering or quota behavior.
 
