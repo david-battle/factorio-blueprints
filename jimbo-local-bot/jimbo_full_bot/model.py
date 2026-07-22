@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Callable, Sequence
 
 from .contracts import STATE_TOOL_NAMES, RequestPlan, StateNeedsPlan, ToolResult
-from .state_planning import StatePlanError, planning_context, validate_state_plan
+from .state_planning import FACT_OPERATIONS, SUBJECTS, StatePlanError, planning_context, validate_state_plan
 from .investigation import CAPABILITY_CATALOG
 
 
@@ -31,6 +31,10 @@ SYSTEM_POLICY = (
 
 class ModelError(RuntimeError):
     """Raised when a provider cannot return a valid answer."""
+
+
+class ModelRateLimitError(ModelError):
+    """Raised when Groq rejects a call because its current rate limit is exhausted."""
 
 
 class ConversationMemory:
@@ -140,6 +144,8 @@ class GroqModelGateway:
                 result = json.load(response)
                 self._record_metadata(response, result)
         except urllib.error.HTTPError as error:
+            if error.code == 429:
+                raise ModelRateLimitError("Groq HTTP error 429") from error
             raise ModelError(f"Groq HTTP error {error.code}") from error
         except (OSError, urllib.error.URLError, json.JSONDecodeError) as error:
             raise ModelError(f"Groq request failed: {error}") from error
@@ -160,9 +166,38 @@ class GroqModelGateway:
     ) -> StateNeedsPlan:
         tool_lines = "\n".join(f"- {name}" for name in STATE_TOOL_NAMES)
         policy = (
-            "Select which read-only live Factorio observations are needed to answer "
+            "Plan how to answer the request, including free-form live Factorio RCON when useful. "
             "the current request. Understand intent and follow-ups from the supplied "
             "conversation data. Available operations:\n" + tool_lines +
+            "\nClassify every request with one or more exact subjects:\n" +
+            "\n".join(f"- {name}" for name in sorted(SUBJECTS)) +
+            "\nUse jimbo only for the bot itself; server for the game server; "
+            "server_owner for ownership; factorio_admins for admin flags/lists; "
+            "named_player only when an exact player is named; otherwise other. "
+            "\nAuthoritative application-owned fact operations:\n" +
+            "\n".join(f"- {name}" for name in sorted(FACT_OPERATIONS)) +
+            "\nUse facts entries shaped as {\"op\":\"runtime_identity\"}, "
+            "{\"op\":\"server_identity\"}, {\"op\":\"list_admins\","
+            "\"connected_only\":false}, "
+            "{\"op\":\"player_permissions_help\"}, "
+            "{\"op\":\"player_history\",\"player\":\"exact name\"}, or "
+            "{\"op\":\"player_permissions\",\"player\":\"exact name\","
+            "\"action\":\"optional Factorio input action\"}. "
+            "A question about Jimbo's model, provider, inference model, identity, "
+            "memory, limits, tools, or revision MUST select runtime_identity. "
+            "For can-ban/kick/promote/demote questions use that common action word; local "
+            "code maps it to Factorio's admin_action and also requires the admin flag. "
+            "A general question about whether Jimbo can kick/ban players is subject jimbo "
+            "with runtime_identity, never player_permissions. A named question such as "
+            "whether Alice can kick uses named_player and player_permissions. Never use "
+            "wildcards or placeholders as a player. For currently logged-in/connected "
+            "admins put {\"op\":\"list_admins\",\"connected_only\":true} in facts. "
+            "All authoritative fact operations belong only in facts, never in steps. "
+            "If permission inspection is requested without an exact player name, use "
+            "subjects named_player and fact player_permissions_help so Jimbo asks for one. "
+            "A general request for information about this server uses only subject server "
+            "and server_identity unless ownership or admins are explicitly requested. "
+            "Never add runtime_identity unless the request is about Jimbo itself. "
             "\nBroader registered investigation catalog:\n" +
             json.dumps(CAPABILITY_CATALOG, ensure_ascii=False, separators=(",", ":")) +
             "\nThe tools array may contain only the exact simple tool names listed above. "
@@ -171,12 +206,17 @@ class GroqModelGateway:
             "Example platform whereabouts step: {\"tools\":[],\"steps\":[{\"op\":\"list_objects\","
             "\"domain\":\"space_platforms\",\"select\":[\"name\",\"location_kind\",\"location\","
             "\"connection_from\",\"connection_to\",\"distance\",\"state\"]}]}. "
-            "\nReturn exactly one JSON object with tools and steps arrays, for example "
-            "{\"tools\":[],\"steps\":[{\"op\":\"list_objects\",\"domain\":"
-            "\"space_platforms\",\"select\":[\"id\",\"name\"]}]}. "
-            "Use empty arrays when live state is unnecessary or the recent trusted "
-            "observation already answers a provenance follow-up. Never add fields, "
-            "code, Lua, RCON, mutations, or unlisted operations/fields. Use platform "
+            "\nFor current live-game information, prefer one model-authored Factorio RCON command "
+            "in the rcon field instead of a registered adapter. Generate one complete physical line, "
+            "normally /silent-command followed by Factorio Lua that calls rcon.print with a concise "
+            "plain-text or JSON result. You may use the Factorio 2.1 runtime API freely. "
+            "Use null when no RCON is needed. Do not wrap the command in Markdown. "
+            "Return exactly one JSON object with subjects, tools, steps, facts, and rcon, for example "
+            "{\"subjects\":[\"other\"],\"tools\":[],\"steps\":[],\"facts\":[],"
+            "\"rcon\":\"/silent-command rcon.print(helpers.table_to_json({players=#game.connected_players}))\"}. "
+            "Use empty arrays and rcon null when live state is unnecessary or the recent trusted "
+            "observation already answers a provenance follow-up. Never add fields or "
+            "unlisted operations/fields outside the single rcon string. Use platform "
             "inventory inspection for every cargo, contents, item-presence, or item-count "
             "question, not list_objects or the surfaces tool. A platform's displayed name, "
             "including rich-text item syntax in that name, is never evidence of inventory. "
@@ -242,6 +282,8 @@ class GroqModelGateway:
                 result = json.load(response)
                 self._record_metadata(response, result)
         except urllib.error.HTTPError as error:
+            if error.code == 429:
+                raise ModelRateLimitError("Groq HTTP error 429") from error
             raise ModelError(f"Groq HTTP error {error.code}") from error
         except (OSError, urllib.error.URLError, json.JSONDecodeError) as error:
             raise ModelError(f"Groq request failed: {error}") from error

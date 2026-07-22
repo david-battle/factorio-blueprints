@@ -128,10 +128,13 @@ class RequestPlan:
 
 @dataclass(frozen=True, slots=True)
 class StateNeedsPlan:
-    """Provider-neutral, code-free selection of approved read-only operations."""
+    """Provider-neutral selection of facts, adapters, or one free-form RCON command."""
 
     tools: tuple[str, ...] = ()
     investigation_steps: tuple[Mapping[str, object], ...] = ()
+    fact_steps: tuple[Mapping[str, object], ...] = ()
+    subjects: tuple[str, ...] = ()
+    rcon_command: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

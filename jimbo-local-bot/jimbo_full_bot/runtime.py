@@ -6,18 +6,34 @@ import time
 from pathlib import Path
 
 from .archive import ArchiveRecord, TextEventArchive, redact_sensitive
+from .authoritative import (
+    AuthoritativeFactError,
+    AuthoritativeFactProvider,
+    PermissionProvider,
+    direct_fact_answer,
+)
 from .config import FullBotConfig
-from .contracts import EventKind, ResultStatus, StateNeedsPlan, ToolResult
+from .contracts import EventKind, NormalizedEvent, ResultStatus, StateNeedsPlan, ToolResult
 from .delivery import MinimalDeliveryWorker, MinimalRenderer, RconDeliveryTransport
-from .ingestion import DurableLogReader, FactorioEventNormalizer, LogIngestionService
+from .ingestion import (
+    DurableLogReader,
+    FactorioEventNormalizer,
+    LogIngestionService,
+    event_from_archive_record,
+    retained_log_events,
+)
 from .interactions import InvocationClassifier, WelcomeService
-from .model import ConversationMemory, GroqModelGateway, ModelError
+from .model import ConversationMemory, GroqModelGateway, ModelError, ModelRateLimitError
 from .live_state import FixedLiveStateProvider, LiveStateError
+from .freeform_rcon import FreeformRconError, FreeformRconProvider
 from .platform_state import PlatformInvestigationProvider, PlatformStateError
 from .logistics_state import LogisticsInvestigationProvider, LogisticsStateError
 from .state_planning import StatePlanError
 from .routing import MinimalConversationRouter
 from .state import FlatTextStateStore
+
+
+MODEL_INTERCALL_DELAY_SECONDS = 2.0
 
 
 class FullBotRuntime:
@@ -48,9 +64,15 @@ class FullBotRuntime:
             enabled=config.public_replies_enabled,
         )
         self.welcomes = WelcomeService(self.state)
+        self.history_events = self._seed_seen_players()
         self.memory = ConversationMemory(3)
         self.recent_observations: dict[str, tuple[ToolResult, ...]] = {}
         self.live_state = FixedLiveStateProvider(
+            wrapper_path=config.rcon_wrapper_path,
+            command_path=config.rcon_command_path,
+            timeout_seconds=config.rcon_timeout_seconds,
+        )
+        self.freeform_rcon = FreeformRconProvider(
             wrapper_path=config.rcon_wrapper_path,
             command_path=config.rcon_command_path,
             timeout_seconds=config.rcon_timeout_seconds,
@@ -70,6 +92,36 @@ class FullBotRuntime:
             model=config.model,
             timeout_seconds=config.provider_timeout_seconds,
         )
+        self.authoritative = AuthoritativeFactProvider(
+            config, self.archive, self.history_events, self.model,
+            PermissionProvider(
+                wrapper_path=config.rcon_wrapper_path,
+                command_path=config.rcon_command_path,
+                timeout_seconds=config.rcon_timeout_seconds,
+            ),
+        )
+
+    def _seed_seen_players(self) -> tuple[NormalizedEvent, ...]:
+        """Reconstruct permanent seen-player memory without sending greetings."""
+        archived_events = []
+        for record in self.archive.iter_records():
+            if record.kind not in {
+                EventKind.PUBLIC_CHAT.value,
+                EventKind.PLAYER_JOIN.value,
+                EventKind.PLAYER_LEAVE.value,
+            }:
+                continue
+            try:
+                archived_events.append(event_from_archive_record(record))
+            except (KeyError, TypeError, ValueError):
+                continue
+        log_events = retained_log_events(
+            self.config.server_log_path, FactorioEventNormalizer()
+        )
+        combined = {event.event_id: event for event in (*archived_events, *log_events)}
+        events = tuple(combined.values())
+        self.welcomes.seed_seen_players(events)
+        return events
 
     def process_available(self) -> int:
         handled = 0
@@ -101,10 +153,20 @@ class FullBotRuntime:
                 )
                 self.archive.append(ArchiveRecord.now(
                     "state_plan_validated", "tools=" + ",".join(state_plan.tools) +
+                    ";subjects=" + ",".join(state_plan.subjects) +
                     ";investigation_steps=" + str(len(state_plan.investigation_steps)) +
+                    ";fact_steps=" + str(len(state_plan.fact_steps)) +
+                    ";freeform_rcon=" + ("yes" if state_plan.rcon_command else "no") +
                     _model_usage_suffix(self.model),
                     correlation_id=handoff.plan.correlation_id, actor=decision.actor,
                 ))
+            except ModelRateLimitError as error:
+                self.archive.append(ArchiveRecord.now(
+                    "state_plan_rate_limited", redact_sensitive(str(error)),
+                    correlation_id=handoff.plan.correlation_id, actor=decision.actor,
+                ))
+                self._deliver_rate_limit(handoff.plan.correlation_id, decision.actor)
+                continue
             except (ModelError, StatePlanError, ValueError) as error:
                 self.archive.append(ArchiveRecord.now(
                     "state_plan_error", redact_sensitive(str(error)),
@@ -122,10 +184,32 @@ class FullBotRuntime:
                     warnings=("unsupported or malformed investigation plan",),
                 )
             tool_results = (planning_warning,) if planning_warning is not None else ()
+            if state_plan.fact_steps:
+                try:
+                    fact_results = self.authoritative.execute(
+                        state_plan.fact_steps, subjects=state_plan.subjects
+                    )
+                    tool_results = tuple(tool_results) + tuple(fact_results)
+                    self.archive.append(ArchiveRecord.now(
+                        "authoritative_fact_result",
+                        "steps=" + str(len(state_plan.fact_steps)) +
+                        ";count=" + str(len(fact_results)),
+                        correlation_id=handoff.plan.correlation_id, actor=decision.actor,
+                    ))
+                except (AuthoritativeFactError, OSError, ValueError) as error:
+                    self.archive.append(ArchiveRecord.now(
+                        "authoritative_fact_error", redact_sensitive(str(error)),
+                        correlation_id=handoff.plan.correlation_id, actor=decision.actor,
+                    ))
+                    tool_results = tuple(tool_results) + (ToolResult(
+                        ResultStatus.UNAVAILABLE,
+                        "The requested authoritative runtime fact is unavailable right now.",
+                        warnings=("authoritative fact lookup failed",),
+                    ),)
             if state_plan.tools:
                 try:
                     query_started = time.monotonic()
-                    tool_results = self.live_state.execute(state_plan.tools)
+                    tool_results = tuple(tool_results) + self.live_state.execute(state_plan.tools)
                     elapsed_ms = round((time.monotonic() - query_started) * 1000)
                     self.archive.append(ArchiveRecord.now(
                         "tool_result", "tools=" + ",".join(state_plan.tools) +
@@ -177,6 +261,55 @@ class FullBotRuntime:
                             values={"domain": domain},
                             warnings=("live " + domain + " query failed",),
                         ),)
+            if state_plan.rcon_command:
+                command = state_plan.rcon_command
+                self.archive.append(ArchiveRecord.now(
+                    "freeform_rcon_command", redact_sensitive(command),
+                    correlation_id=handoff.plan.correlation_id, actor=decision.actor,
+                ))
+                try:
+                    query_started = time.monotonic()
+                    rcon_result = self.freeform_rcon.execute(command)
+                    elapsed_ms = round((time.monotonic() - query_started) * 1000)
+                    tool_results = tuple(tool_results) + (rcon_result,)
+                    output = str(rcon_result.values.get("output", ""))
+                    self.archive.append(ArchiveRecord.now(
+                        "freeform_rcon_result",
+                        "status=" + rcon_result.status.value + ";elapsed_ms=" +
+                        str(elapsed_ms) + ";output=" + redact_sensitive(output),
+                        correlation_id=handoff.plan.correlation_id, actor=decision.actor,
+                    ))
+                except FreeformRconError as error:
+                    self.archive.append(ArchiveRecord.now(
+                        "freeform_rcon_error", redact_sensitive(str(error)),
+                        correlation_id=handoff.plan.correlation_id, actor=decision.actor,
+                    ))
+                    tool_results = tuple(tool_results) + (ToolResult(
+                        ResultStatus.UNAVAILABLE,
+                        "The model-authored live RCON query failed.",
+                        warnings=("free-form RCON query failed",),
+                    ),)
+            if (state_plan.fact_steps and not state_plan.rcon_command and
+                    not state_plan.tools and not state_plan.investigation_steps):
+                response = direct_fact_answer(tool_results)
+                try:
+                    rendered = self.renderer.render_reply(
+                        handoff.plan.correlation_id, decision.actor, response,
+                    )
+                except ValueError as error:
+                    self.archive.append(ArchiveRecord.now(
+                        "renderer_error", redact_sensitive(str(error)),
+                        correlation_id=handoff.plan.correlation_id, actor=decision.actor,
+                    ))
+                    continue
+                result = self.delivery.deliver(rendered)
+                if result.status is ResultStatus.COMPLETE:
+                    self.memory.commit(decision.actor, decision.request_text, result.exact_text)
+                    self.recent_observations[player_key] = tuple(tool_results)
+                continue
+            # Planning and synthesis are the two normal hosted calls for one request.
+            # Keep them from landing as a back-to-back burst against Groq's token limit.
+            time.sleep(MODEL_INTERCALL_DELAY_SECONDS)
             self.archive.append(ArchiveRecord.now(
                 "model_request", "route=synthesis;history=" + str(len(history)) +
                 ";tool_results=" + str(len(tool_results)),
@@ -202,6 +335,13 @@ class FullBotRuntime:
                     _model_usage_suffix(self.model),
                     correlation_id=handoff.plan.correlation_id, actor=decision.actor,
                 ))
+            except ModelRateLimitError as error:
+                self.archive.append(ArchiveRecord.now(
+                    "model_rate_limited", redact_sensitive(str(error)),
+                    correlation_id=handoff.plan.correlation_id, actor=decision.actor,
+                ))
+                self._deliver_rate_limit(handoff.plan.correlation_id, decision.actor)
+                continue
             except ModelError as error:
                 self.archive.append(ArchiveRecord.now(
                     "model_error", redact_sensitive(str(error)),
@@ -225,6 +365,21 @@ class FullBotRuntime:
                 if tool_results:
                     self.recent_observations[player_key] = tuple(tool_results)
         return handled
+
+    def _deliver_rate_limit(self, correlation_id: str, actor: str) -> None:
+        """End this request locally after one 429; never ask Groq to explain Groq."""
+        try:
+            rendered = self.renderer.render_reply(
+                correlation_id, actor,
+                "I'm temporarily rate-limited. Please try that again in about a minute.",
+            )
+        except ValueError as error:
+            self.archive.append(ArchiveRecord.now(
+                "renderer_error", redact_sensitive(str(error)),
+                correlation_id=correlation_id, actor=actor,
+            ))
+            return
+        self.delivery.deliver(rendered)
 
     def run_forever(self) -> None:
         print("Jimbo full-bot prototype is watching new chat.", flush=True)

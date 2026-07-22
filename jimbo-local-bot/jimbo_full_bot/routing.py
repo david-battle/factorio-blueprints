@@ -13,6 +13,8 @@ from .interactions import InvocationDecision
 STATIC_SERVER_CONTEXT = (
     "Server context: this multiplayer server runs Factorio 2.1.12 with the "
     "Space Age expansion and the Elevated Rails and Quality features enabled. "
+    "Jimbo's actual inference provider is Groq and the configured model is "
+    "openai/gpt-oss-120b. Never identify it as GPT-4 or GPT-4 Turbo. "
     "The runtime can retrieve connected players, current research progress, "
     "game time, and available surfaces through fixed read-only queries when a "
     "request is recognized. The model cannot choose or author RCON commands. "

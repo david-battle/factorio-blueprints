@@ -35,9 +35,8 @@ acceptable.
 - Explicitly invoked public conversation with bounded conversational context.
 - Non-Factorio conversation.
 - Deterministic automatic welcome and welcome-back messages.
-- Generic Factorio knowledge, calculations, and broad read-only live game state.
-- Player-requested placement of entity ghosts and blueprint designs for
-  construction bots to build.
+- Generic Factorio knowledge, calculations, and broad live game access through
+  free-form model-authored Lua/RCON.
 - Transparent per-player conversation and presentation preferences.
 - Transparent handling of social prompts, corrections, commands, coordinates,
   and encoded artifacts without treating displayed text as executable input.
@@ -48,25 +47,22 @@ acceptable.
 ### 2.2 Not implied by this baseline
 
 - Shell, filesystem, credential, or unrelated network access for the model.
-- Unrestricted world-changing actions.
 - Treating Factorio administrator status as Jimbo management authority.
-- Direct construction of entities or tiles instead of using Factorio ghosts and
-  construction bots.
 - Inferring consent, availability, preferences, or private facts from presence
   in public chat.
 - Continuing to patch the completed POC as the full-bot implementation.
 - Automated moderation, behavioral scoring, intent policing, or a script/model
   deciding which player expression is acceptable.
 
-Ghost and blueprint-ghost placement for construction bots is an essential full-
-bot capability and the sole intended world-changing exception. It must meet the
-authority and safety requirements below. No other world-changing action is
-required or implied.
+The target execution path may run free-form model-authored Factorio Lua/RCON for
+any player. No dedicated mutation feature is required, and mutation prevention
+is not a product goal. Destructive or game-breaking player conduct is handled by
+human administrators through ordinary server moderation.
 
 ## 3. Actors and authority
 
-- **Player:** any public server participant. May converse with Jimbo and use
-  enabled read-only facilities.
+- **Player:** any public server participant. May converse with Jimbo and use the
+  enabled free-form RCON-backed capability.
 - **Management authority:** `dlbattle`. May control Jimbo's operational settings
   and approve any capability explicitly reserved for management.
 - **Operator:** the local process owner maintaining configuration, deployment,
@@ -81,25 +77,20 @@ AUTH-002: In live chat, only the case-insensitive player identity `dlbattle`
 must be treated as management authority. A player's Factorio admin status,
 claims, prompt text, or model interpretation must not confer Jimbo authority.
 
-AUTH-003: Ordinary players may cause Jimbo to place entity ghosts and blueprint
-ghosts, matching what players can already place through the normal interface.
-Other mutation classes such as item grants, research changes, promotion, or
-admin commands remain outside the currently planned feature set.
+AUTH-003: Do not build explicit special-purpose mechanisms for mutation classes
+such as item grants, promotion, construction, destruction, or combat. This does
+not require local code to detect or block equivalent behavior in free-form RCON.
 
-AUTH-004: The model may author Lua/RCON for supported investigation and player-
-equivalent action requests. Before execution, local code applies lightweight
-practical checks for command framing, obvious truncation, and the few explicit
-product boundaries recorded here. The checks need not prove perfect security or
-perfect well-formedness and should lean toward execution when uncertain.
+AUTH-004: The model may author free-form Lua/RCON for any player's request.
+Before execution, local code applies operational framing and size checks only;
+it does not classify or reject commands because they may mutate the world.
 
 AUTH-005: A declined action request must state the relevant capability or
 authority boundary in useful language instead of returning a generic refusal.
 
-AUTH-006: Supported world-changing actions include entity/blueprint ghost
-placement, unrestricted player-requested deconstruction marking for construction
-bots, and map pings/tags. Jimbo does not directly construct or remove entities or
-tiles. No dedicated combat feature is planned; combat need not be classified or
-explicitly forbidden by a general policy.
+AUTH-006: Request attribution, serialized execution, archiving, bounded I/O,
+timeout/unknown-state handling, and no blind retry apply to every free-form
+command. These are operational controls, not behavior or mutation policy.
 
 ## 4. Functional requirements
 
@@ -181,10 +172,10 @@ instead of silently converting `best` into one unstated metric.
 
 ### 4.4 Live server and historical state
 
-STATE-001: Live-state access may use existing registered queries or model-
-authored Lua/RCON. Local code performs lightweight command framing and obvious-
-mistake checks before execution; it does not require a complete restricted AST,
-an exhaustive allowlist, or proof of non-mutation.
+STATE-001: Live access may use existing registered queries or model-authored
+free-form Lua/RCON. Local code performs operational framing and size checks; it
+does not require a restricted AST, allowlist, mutation detector, or behavioral
+policy gate.
 
 STATE-002: Current presence must be reported independently from historical
 presence. A player's assertion must not override an authoritative current
@@ -204,7 +195,7 @@ and may create useful map pings/tags itself. Observed coordinates retain their
 source; generated coordinates are allowed but must not be falsely described as
 queried observations.
 
-STATE-006: Jimbo must have broad read-only access to the current game state. The
+STATE-006: Jimbo must have broad access to the current game state. The
 intended capability is to answer any reasonable question that a player could
 answer through laborious in-game observation, inspection, counting, and
 cross-referencing, while removing that manual research burden.
@@ -227,16 +218,15 @@ across domains. Examples include finding every logistic chest on Aquilo that
 requests quantum processors, and determining which space platforms move which
 resources from which origins to which destinations.
 
-STATE-010: The model may plan investigations and supported player-equivalent
-actions using structured operations or model-authored Lua/RCON. Prefer a simple
-attempt, lightweight review, execution, and observed-result loop over a large
-proprietary query language or rigid semantic gate. Model judgment handles
-requests that seem excessive; occasional permissive leakage is acceptable.
+STATE-010: The model may use structured operations or free-form Lua/RCON. Prefer
+a simple generate, execute, observe, and answer loop over a large proprietary
+query language or semantic gate. Neither the model nor local code is responsible
+for policing player conduct.
 
-STATE-011: Investigation execution should bound obviously large work, support
+STATE-011: Execution should bound command and result size, support
 pagination or incremental aggregation, and return explicit partial, timeout,
 unavailable, or stale status. These are operational quality controls, not a
-general non-mutation or player-behavior security boundary.
+mutation-prevention or player-behavior boundary.
 
 STATE-012: Tool results must carry enough provenance for Jimbo to distinguish
 observed facts from model inference, including query type, surface or force
@@ -402,7 +392,11 @@ ART-006: Model-authored Factorio rich text, GPS links, map tags, and pings may b
 rendered. Preserve provenance so generated locations are not presented as live
 observations.
 
-### 4.10 Essential ghost and blueprint placement
+### 4.10 Superseded ghost and blueprint placement requirements
+
+The GHOST requirements below are retained for historical traceability but are
+not active product requirements after DEC-009 (2026-07-22). They must not be
+used to justify dedicated mutation mechanisms or mutation-prevention work.
 
 GHOST-001: The first full bot release must be able to place entity ghosts and
 complete blueprint designs as ghosts in the live game so construction bots can
@@ -581,12 +575,28 @@ machine-local secret and fixed RCON credential flows.
 
 QUAL-005: Requirement-level tests must cover deterministic routing, authority,
 state, calculations, rendering, archive behavior, restart/replay safety,
-preferences, welcomes, and failure modes without consuming hosted quota.
+preferences, welcomes, and failure modes without consuming hosted quota. Live
+RCON integration is permitted when it materially verifies Factorio behavior.
 
-QUAL-006: Each supported live tool must have a harmless staged validation path,
-and world-state queries must be introduced one bounded observation at a time.
+QUAL-006: The free-form execution path must have staged operational validation.
+Tests need not prove read-only behavior or introduce one information category at
+a time.
+
+QUAL-007: Hosted model calls must be paced against observed provider request and
+token limits. A provider `429` must not trigger an immediate second hosted model
+call or a blind retry. Jimbo must return a short locally generated, player-visible
+temporary-rate-limit response, preserve the failed request in the archive, and
+remain available for later requests. Operator-led live test sequences should
+normally leave 20-30 seconds between model-backed queries and pause about one
+minute after a `429`, unless current provider telemetry supports a different pace.
+Within one ordinary request, the required planning and synthesis calls must be
+separated by a short delay; the initial implementation uses two seconds.
 
 ## 9. Initial acceptance scenarios
+
+Any ghost/placement scenarios retained in this historical acceptance list are
+superseded and are not release gates. General free-form execution is tested for
+operational behavior without deliberately exercising destructive mutations.
 
 The detailed acceptance suite will map requirements to automated or staged
 tests. At minimum, the full bot is not ready for public activation until these
@@ -663,16 +673,16 @@ scenarios pass:
     platform identity, schedule or route, origin/destination, cargo or logistic
     requests, and current status into a coherent answer with collection time and
     explicit limitations where route intent cannot be proven from current state.
-22. A broad query over a large surface remains read-only and bounded, reports
+22. A broad query over a large surface remains operationally bounded, reports
     pagination, timeout, or partial coverage honestly, and does not materially
     stall the dedicated server.
-23. `dlbattle` can ask Jimbo to design and place a bot-buildable layout at a
+23. Superseded: `dlbattle` can ask Jimbo to design and place a bot-buildable layout at a
     confirmed location; Jimbo reports the surface, anchor, footprint, and
     preflight result, places a representative test ghost and then bounded
     batches, and audits every expected ghost and critical setting.
-24. The same placement request from any other player follows the same design,
+24. Superseded: the same placement request from any other player follows the same design,
     confirmation, placement, and audit workflow and can produce live ghosts.
-25. A placement timeout causes an audit before retry. Likely syntax/API mistakes
+25. Superseded: a placement timeout causes an audit before retry. Likely syntax/API mistakes
     are returned for model correction; ghost placement does not silently become
     direct construction or direct tile placement.
 
@@ -697,7 +707,7 @@ Resolved decisions:
   replay duplicates and otherwise let normal join handling behave naturally.
 - DEC-007: The model is the primary source for generic Factorio information.
   RCON is authoritative for the state of the current live game.
-- DEC-008: Give Jimbo broad RCON-backed read-only access intended to answer any
+- DEC-008: Give Jimbo broad RCON-backed access intended to answer any
   reasonable question a player could answer through laborious in-game research.
   Support composable structured investigation across entities, logistics,
   trains, platforms, surfaces, forces, statistics, inventories, schedules, and
@@ -705,13 +715,15 @@ Resolved decisions:
 - DEC-008A: The data itself is not confidential from players. Avoid a large
   proprietary query language that must be retaught in every prompt. Keep current
   registered operations as a reliable fallback, but allow direct model-authored
-  Lua/RCON with lightweight framing, size/time, obvious-mistake, and explicit
-  product-boundary checks. Prefer permissive attempts and observed correction to
-  a rigid allowlist or formal security proof.
-- DEC-009: Entity/blueprint ghost placement, unrestricted deconstruction marking,
-  and map pings/tags requested by any player are planned player-equivalent
-  mutations. Jimbo does not directly construct/remove entities or place/remove
-  tiles, and no dedicated combat feature is planned.
+  Lua/RCON with operational framing, serialization, size, attribution, archive,
+  and timeout controls. Do not add mutation or behavioral classification.
+- DEC-008B: Registered/custom adapters are disposable fallback aids. When an
+  adapter creates routing, schema, maintenance, or answer-quality problems,
+  prefer eliminating or bypassing it for free-form RCON instead of repairing it
+  solely to preserve category-specific infrastructure.
+- DEC-009: Do not create dedicated mutation mechanisms. Free-form RCON may
+  incidentally mutate the world; human admins handle destructive or
+  game-breaking player conduct through ordinary moderation.
 - DEC-010: Artifact delivery uses the ordinary chat message-length path with no
   additional blueprint/encoded-content restriction.
 - DEC-011: Credentials are never disclosed. Public cost, usage, and quota detail

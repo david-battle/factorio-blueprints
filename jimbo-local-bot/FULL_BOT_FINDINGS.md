@@ -564,3 +564,19 @@ Step 10, then use space-platform identity/cargo/requests/schedules as the first
 Step 11 vertical slice. The model interprets intent and proposes typed plans;
 local code owns only the capability catalog, validation, fixed read-only query
 compilation/execution, bounds, provenance, and result storage.
+
+## Superseding free-form RCON decision (2026-07-22)
+
+The read-only query-interface decision above is retained as historical evidence
+but no longer governs the target architecture. Category-specific planning and
+custom adapters produced repeated routing/schema failures and ongoing repair
+cost. The owner selected free-form model-authored Factorio Lua/RCON for every
+player, with operational framing, serialization, attribution, archive, bounded
+command/result size, timeout/unknown-state handling, and no blind retry.
+
+No mutation or behavior classifier is planned. Jimbo will not deliberately add
+special-purpose mutation mechanisms; if free-form execution is used
+destructively, human admins handle the player through ordinary moderation.
+Existing adapters are disposable fallback/reference code and should be removed
+or bypassed when they cause problems rather than repaired merely to preserve
+the old category architecture.

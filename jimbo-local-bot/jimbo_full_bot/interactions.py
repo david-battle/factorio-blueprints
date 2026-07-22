@@ -6,6 +6,7 @@ import hashlib
 import re
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import Iterable
 from urllib.parse import parse_qs, urlencode
 
 from .contracts import EventKind, NormalizedEvent
@@ -67,6 +68,58 @@ class WelcomeService:
     def __init__(self, state: FlatTextStateStore) -> None:
         self.state = state
 
+    def seed_seen_players(self, events: Iterable[NormalizedEvent]) -> int:
+        """Merge retained player evidence without creating greeting intents."""
+        values = self.state.load("seen_players")
+        changed = 0
+        for event in events:
+            if event.kind not in {
+                EventKind.PUBLIC_CHAT,
+                EventKind.PLAYER_JOIN,
+                EventKind.PLAYER_LEAVE,
+            }:
+                continue
+            display_name = (event.actor or "").strip()
+            if not display_name or display_name.casefold() in BOT_ACTORS:
+                continue
+            player_key = display_name.casefold()
+            state_key = self._player_key(player_key)
+            previous = self._parse(values.get(state_key, ""))
+            observed = event.occurred_at.astimezone(UTC).isoformat()
+            first_seen = min(previous.get("first_seen", observed), observed)
+            last_seen = max(previous.get("last_seen", observed), observed)
+            latest_display = (
+                display_name
+                if observed >= previous.get("last_seen", "")
+                else previous.get("display", display_name)
+            )
+            encoded = urlencode(
+                {
+                    "key": player_key,
+                    "display": latest_display,
+                    "first_seen": first_seen,
+                    "last_seen": last_seen,
+                }
+            )
+            if values.get(state_key) != encoded:
+                values[state_key] = encoded
+                changed += 1
+            if event.kind is EventKind.PLAYER_JOIN:
+                event_key = self._event_key(event.event_id)
+                if event_key not in values:
+                    values[event_key] = urlencode(
+                        {
+                            "status": "historical",
+                            "player_key": player_key,
+                            "display": display_name,
+                            "returning": "true",
+                        }
+                    )
+                    changed += 1
+        if changed:
+            self.state.replace("seen_players", values)
+        return changed
+
     def prepare(
         self,
         event: NormalizedEvent,
@@ -88,7 +141,7 @@ class WelcomeService:
         player_key = display_name.casefold()
         player_state_key = self._player_key(player_key)
         returning = player_state_key in values
-        now = datetime.now(UTC).isoformat()
+        now = event.occurred_at.astimezone(UTC).isoformat()
         previous = self._parse(values.get(player_state_key, ""))
         values[player_state_key] = urlencode(
             {

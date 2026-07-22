@@ -12,7 +12,9 @@ from pathlib import Path
 from jimbo_full_bot.config import FullBotConfig
 from jimbo_full_bot.contracts import DeliveryResult, ResultStatus
 from jimbo_full_bot.interactions import InvocationDecision
-from jimbo_full_bot.model import ConversationMemory, GroqModelGateway, ModelError, SYSTEM_POLICY
+from jimbo_full_bot.model import (
+    ConversationMemory, GroqModelGateway, ModelError, ModelRateLimitError, SYSTEM_POLICY,
+)
 from jimbo_full_bot.routing import MinimalConversationRouter
 
 
@@ -58,6 +60,18 @@ class ConversationMemoryTests(unittest.TestCase):
 
 
 class GroqGatewayTests(unittest.TestCase):
+    def test_rate_limit_has_distinct_error_and_makes_one_call(self) -> None:
+        calls = []
+        def rate_limited(request, *, timeout):
+            calls.append(request)
+            raise urllib.error.HTTPError(request.full_url, 429, "limited", {}, None)
+        gateway = GroqModelGateway(
+            api_key="x", model="m", timeout_seconds=1, opener=rate_limited
+        )
+        with self.assertRaises(ModelRateLimitError):
+            gateway.plan_state_needs(plan().plan)
+        self.assertEqual(len(calls), 1)
+
     def test_payload_separates_policy_context_history_and_player_text(self) -> None:
         captured = {}
         def open_request(request, *, timeout):

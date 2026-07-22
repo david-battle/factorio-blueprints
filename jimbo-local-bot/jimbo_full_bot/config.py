@@ -27,6 +27,11 @@ class FullBotConfig:
     provider: str = "groq"
     model: str = "openai/gpt-oss-120b"
     management_player: str = "dlbattle"
+    server_philosophy: str = (
+        "Give players as much freedom as possible without breaking the game. "
+        "Humans decide what behavior is acceptable, not scripts, bots, or AI models."
+    )
+    moderator_roster: tuple[str, ...] = ()
     server_log_path: Path = DEFAULT_SERVER_LOG
     runtime_dir: Path = DEFAULT_RUNTIME_DIR
     api_key_path: Path = DEFAULT_GROQ_KEY
@@ -53,6 +58,12 @@ class FullBotConfig:
             raise ConfigurationError("management_player cannot be empty")
         if self.management_player != self.management_player.strip():
             raise ConfigurationError("management_player cannot have outer whitespace")
+        if not self.server_philosophy.strip():
+            raise ConfigurationError("server_philosophy cannot be empty")
+        if not isinstance(self.moderator_roster, tuple) or not all(
+            isinstance(name, str) and name.strip() for name in self.moderator_roster
+        ):
+            raise ConfigurationError("moderator_roster must contain non-empty names")
         for name in (
             "server_log_path",
             "runtime_dir",

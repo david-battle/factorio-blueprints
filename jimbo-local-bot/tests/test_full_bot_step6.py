@@ -57,6 +57,8 @@ class MinimalConversationRouterTests(unittest.TestCase):
         self.assertIn("Space Age", handoff.context)
         self.assertIn("Elevated Rails", handoff.context)
         self.assertIn("Quality", handoff.context)
+        self.assertIn("openai/gpt-oss-120b", handoff.context)
+        self.assertIn("Never identify it as GPT-4", handoff.context)
         self.assertIn("No fresh live-game snapshot", handoff.context)
 
     def test_recognized_live_questions_select_fixed_snapshot(self) -> None:

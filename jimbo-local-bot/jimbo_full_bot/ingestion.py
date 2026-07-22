@@ -251,6 +251,32 @@ class LogIngestionService:
         return IngestionBatch(tuple(events), diagnostics, transition)
 
 
+def retained_log_events(
+    path: Path, normalizer: FactorioEventNormalizer
+) -> tuple[NormalizedEvent, ...]:
+    """Read all complete normalized events for startup history reconstruction."""
+    instance = source_identity(path)
+    events: list[NormalizedEvent] = []
+    offset = 0
+    with path.open("rb") as stream:
+        for raw in stream:
+            start = offset
+            offset += len(raw)
+            if not raw.endswith((b"\n", b"\r")):
+                continue
+            line = SourceLine(
+                source_instance=instance,
+                byte_start=start,
+                byte_end=offset,
+                raw_bytes=raw,
+                text=raw.rstrip(b"\r\n").decode("utf-8", errors="replace"),
+            )
+            event = normalizer.normalize(line)
+            if event is not None:
+                events.append(event)
+    return tuple(events)
+
+
 def event_identity(line: SourceLine) -> str:
     digest = hashlib.sha256()
     digest.update(line.source_instance.encode("utf-8"))

@@ -175,6 +175,66 @@ class WelcomeServiceTests(unittest.TestCase):
             assert intent is not None
             self.assertTrue(intent.returning)
 
+    def test_retained_chat_makes_first_bot_observed_join_welcome_back(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            service = self.make_service(Path(directory))
+            historical_chat = event(
+                "chat-before-launch",
+                EventKind.PUBLIC_CHAT,
+                "Moon-O-Cronic",
+                "hello before Jimbo launched",
+            )
+
+            changed = service.seed_seen_players((historical_chat,))
+            intent = service.prepare(
+                event("join-after-launch", EventKind.PLAYER_JOIN, "moon-o-cronic"),
+                enabled=True,
+            )
+
+            self.assertEqual(changed, 1)
+            assert intent is not None
+            self.assertTrue(intent.returning)
+            self.assertEqual(
+                intent.text,
+                "Welcome back, moon-o-cronic! Begin queries with Jimbo.",
+            )
+
+    def test_history_seed_emits_nothing_and_uses_chat_join_and_leave(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            service = self.make_service(Path(directory))
+            retained = (
+                event("chat-1", EventKind.PUBLIC_CHAT, "Alice", "hello"),
+                event("join-1", EventKind.PLAYER_JOIN, "Bob"),
+                event("leave-1", EventKind.PLAYER_LEAVE, "Carol"),
+                event("server-chat", EventKind.PUBLIC_CHAT, "<server>", "notice"),
+            )
+
+            changed = service.seed_seen_players(retained)
+
+            self.assertEqual(changed, 4)
+            for player in ("Alice", "Bob", "Carol"):
+                self.assertIsNotNone(service.latest_display_name(player))
+            self.assertIsNone(service.latest_display_name("<server>"))
+            state = service.state.load("seen_players")
+            self.assertEqual(sum(key.startswith("join.") for key in state), 1)
+
+    def test_historical_join_replay_does_not_emit_a_greeting(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            service = self.make_service(Path(directory))
+            historical_join = event("join-while-stopped", EventKind.PLAYER_JOIN, "Alice")
+
+            service.seed_seen_players((historical_join,))
+
+            self.assertIsNone(service.prepare(historical_join, enabled=True))
+
+    def test_reseeding_history_is_idempotent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            service = self.make_service(Path(directory))
+            retained = (event("leave-1", EventKind.PLAYER_LEAVE, "Alice"),)
+
+            self.assertEqual(service.seed_seen_players(retained), 1)
+            self.assertEqual(service.seed_seen_players(retained), 0)
+
     def test_non_join_event_produces_no_welcome(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             service = self.make_service(Path(directory))

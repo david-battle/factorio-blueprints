@@ -9,9 +9,26 @@ Build the first full release of Jimbo the Jr. Engineer as specified by
 turning the completed proof of concept into an open-ended patch series.
 
 The full bot must preserve the proven public-chat loop while adding durable
-event ingestion, deterministic routing, broad bounded read-only
-investigation, deterministic calculations, player preferences, automatic
-welcomes, a canonical archive, and player-requested ghost placement.
+event ingestion, deterministic routing, broad live investigation, deterministic
+calculations, player preferences, automatic welcomes, a canonical archive, and
+general model-authored Lua/RCON execution.
+
+## Live RCON policy (2026-07-22)
+
+The target architecture allows the model to author free-form Factorio Lua/RCON
+for any player request. Jimbo will not advertise or deliberately add dedicated
+world-mutation features, but local code will not spend resources classifying or
+blocking commands because they might mutate the world. Player conduct, including
+destructive or game-breaking use, is governed by human administrators using the
+server's ordinary moderation tools.
+
+Operational controls remain: serialized execution, bounded command/result size,
+request attribution, archiving, explicit timeout/unknown state, and no blind
+retry after an uncertain result. These protect reliability and auditability;
+they are not a behavior policy or mutation-prevention boundary. This policy
+supersedes narrower mutation restrictions elsewhere in historical milestone
+text. It does not direct Jimbo development to create special-purpose item grant,
+promotion, construction, destruction, or combat interfaces.
 
 ## Source-of-truth order
 
@@ -44,8 +61,11 @@ Every completed step must:
 
 - preserve existing POC behavior unless the step explicitly replaces it;
 - add or update dependency-free automated tests where practical;
-- avoid live Groq calls and live RCON in routine tests;
-- use recorded fixtures or mocks for provider, log, and RCON behavior;
+- keep automated model/provider tests quota-free; do not spend Groq quota in the
+  routine suite;
+- prefer recorded fixtures or mocks for speed and repeatability, but permit
+  tests to invoke live RCON when Factorio execution materially verifies the
+  behavior under test;
 - update operator/user documentation for changed behavior;
 - map new tests to the relevant stable requirement IDs;
 - record material decisions and deferred work in this document;
@@ -79,7 +99,7 @@ active POC listener or sending any live chat.
    decisions, tool results, provenance, rendered messages, delivery results,
    and error categories.
 4. Define interfaces for the event source, archive, state store, router, model
-   gateway, calculator, read-only tools, placement service, renderer, and
+   gateway, calculator, registered adapters, free-form RCON executor, renderer, and
    delivery transport.
 5. Load secrets only from existing ignored runtime paths. Reject secrets in
    ordinary configuration serialization or diagnostic output. Reuse the
@@ -125,7 +145,7 @@ Status: complete; acceptance check passed.
   tool results, rendering, delivery, statuses, and error categories, including
   plain-data round-trip validation for events and provenance-bearing results.
 - Added dependency interfaces for event source, archive, state, routing,
-  authority, model, calculator, read-only tools, placement, rendering, delivery,
+  authority, model, calculator, registered adapters, free-form execution, rendering, delivery,
   and secret reading. No concrete live dependency is wired in Step 1.
 - The existing ignored `runtime/groq-api-key.txt` is referenced by path only.
   Offline construction, diagnostics, and tests do not read, validate, move,
@@ -374,6 +394,14 @@ Status: first pass complete; sufficient for Steps 5-7.
 - Added 13 dependency-free Step 4 tests. The complete suite now has 103 passing
   tests and makes no live provider, RCON, or full-bot log call.
 
+The retained-history welcome follow-up is complete. On startup, the runtime now
+reconstructs permanent case-insensitive seen-player memory from all available
+public-chat, join, and leave evidence in both the canonical archive and current
+server console log. Historical joins are marked as historical without emitting
+greetings, so the first later live join receives `Welcome back` and restart
+replay cannot create a greeting burst. Reconstruction is idempotent and ignores
+Jimbo/server-authored chat.
+
 Deferred for a later hardening pass: carefully scoped fuzzy invocation
 variants, invocation/welcome decision records in the canonical archive,
 runtime operator-flag wiring, concurrent state-update locking, and reconciliation
@@ -616,7 +644,8 @@ operation.
   planning passes.
 - Trusted fresh/partial/unavailable results remain correctly qualified in the
   synthesized answer despite contradictory player text or model output.
-- Routine tests mock both model calls and RCON and consume no hosted quota.
+- Model calls remain mocked and quota-free. RCON may be live when an integration
+  test needs authoritative Factorio behavior.
 
 #### Acceptance check
 
@@ -648,6 +677,126 @@ planner becomes the primary live path.
   question. Neither smoke delivered public chat. The managed listener was
   restarted onto this revision as PID 17992, verified running, and the change
   was announced publicly under OPS-006.
+
+### Step 6 authoritative-answer completion (2026-07-22)
+
+Status: authoritative providers complete; model-owned subject routing follow-up
+remains open after live testing.
+
+- Added model-selected, locally validated fact operations for runtime identity,
+  server identity/philosophy, retained player history, the current Factorio
+  administrator list, and named-player permission inspection.
+- Runtime-owned answers report Jimbo the Jr. Engineer, the actual configured
+  Groq model/provider, known limits and data sources, memory/retention behavior,
+  enabled domains, renderer behavior, observed usage/quota metadata when
+  naturally available, and unknown model parameter count without guessing.
+- Human-authored facts identify `dlbattle` as the server owner and Jimbo
+  operator, state that no separate moderator roster is configured, and record
+  the philosophy that player freedom is maximized without breaking the game and
+  humans—not scripts, bots, or AI models—judge acceptable behavior. Factorio
+  admin flags do not confer ownership, moderation, or authority over Jimbo.
+- Retained public chat/join/leave evidence supports case-insensitive historical
+  presence queries with counts and timestamps. Missing evidence returns
+  `unknown` and explicitly does not claim the player never visited.
+- Split fixed read-only RCON queries report current Factorio admins separately
+  from ownership/moderation and inspect a named player's admin flag, permission
+  group, denied actions, or a requested effective action. Common ban/kick/
+  promote/demote questions map to Factorio's verified `admin_action` and also
+  require the live admin flag.
+- Authoritative fact answers use application-owned summaries directly rather
+  than model-authored factual wording. Failures and unsupported observations
+  remain unknown/unavailable instead of being filled with guesses.
+- The full dependency-free suite passes 158 tests. A harmless live smoke
+  verified `helpers.table_to_json`, the current admin list, permission groups,
+  `defines.input_action.admin_action`, and effective ban permission without
+  changing world state.
+
+### Step 6 live-routing follow-up (2026-07-22)
+
+Live testing showed that the authoritative providers return correct facts when
+selected, but the planner does not yet reliably distinguish questions about
+Jimbo, the server, the server owner, Factorio administrators, and a named
+player. A narrow prompt change fixed one model-identity question but
+overcorrected broader questions: `what can you tell me about this server?` and
+`who owns this server, and who are the admins?` selected only
+`runtime_identity`; `can you kick players?` incorrectly proposed a named-player
+permission lookup with `player="*"`.
+
+Keep this correction in Step 6. It is routing among existing Step 6 facts, not a
+new feature domain.
+
+#### Work
+
+1. Extend the existing model planning result with a required, validated
+   `subjects` array. Initial subject values are `jimbo`, `server`,
+   `server_owner`, `factorio_admins`, `named_player`, and `other`.
+2. Allow multiple subjects because one question may require several
+   authoritative sources. For example, `who owns this server, and who are the
+   admins?` selects both `server_owner` and `factorio_admins`.
+3. Keep subject interpretation with the model. Local code validates the enum,
+   exact arguments, and compatible fact operations; do not add a local semantic
+   regex catalog or question-specific handler tree.
+4. Clarify operation ownership:
+   - `jimbo` uses `runtime_identity` for Jimbo's model, provider, memory,
+     limits, revision, tools, and capabilities;
+   - `server` and `server_owner` use `server_identity`;
+   - `factorio_admins` uses `list_admins` and must distinguish all admins from
+     currently connected admins when the player asks for the latter;
+   - `named_player` uses `player_history` or `player_permissions` only with an
+     exact player name.
+5. Treat general capability questions such as `can Jimbo kick players?` as
+   `jimbo` runtime-capability questions. Use named-player permission inspection
+   only for questions such as `can Alice kick players?`.
+6. Reject wildcard, placeholder, empty, and non-exact player references such as
+   `*` for named-player operations. Return a clarification need rather than
+   executing a lookup against an invented identity.
+7. Validate that selected operations cover every authoritative subject before
+   execution. A plan identifying `server_owner` plus `factorio_admins` but
+   selecting only `runtime_identity` is invalid and receives the existing
+   single schema-correction opportunity.
+8. Preserve direct application-owned formatting for authoritative results and
+   retain explicit unknown/unavailable outcomes.
+
+#### Tests and acceptance
+
+- `what model are you using?` -> `jimbo` + `runtime_identity` and the configured
+  Groq `openai/gpt-oss-120b` answer.
+- `what can you tell me about this server?` -> `server` + `server_identity`.
+- `who owns this server?` -> `server_owner` + `server_identity`.
+- `who owns this server, and who are the admins?` -> both subjects and both
+  authoritative operations in one plan.
+- `who are the currently logged-in admins?` intersects current admin flags with
+  connected-player state rather than returning every offline admin.
+- `can Jimbo kick players?` reports Jimbo's actual capability boundary without
+  inventing a player reference.
+- `can Alice kick players?` selects exact named-player permission inspection.
+- Plans using `player="*"`, omitting a required subject operation, or confusing
+  Jimbo/server/owner subjects are rejected and corrected once.
+- Model calls remain mocked and quota-free; RCON may be live when useful. Then repeat the above questions
+  as a bounded live smoke and compare the archived subjects, operations, and
+  exact delivered answers.
+
+#### Implementation result (2026-07-22)
+
+Status: implemented and deployed; bounded player-driven live-question smoke
+remains for acceptance.
+
+- The planning contract now requires one or more validated subjects and checks
+  that every authoritative subject has its compatible locally owned fact
+  operation.
+- The planner prompt distinguishes Jimbo, server, owner, admins, and named
+  players; multi-subject questions are supported.
+- Connected-only admin inspection, exact named-player validation, wildcard
+  rejection, and Jimbo's no-kick/no-ban capability boundary are implemented.
+- The complete quota-free suite had 160 passing tests. The managed full listener
+  restarted cleanly as PID 25012, its activation and limitations were announced
+  publicly, and no startup error was recorded.
+- Live acceptance correctly routed owner and model questions. The connected-admin
+  question exposed a schema-placement error: the model put the approved
+  `list_admins` fact in investigation `steps`, including after correction. The
+  follow-up accepts this unmistakable allowlisted placement by moving it into
+  `facts`, then applies the unchanged strict fact-operation and argument checks.
+  One regression brings the complete quota-free suite to 161 passing tests.
 
 ## Step 7: Integrate the model and bounded per-player conversation
 
@@ -835,16 +984,17 @@ engine before adding broad domain coverage.
    not a mandatory allowlist for everything Jimbo may do.
 2. Let the model propose Lua/RCON directly when that is simpler than extending
    the registered catalog.
-3. Apply lightweight checks for one complete command, obvious truncation,
-   practical size/time limits, and obvious mismatch with the requested task;
-   lean toward allowing execution when the check is uncertain.
+3. Apply only operational framing checks for one complete command, obvious
+   truncation, and practical command/result size. Do not classify or reject a
+   command merely because it may mutate the world.
 4. Implement discovery, filtering, projection, counting, grouping,
    aggregation, pagination, and relationship traversal primitives.
 5. Add a serial RCON queue and cancellation/timeouts.
 6. Return provenance and `complete`, `partial`, `timeout`, `unavailable`, or
    `stale` status for every result.
-7. Support map pings/tags, ghost placement, and unrestricted deconstruction
-   marking; do not directly construct/remove entities or place/remove tiles.
+7. Do not build dedicated mutation mechanisms. If model-authored Lua/RCON
+   mutates the world, treat it as ordinary free-form execution attributed to
+   the requesting player.
 8. Choose and record initial step, object, byte, page, and time bounds.
 9. Publish an application-owned capability catalog of registered domains,
    operations, typed arguments, output fields, relationships, and limitations
@@ -853,21 +1003,18 @@ engine before adding broad domain coverage.
     taxonomy, semantic regex catalog, or one hard-coded handler per question.
 11. Use familiar Factorio Lua/RCON as the primary escape hatch so the model does
     not need an ever-growing proprietary tool catalog.
-12. Have the model exercise judgment about requests that go too far. Local code
-    should not attempt to replace that judgment with an exhaustive mutation,
-    syntax, or behavior classifier.
+12. Do not ask the model or local code to police player behavior. Human admins
+    decide whether use is acceptable and may ban destructive players.
 13. Retain the current registered operations as a tested fallback while the
     compiled interface is developed and compared for prompt size and accuracy.
 
 ### Tests
 
 - Registered-plan compatibility plus direct model-authored Lua/RCON attempts.
-- Lightweight checks catch obvious truncation, malformed framing, runaway-size
-  requests, direct entity/tile construction, direct removal, and tile placement.
+- Operational checks catch obvious truncation, malformed framing, and
+  runaway-size requests without mutation classification.
 - Pagination, aggregation, timeout, partial results, and provenance propagation.
 - Fuzzed plan input cannot escape the registered operation set.
-- Staged checks confirm supported mutations create ghosts, deconstruction orders,
-  or map pings rather than direct construction/removal.
 - Capability/schema questions use the registered catalog and cannot cause the
   model to invent fields or trigger arbitrary API reflection.
 - Natural paraphrases produce model-authored structured plans without adding
@@ -880,25 +1027,41 @@ engine before adding broad domain coverage.
 ### Acceptance check
 
 A mocked multi-step investigation filters and aggregates data with provenance.
-Staged attempts demonstrate direct model-authored queries, map pings, ghost
-creation, and deconstruction marking with lightweight checks and observed results.
+Staged attempts demonstrate direct model-authored queries with serialized
+execution, attribution, bounded output, archived results, and timeout handling.
 
-### Next Step 10 increment
+### Current experimental Step 10 increment
 
-Prototype direct model-authored Lua/RCON alongside the existing logistics and
+Direct model-authored Lua/RCON is now deployed alongside the existing logistics and
 platform adapters so answers and reliability can be compared. Measure syntax/API
 success, correction frequency, RCON size/time, and observed results. Keep the
 registered operations as fallback, but do not require a restricted parser or
 security proof before trying staged model-authored commands.
 
+Live testing on 2026-07-22 exposed the first immediate operational issue: a burst
+of roughly two hosted calls per request exhausted Groq's token-rate allowance.
+The final live-information request received `429` on planning and then made a
+second synthesis call, which also received `429`, leaving the player with no
+response. Before broader testing, pace operator-led prompts 20-30 seconds apart,
+pause about one minute after a `429`, and change the runtime so the first `429`
+produces one local player-visible temporary-rate-limit response with no second
+hosted call and no automatic retry. Keep this deliberately small; a quota
+dashboard or elaborate scheduler is not required.
+
+Minimal implementation choice: insert a two-second pause between the normal
+planning and synthesis calls within one player request. This is burst smoothing,
+not player-query admission pacing. A planning-phase `429` bypasses the pause and
+synthesis entirely.
+
 ### Primary requirements
 
-STATE-006, STATE-007, STATE-009 through STATE-012, QUAL-003, QUAL-006.
+STATE-006, STATE-007, STATE-009 through STATE-012, QUAL-003, QUAL-006, QUAL-007.
 
-## Step 11: Add broad live-state domain adapters and investigations
+## Step 11: Retain adapters as fallback and validate free-form investigations
 
 Status: platform and initial logistics/storage vertical slices implemented;
-broad domain coverage remains pending. Platform coverage distinguishes display
+further category-by-category expansion is superseded by Step 10 free-form
+Lua/RCON. Platform coverage distinguishes display
 name, platform surface, stopped orbital location, and transit connection.
 Logistics coverage exposes bounded network identity/location, robot availability,
 member counts, stored item totals, and sampled logistic-container inventories
@@ -906,21 +1069,23 @@ and requests.
 
 ### Scope
 
-Expand the query engine across the required observable Factorio domains and
-support coherent multi-step answers.
+Keep proven adapters as fallback/reference while making free-form model-authored
+Lua/RCON the primary way to answer unanticipated live-state questions.
 
 ### Work
 
-1. Implement adapters, where Factorio exposes reliable data, for surfaces and
-   planets; forces/progression; players; entities/ghosts; inventories, recipes,
-   filters, requests, and controls; logistics; trains; space platforms;
-   electric networks; statistics; pollution; resources; research; and map
-   positions.
+1. Do not continue building one adapter or request category per information
+   domain. Retain existing platform/logistics adapters for comparison and
+   fallback while free-form RCON proves itself.
+   If an adapter causes routing, schema, maintenance, or answer-quality problems,
+   prefer removing or bypassing it in favor of free-form RCON rather than fixing
+   the adapter merely to preserve the old architecture.
 2. Add exact authoritative name/prototype/surface lookup that returns zero, one,
    or multiple candidates. The model resolves candidates from context or asks a
    clarification; local code never silently chooses a fuzzy semantic match.
 3. Support bounded cross-domain relationships and joins.
-4. Let the model propose only structured plans and validated arguments.
+4. Let the model use structured plans when convenient or free-form Lua/RCON
+   when that is simpler; structured plans are not a mandatory gate.
 5. Have the model synthesize public answers from provenance-bearing results
    without dumping raw records or hiding incompleteness; adapters return facts
    and relationships, not locally inferred conclusions.
@@ -963,14 +1128,11 @@ player testing then exposed a renderer ambiguity for rich-text platform names;
 the renderer now spells unsafe brackets as `left-bracket` and `right-bracket`
 instead of silently deleting them.
 
-After the platform slice, expand in evidence-driven order: all player inventories
-and personal logistic requests without cross-player privacy filtering; logistic
-networks and storage; production/consumption statistics; electric power and pollution;
-trains/stations/schedules/cargo; bounded entity/inventory inspection; then
-resources and observed map positions. Surfaces/planets, forces/progression, and
-players are expanded as required by those relationships. Every domain remains
-pending until its adapter contract, bounds, fixtures, and harmless live smoke
-are recorded.
+Do not continue the previously planned adapter-by-adapter expansion. Use these
+domains as free-form live test coverage instead: player/entity/ship inventories,
+logistics, production statistics, power, pollution, trains, schedules, cargo,
+resources, positions, surfaces, forces, and progression. Add a registered
+adapter only when repeated evidence shows a concrete reliability benefit.
 
 ### Second vertical slice: logistics and storage
 
@@ -1065,12 +1227,20 @@ staged validation path.
 
 STATE-005 through STATE-012, ROUTE-003 through ROUTE-005, QUAL-006.
 
-## Step 12: Implement offline ghost-design generation and trial planning
+## Step 12: Superseded dedicated mutation design work
+
+Status: superseded by the 2026-07-22 live RCON policy. Do not implement this
+step unless the owner explicitly reopens specialized design tooling.
 
 ### Scope
 
-Build and test structured and model-authored placement attempts without mutating
-the live world.
+Do not build a dedicated ghost-design, construction, deconstruction, combat, or
+other mutation subsystem. Free-form requests, including any incidental world
+mutation, use the general Step 10 model-authored RCON path.
+
+The former work, tests, acceptance check, and requirement mapping below are
+retained only as historical design context. They are not active implementation
+requirements and do not create a mutation-prevention boundary.
 
 ### Work
 
@@ -1118,12 +1288,19 @@ without executing RCON.
 
 AUTH-006, ART-002, GHOST-001 through GHOST-004, GHOST-007 through GHOST-010.
 
-## Step 13: Implement player-requested live ghost placement
+## Step 13: Superseded dedicated live placement work
+
+Status: superseded by the 2026-07-22 live RCON policy. Do not implement a
+placement-specific execution system unless the owner explicitly reopens it.
 
 ### Scope
 
-Connect validated placement plans for any requesting player to the dedicated
-live RCON pipeline with attribution, incremental execution, audit, and recovery.
+Do not create a dedicated placement or deconstruction feature. Any such request
+uses the same free-form Step 10 RCON path as other requests, without a special
+authority gate or mutation-prevention mechanism.
+
+The former work, tests, acceptance check, and requirement mapping below are
+retained only as historical design context and are not active roadmap work.
 
 ### Work
 
@@ -1212,47 +1389,57 @@ timing will be reviewed separately after the prototype milestone.
 Harden the assembled full bot, run the complete acceptance suite, rehearse
 rollback, and only then activate it publicly.
 
+Step 14 validates the general free-form execution path's attribution,
+serialization, archiving, bounded I/O, timeout/unknown-state handling, and
+rollback. It does not add mutation classification or deliberately exercise
+destructive behavior, and superseded Steps 12-13 are not activation blockers.
+
 ### Work
 
 1. Add validated operator controls for status, start, stop, restart, public
    replies on/off, welcomes on/off/suppress, queue drain, health summary,
-   placement status, and placement abort through the narrow project launcher.
+   and general queue/execution cancellation through the narrow project launcher.
 2. Report log freshness, cursor lag, archive health, queue depth, provider/RCON
-   state, renderer rejections, delivery failures, and active placement state.
+   state, renderer rejections, delivery failures, and active executions.
    The model may summarize these measurements, but configured thresholds and
    exact outcomes remain authoritative.
 3. Enforce bounded queues, per-player ordering, serialized live RCON/delivery,
-   and observable mutation attempts.
+   and requester-attributed observable execution.
 4. Add failure containment for every external dependency and event type.
+   Specifically, pace hosted calls using observed request/token telemetry and
+   turn the first provider `429` into a local player-visible temporary-limit
+   response; do not spend a second hosted call trying to explain the first one.
 5. Verify that all required follow-up passes belonging to earlier steps are
    complete; do not implement their missing scope inside Step 14.
 6. Run all requirement-level automated tests and map them to stable IDs.
-7. Run the 25 initial acceptance scenarios from `FULL_BOT_REQUIREMENTS.md`,
-   including the amended welcome instruction behavior.
-8. Run staged provider, read-only RCON, rendering/delivery, welcome, restart,
-   archive rebuild, and player-requested placement smoke tests.
+7. Run active initial acceptance scenarios from `FULL_BOT_REQUIREMENTS.md`,
+   excluding explicitly superseded placement scenarios.
+8. Run staged provider, free-form RCON, rendering/delivery, welcome, restart,
+   and archive-rebuild smoke tests without deliberately destructive commands.
 9. Rehearse rollback: stop admission, suppress greetings, drain/cancel safe
-   work, preserve archive/state, and audit rather than auto-clean partial
-   placement.
+   work, preserve archive/state, and retain uncertain execution records.
 10. Update README and handoff documentation with setup, controls, boundaries,
    data retention, health, recovery, and known limitations.
 11. Activate public replies only after explicit management approval. Retire or
     disable the POC listener so both bots cannot respond concurrently.
-12. Keep health, rollback, queue admission, mutation leases, test pass/fail, and
+12. Keep health, rollback, queue admission, test pass/fail, and
     activation permission application/operator-owned; the model may explain
     evidence but cannot decide or override these outcomes.
 
 ### Tests
 
-- Complete dependency-free suite makes no live provider or RCON call.
+- Automated model/provider tests consume no hosted quota. RCON integration tests
+  may use the live server when materially useful.
 - Concurrent-player ordering and bounded admission under load.
 - Provider, archive, renderer, queue, delivery, and RCON failure injection.
+- Provider-rate tests verify pacing, one local visible response after `429`, no
+  immediate second hosted call, no blind retry, and later listener recovery.
 - Complete ASCII/Unicode/invalid-input, exact-byte-boundary, rich-text
   transport escaping, trusted GPS, pagination, opaque-artifact, displayed-command,
   and exact-sent-text renderer fixtures.
 - Restart/rotation/truncation deduplication and archive/index recovery.
-- All 25 acceptance scenarios pass with evidence.
-- Rollback rehearsal preserves data and prevents new output or mutation.
+- All active acceptance scenarios pass with evidence.
+- Rollback rehearsal preserves data and prevents new output or execution.
 
 ### Acceptance check
 
@@ -1263,7 +1450,7 @@ full bot declared released.
 
 ### Primary requirements
 
-OPS-001 through OPS-005 and QUAL-001 through QUAL-006, plus the complete initial
+OPS-001 through OPS-005 and QUAL-001 through QUAL-007, plus the complete initial
 acceptance suite and all requirements implemented and transitively verified by
 their owning earlier steps.
 
@@ -1283,20 +1470,18 @@ These choices are intentionally resolved when evidence becomes available:
 - No step may add automated moderation, behavioral scoring, intent/sentiment
   policing, harassment/impersonation classifiers, or acceptable-content gates.
   Human owners and administrators decide what player behavior is acceptable.
-  Local enforcement is limited to authenticated identity, configured capability
-  authorization, schema/prototype validation, resource bounds, transport
-  integrity, and keeping displayed text separate from executors. These controls
-  answer "can Jimbo technically do this through this interface?", never "is this
-  player behaving acceptably?"
+  Local enforcement is limited to requester attribution, operational resource
+  bounds, serialized transport, archive integrity, unknown-state handling, and
+  keeping displayed text separate from executors. It does not classify mutation
+  or decide whether player behavior is acceptable.
 
 - Step 2 records archive rotation thresholds. The first release uses a tagged
   UTF-8 text log plus small atomic flat-text state files and adds neither JSON
   storage nor SQLite.
 - Step 5 measures and records the chat byte budget and pagination policy.
 - Step 10 records practical query/action byte/time bounds and lightweight checks.
-- Step 11 records first-release domain coverage and Factorio API limitations.
-- Step 12 permits model-authored placement Lua/RCON and records observed model
-  reliability plus lightweight mistake checks that prove useful.
+- Step 11 records free-form test coverage and retires troublesome adapters.
+- Steps 12-13 are superseded and add no specialized mutation mechanisms.
 - Step 14 records the provider concurrency setting after ordered load tests.
 
 None of these gates permits hiding unknown/partial results or discarding the
@@ -1314,12 +1499,12 @@ Update this section after each completed step:
 | 3 | First pass complete | 2026-07-21 | Durable complete-line reader, flat-text cursor, chat/join/leave normalization, archive-before-cursor ordering; 90 tests passing. |
 | 4 | First pass complete | 2026-07-21 | Deterministic invocation/self-loop handling and durable welcome intents with required Jimbo instruction; 103 tests passing. |
 | 5 | Minimal bridge complete | 2026-07-21 | One-line renderer, fixed-wrapper transport, serial archived delivery, welcome completion, live smoke confirmation; 113 tests passing. |
-| 6 | Model planner live; other routes pending | 2026-07-21 | Four-tool model-directed state-needs planning, strict local validation, fixed read-only execution, provenance follow-ups, hosted/live smokes, and managed deployment; remaining direct routes stay attached to Step 6; 137 tests passing. |
+| 6 | Implementation complete; live acceptance pending | 2026-07-22 | Multi-subject model planning, authoritative runtime/server/owner/admin/player facts, strict compatibility and exact-player validation, connected-admin scope, fixed read-only execution, and managed deployment; connected-admin fix awaits live retest; 161 tests passing. |
 | 7 | Complete/live | 2026-07-21 | Real Groq gateway, separated trusted context, three delivery-committed exchanges per player, hosted smoke, and active full-bot listener; Step 7 tests included in the 137-test suite. |
 | 8 | Not started | - | - |
 | 9 | Not started | - | - |
-| 10 | Minimal core live; expansion pending | 2026-07-21 | Six-step catalog/schema validation, one correction retry, separate transport/model-context bounds, quota observability, fixed read-only execution, provenance, and adversarial rejection. |
-| 11 | Platform + logistics slices implemented; other domains pending | 2026-07-21 | Platform identity/orbit/transit, cargo/requests/schedule plus targeted logistic provider/storage counts and scoped container inspection; 149 tests and harmless live smokes pass. |
-| 12 | Not started | - | - |
-| 13 | Not started | - | - |
+| 10 | Experimental free-form RCON path deployed; live testing pending | 2026-07-22 | One model planning pass can emit one bounded physical Lua/RCON line; the fixed wrapper executes it serially, restores the shared command file, archives attribution/command/result, and feeds output to synthesis. Required model calls are separated by two seconds; a first `429` ends the request with a local visible response and no second call. Timeout has no retry; no mutation classifier. 170 tests pass. |
+| 11 | Existing adapters are disposable fallback | 2026-07-22 | Retain platform/logistics adapters only while useful; prefer bypass/removal over repairing troublesome category-specific behavior. |
+| 12 | Superseded | 2026-07-22 | No dedicated mutation-design subsystem planned. |
+| 13 | Superseded | 2026-07-22 | No dedicated placement/deconstruction execution subsystem planned. |
 | 14 | Not started | - | - |

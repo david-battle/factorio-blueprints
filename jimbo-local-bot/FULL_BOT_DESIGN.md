@@ -4,16 +4,19 @@ Status: proposed architecture baseline for implementation review (2026-07-21)
 
 ## 1. Purpose and design stance
 
-This document translates `FULL_BOT_REQUIREMENTS.md` into an implementable first-release architecture. It preserves the proven public-chat loop while separating model reasoning from authority, runtime truth, rendering, delivery, and every state-changing operation.
+This document translates `FULL_BOT_REQUIREMENTS.md` into an implementable first-release architecture. It preserves the proven public-chat loop while separating model reasoning from runtime truth, rendering, delivery, operational execution controls, and human moderation.
 
 The recommended shape is a dependency-light Python modular monolith with an append-only UTF-8 text event archive and small atomic flat-text state files. Query indexes are rebuilt in memory from the archive where needed. JSON and SQLite are not first-release storage dependencies and should be considered only if later evidence demonstrates a concrete need. A single deployable process keeps operations appropriate for one Factorio server; strong module boundaries, typed contracts, and separate execution queues preserve a future path to split services without introducing distributed-system cost now.
 
 The architecture follows five rules:
 
-1. Application code owns technical capability authorization, runtime truth, and
-   transport rendering; it does not own social or behavioral policy.
-2. Model output is untrusted text or a proposed typed plan, never permission.
-3. Read-only investigation and ghost placement use different schemas, validators, executors, queues, and audit records.
+1. Application code owns runtime truth, transport rendering, attribution,
+   serialization, archiving, and failure handling; it does not own social or
+   behavioral policy.
+2. Model output may include free-form Lua/RCON for execution; it becomes an
+   observed fact only when Factorio returns a result.
+3. Registered query adapters are disposable fallback/reference paths, not a
+   mandatory information taxonomy or mutation boundary.
 4. Unknown, stale, partial, and failed are first-class result states.
 5. Only a successfully delivered player-visible exchange enters conversational memory.
 
@@ -21,7 +24,7 @@ The architecture follows five rules:
 
 ### 2.1 Actors and dependencies
 
-- Players invoke Jimbo in public chat and may use enabled read-only capabilities.
+- Players invoke Jimbo in public chat and may use enabled free-form RCON-backed capabilities.
 - `dlbattle` is the sole case-insensitive in-chat management identity.
 - The operator controls local deployment, configuration, credentials, health, and maintenance modes.
 - The model provider supplies language generation and investigation planning, but has no authority and is not a runtime source of truth.
@@ -34,16 +37,12 @@ Factorio server-console.log
         |
         v
  Event Ingestor -> Canonical Archive -> Capability Router -> Conversation Orchestrator
-                                           |                    |
-                                           |              Model Gateway
-                                           |                    |
-                      +--------------------+--------------------+
-                      |                                         |
-             Read-only Investigation                    Ghost Placement
-             planner + safe executor               player-request pipeline
-                      |                                         |
-                      +--------------------+--------------------+
-                                           |
+                                                                |
+                                                          Model Gateway
+                                                                |
+                                            Free-form Lua/RCON engine
+                                          + optional registered adapters
+                                                                |
                                   Trusted Renderer
                                            |
                                   Delivery Queue/RCON
@@ -51,11 +50,10 @@ Factorio server-console.log
                                       Factorio chat
 ```
 
-The live execution path may run model-authored Lua/RCON for investigations and
-supported player-equivalent actions after lightweight practical checks. Ghost
-placement does not require management status. Direct entity/tile construction,
-direct removal, direct tile placement, and dedicated combat automation are not
-product features.
+The live execution path may run model-authored free-form Lua/RCON for any player
+after operational framing and size checks. No dedicated mutation feature is
+planned, but the runtime does not classify or block commands because they may
+mutate the world. Human admins handle destructive or game-breaking conduct.
 
 ## 3. Logical architecture
 
@@ -77,8 +75,8 @@ The append-only text archive remains the self-contained record of truth. Small v
 
 The router remains deterministic only where application-owned enforcement is
 required: invocation, authenticated actor identity, authority, configured
-capability boundaries, and runtime-owned facts. The model interprets preference
-requests, calculations, investigations, placement discussions, ambiguity, and
+runtime-owned facts, and operational execution state. The model interprets preference
+requests, calculations, investigations, action discussions, ambiguity, and
 ordinary conversation by proposing typed plans. Local code validates those
 plans and enforces ownership and configured capability authorization; it does not maintain a
 parallel semantic intent classifier. A typed `RequestPlan` selects one route:
@@ -90,15 +88,13 @@ parallel semantic intent classifier. A typed `RequestPlan` selects one route:
 - `investigation` for multi-step live-state questions;
 - `conversation` for generic Factorio or general conversation;
 - `preference_command` for inspect/set/reset;
-- `ghost_design` or `ghost_place` for the dedicated placement workflow;
-- `decline` for technically unsupported or unauthorized operations, not speech.
+- `free_form_rcon` for model-authored live investigation or action;
+- `decline` only when execution is technically unavailable, not as behavior moderation.
 
-Before orchestration, the capability router attaches an application-owned
-authorization decision, allowed tool families, maximum planning passes, and
-chat budget. It does not attach acceptable-content rules. The model cannot widen
-technical execution fields. A model proposal
-is data, not permission: local code rejects unknown operations or arguments and
-maps accepted operations to locally authored read-only RCON implementations.
+Before orchestration, the capability router attaches requester attribution,
+operational limits, maximum planning passes, and chat budget. It does not attach
+acceptable-content or mutation rules. Registered plans retain typed validation;
+free-form Lua/RCON is framed and executed without an operation allowlist.
 Direct runtime and policy facts remain application-rendered. Live observations
 may be synthesized by the model only after their values, freshness, status, and
 provenance are supplied as trusted tool results.
@@ -153,7 +149,7 @@ where available. Archive-derived promotion/demotion history is a third source.
 Every answer labels which source it used so `in charge`, `admin`, `moderator`,
 and `has permission` do not collapse into one invented role.
 
-## 4. Read-only investigation subsystem
+## 4. General live RCON subsystem
 
 ### 4.1 Query model
 
@@ -219,19 +215,17 @@ The model interprets the question and proposes the plan; local code does not
 maintain a question taxonomy or semantic regex catalog.
 
 The target interface should not become a large proprietary DSL whose catalog
-must be repeatedly taught to the model. The next Step 10 expansion will allow
-the model to author familiar Factorio Lua/RCON directly for investigations and
-supported player-equivalent actions. Local code applies lightweight command-
-framing, obvious-truncation, size/time, and explicit product-boundary checks,
-then attempts the command and observes the result. It does not require a
-restricted AST or proof of perfect well-formedness. The current registered
-operations remain the stable fallback.
+must be repeatedly taught to the model. Step 10 allows the model to author
+familiar Factorio Lua/RCON directly. Local code applies operational framing,
+obvious-truncation, and command/result size checks, then attempts the command and
+observes the result. It does not use a restricted AST, operation allowlist,
+mutation detector, or behavioral policy gate. Registered operations are
+disposable fallback aids: remove or bypass a troublesome adapter instead of
+repairing it solely to preserve category-specific infrastructure.
 
-Practical byte/time bounds protect transport and keep failures observable. The
-model decides when a request goes too far; local code does not replace that
-judgment with a rigid behavior or mutation classifier. Occasional permissive
-leakage is an accepted tradeoff, and additional restrictions are added only when
-explicitly requested from observed need.
+Practical byte/time bounds protect transport and keep failures observable.
+Neither the model nor local code polices player behavior; human admins handle
+destructive or game-breaking use through ordinary moderation.
 
 The deployed logistics slice also exposes targeted exact-item counts for all
 network members, providers, or storage, plus exact-item container inspection.
@@ -243,13 +237,12 @@ Player inventory inspection is intentionally broad: Jimbo may inspect every
 player's inventories and personal logistic requests so players can trace items
 that moved through shared logistics. No cross-player privacy filter is planned.
 
-### 4.2 Lightweight review and execution
+### 4.2 Operational framing and execution
 
-Registered plans retain schema validation and trusted templates. Direct model-
-authored Lua/RCON receives lightweight checks for complete framing, obvious
-truncation, practical size/time limits, and the explicit construction boundary:
-ghosts rather than direct entity/tile construction, deconstruction orders rather
-than direct removal, and no direct tile placement. Map pings/tags are supported.
+Registered plans retain schema validation and trusted templates while they are
+useful. Direct model-authored Lua/RCON receives operational checks for complete
+framing, obvious truncation, and practical command/result size. It is not
+screened for world mutation.
 The current 200 KB result ceiling protects RCON transport and parsing; the smaller
 model-context budget independently protects provider quota.
 
@@ -272,7 +265,13 @@ returned to the model as structured candidates or missing fields; local code
 does not interpret natural language, decide what `best` means, or compose the
 clarification itself.
 
-## 5. Ghost and blueprint placement subsystem
+## 5. Superseded dedicated ghost and blueprint placement subsystem
+
+The dedicated subsystem below is retained as historical design context and is
+not active architecture after the 2026-07-22 free-form RCON decision. Do not
+implement its schemas, state machine, confirmation gates, or mutation checks
+unless the owner explicitly reopens specialized placement tooling. Placement or
+deconstruction requests use the same general Step 10 path as any other request.
 
 ### 5.1 State machine
 
@@ -394,7 +393,11 @@ Rollback stops new admission, drains or cancels non-mutating work, leaves the ar
 
 ## 11. Test strategy and acceptance
 
-Routine tests mock the provider and RCON. Contract tests validate schemas, prompt boundaries, query compilation, renderer encoding, archive replay, and provider replacement. Property/fuzz tests cover log fragments, rotations, invocation variants, Unicode, rich-text transport, displayed-command non-execution, bounded query plans, and placement coordinates.
+Automated model/provider tests remain mocked and quota-free. RCON is usually
+mocked for repeatability but may be live when an integration test materially
+needs authoritative Factorio execution. Contract tests validate schemas, prompt
+boundaries, query compilation, renderer encoding, archive replay, and provider
+replacement.
 
 Requirement-level tests must include:
 

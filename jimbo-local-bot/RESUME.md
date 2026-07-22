@@ -19,19 +19,31 @@ are needed; it is authoritative but intentionally long.
   complete-line reading, flat-text cursor resume, source/byte event identity,
   verified chat/join/leave normalization, archive-before-cursor ordering, and
   11 tests. The active full-bot listener uses this reader against the live log.
-- Full Bot Step 4 has a completed first pass sufficient for Steps 5-7:
+- Full Bot Step 4 now includes retained-history seen-player reconstruction:
   deterministic leading invocation, self-loop suppression, durable seen-player
-  classification, restart-safe welcome intents, and the required `Jimbo`
-  instruction in every greeting. It adds 13 tests.
+  classification seeded from archived/current-log chat, join, and leave evidence,
+  restart-safe welcome intents, and the required `Jimbo` instruction in every
+  greeting. Historical reconstruction emits no greetings; later live joins by
+  known players receive `Welcome back`.
 - Full Bot Step 5 has a completed minimal delivery bridge: one-line plain text,
   length fallback, inert Lua containment, fixed-wrapper transport, serialized
   archived outcomes, deduplication, and confirmed welcome completion. The live
   renderer now transliterates unsupported Unicode to readable ASCII before RCON.
-- Full Bot Step 6 is a completed stub sufficient for Step 7: accepted
-  invocations become tool-free authority-tagged conversation plans with the
-  static Factorio 2.1.12/Space Age blurb and an explicit no-live-snapshot
-  warning. It adds 6 tests; the complete suite has 119 passing tests. All
-  authoritative direct routing remains owned by a later Step 6 follow-up.
+- Full Bot Step 6 is complete. In addition to model-directed live-state
+  planning, it has application-owned runtime/server identity, philosophy,
+  retained player-history, current Factorio admin-list, and named-player
+  permission facts. These answers are formatted locally, identify `dlbattle`
+  as server owner and Jimbo operator, distinguish live admin flags from
+  ownership/moderation, and preserve unknown/unavailable outcomes without
+  model guessing.
+- The Step 6 live-routing correction is implemented and deployed. Planning now
+  classifies one or more validated subjects (jimbo, server, server_owner,
+  factorio_admins, named_player, or other) and local validation requires
+  compatible facts, rejects wildcard player identities, distinguishes connected
+  admins, and reports Jimbo's real no-kick/no-ban boundary. The quota-free suite
+  has 161 passing tests. PID 25012 started cleanly and the revision was announced
+  publicly; a bounded player-driven live-question smoke remains the final
+  acceptance check.
 - A basic Step 6 live-state follow-up is deployed. Deterministic local phrases
   route connected-player, current-research/progress, game-time, and available-
   surface questions to one fixed read-only RCON snapshot and direct formatter;
@@ -81,6 +93,9 @@ are needed; it is authoritative but intentionally long.
 - The deployment was announced publicly as required. This is a standing rule:
   every new in-game testing iteration announces its capabilities and relevant
   limitations in public chat after activation.
+- Announcements describe player-visible capabilities only. Do not advertise
+  general RCON command availability; free-form RCON is a hidden internal
+  implementation detail.
 - Live player testing found that the safe renderer stripped the square brackets
   from a rich-text platform display name, making the literal answer ambiguous.
   The renderer now spells those unsafe delimiters as `left-bracket` and
@@ -99,9 +114,9 @@ are needed; it is authoritative but intentionally long.
   after the owning-step follow-ups are complete.
 - Step 7's real Groq path and hosted smoke are complete. Routine automated tests
   remain mocked and quota-free.
-- The complete combined suite has 149 dependency-free tests, including logistics
-  schema/provider and trusted rich-name regressions. Routine tests are
-  mocked and consume neither Groq quota nor live RCON.
+- The complete combined suite has 170 dependency-free tests. Automated
+  model/provider tests remain mocked and consume no Groq quota. Tests may invoke
+  live RCON when authoritative Factorio execution is materially useful.
 - The POC is declared proven. Do not add more ambitious POC features; the next
   phase is a separate full-chatbot design.
 - Player testing findings through the original supplemental 15:18:03 server-time
@@ -130,12 +145,14 @@ are needed; it is authoritative but intentionally long.
   explicit measured operational thresholds, and controlled effects. Do not add
   semantic regex catalogs, fuzzy intent engines, prose classifiers, or
   question-specific handler trees.
-- The next Step 10 architecture increment permits model-authored Factorio
-  Lua/RCON alongside the existing registered-operation fallback. Use lightweight
-  checks for complete framing, obvious truncation/model mistakes, practical
-  byte/time limits, and the explicit construction boundary; lean toward trying
-  and observing rather than rejecting. A restricted AST or formal security proof
-  is not required.
+- An experimental Step 10 model-authored free-form Factorio Lua/RCON path is
+  implemented and deployed for every player. One planning pass may emit one
+  bounded physical command line; the fixed wrapper executes it serially, restores
+  the shared command file, archives attribution/command/result, and one synthesis
+  pass interprets the result. It times out without retry and has no mutation or
+  behavior classifier. Live player-driven capability testing remains pending.
+  Existing adapters are disposable fallback/reference code: remove or bypass a
+  troublesome adapter rather than repairing it solely to preserve categories.
 - Jimbo is Jimbo the Jr. Engineer. Non-Factorio conversation is in scope, and
   the model may supply the detailed conversational personality without being
   assigned server-moderation responsibility.
@@ -143,13 +160,13 @@ are needed; it is authoritative but intentionally long.
   dedicated persistent conversation-memory system, but do not deliberately
   suppress persistence that naturally arises from the eventual architecture.
 - The model is the primary generic Factorio knowledge source. Broad RCON-backed
-  read-only investigation is authoritative for this live game and should answer
+  investigation is authoritative for this live game and should answer
   questions that players could otherwise resolve through laborious inspection.
-- Player-requested ghost/blueprint-ghost placement, unrestricted deconstruction
-  marking for construction bots, and map pings/tags are available equally to
-  every player. Jimbo does not directly construct/remove entities or tiles and
-  has no dedicated combat feature. Model-authored Lua/RCON is permitted with
-  lightweight practical checks.
+- Do not create dedicated mutation features for ghost placement, deconstruction,
+  item grants, promotion, construction, destruction, or combat. Free-form RCON
+  may incidentally mutate the world; human admins handle destructive or
+  game-breaking player conduct through ordinary moderation. Former dedicated
+  placement Steps 12-13 are superseded and are not activation blockers.
 - Archive all public chat for this single-server project. Long-artifact delivery,
   a cost/quota dashboard, formal latency optimization, explicit additional-
   language support, and welcome reconnect-grace tuning are out of scope.
@@ -187,8 +204,8 @@ archive are under ignored `runtime/` paths.
   or Codex, decide what player behavior is acceptable. Do not add automated
   moderation, behavioral scoring, intent/sentiment policing, harassment or
   impersonation classifiers, or acceptable-content gates. Keep this separate
-  from technical capability authorization, bounded execution, credential
-  protection, protocol integrity, and the rule that displayed text is never
+  from operational execution controls, credential protection, protocol
+  integrity, and the rule that displayed text is never
   executed merely because it appeared in chat.
 - Seen-player memory for welcome-back classification is permanent for this
   server. Seed it from all retained join, leave, and public-chat evidence, not
@@ -199,16 +216,17 @@ archive are under ignored `runtime/` paths.
   Lua or RCON execution. When planning unrelated capabilities, record only the
   minimum technical behavior needed for the requested feature and do not add
   speculative hardening as an automatic companion task.
-- Current live-state selection uses validated registered operations and a
-  fallback phrase matcher. The next Step 10 path permits model-authored
-  Factorio Lua/RCON with lightweight framing, obvious-mistake, size/time, and
-  explicit construction-boundary checks; it does not require a restricted AST
-  or security proof. Existing registered operations remain fallback.
+- Current live-state selection prefers the deployed model-authored free-form
+  Factorio Lua/RCON path, while validated registered operations and a fallback
+  phrase matcher remain available.
+  Existing registered operations remain disposable fallback/reference paths.
 - Unrelated public chat is not sent to Groq. Only explicit leading invocations
   are processed.
-- `dlbattle` is the management authority for bot operations, but every player
-  may request ghost placement, deconstruction marking, and map pings/tags.
-- Routine tests are mocked and must not consume Groq quota or invoke RCON.
+- `dlbattle` is the management authority for bot operations. Every player may
+  use the same free-form RCON-backed request path; conduct remains a human-admin
+  moderation concern.
+- Automated model/provider tests must not consume Groq quota. Tests may invoke
+  live RCON when needed, using the fixed wrapper and normal operational controls.
 - A repeated CLI `--prompt` sequence exists for console-only contextual smoke
   tests. Do not add `--send-to` when using multiple prompts.
 - The full-bot canonical archive is `runtime/full-bot-archive/events.log` with
@@ -228,9 +246,10 @@ archive are under ignored `runtime/` paths.
 
 The POC implementation, findings, and requirements baseline are committed on
 `main`. This handoff is being committed with the full-bot architecture and
-roadmap, Steps 1-7, the model-directed Step 6 planner, Step 10's minimal
-investigation core, Step 11's platform/logistics adapters, quota-safe breadth
-changes, and 149 tests. Verify the working tree and latest commit after restart.
+roadmap, Steps 1-7, the model-directed Step 6 planner and subject-routing
+correction, Step 10's experimental free-form RCON path, Step 11's
+platform/logistics adapters, quota-safe breadth changes, and 170 tests. Verify
+the working tree and latest commit after restart.
 Earlier relevant commits are:
 
 - `85bd820 Complete Jimbo chatbot proof of concept`
@@ -238,11 +257,31 @@ Earlier relevant commits are:
 - `552503f Capture additional Jimbo player findings`
 
 The user-facing `README.md` documents setup, operation, testing, diagnostics,
-boundaries, and current limitations. The likely next implementation task is the
-revised Step 10 permissive model-authored Lua/RCON path. Begin beside logistics
-and platform operations already supported by trusted adapters; compare syntax/API
-success, corrections, RCON size/time, and observed results. Keep registered
-operations as fallback and use staged attempts before public activation.
+boundaries, and current limitations.
+
+### Latest quota handoff (2026-07-22)
+
+- The managed full listener was running as PID 17040 at handoff; always query
+  status rather than trusting the recorded PID.
+- Step 10's experimental model-authored live-query path is deployed. Planning
+  and synthesis are separated by two seconds. A Groq `429` now ends that player
+  request immediately, makes no second hosted call, and delivers a local visible
+  temporary-rate-limit response.
+- The complete dependency-free suite passes 170 tests. The final live test
+  confirmed the new `429` behavior and did not reach RCON execution because the
+  planning call itself was rate-limited.
+- Groq's published free allowance for `openai/gpt-oss-120b` is 8,000 TPM and
+  200,000 TPD. Today's archive records 114 successful calls and 126,249 tokens,
+  but undercounts schema-correction calls, hosted development smokes, failures,
+  and any other project/key usage. Minute-limit exhaustion was directly visible;
+  persistent first-call `429`s after idle time strongly suggest the daily token
+  allowance was later exhausted.
+- Next small task: safely capture and archive Groq's `retry-after`, limit/reset
+  headers, and bounded non-secret 429 detail so TPM versus TPD exhaustion and
+  the actual recovery time are authoritative. Do not retry merely to diagnose.
+- After quota recovers, repeat one live information question and inspect the
+  archived generated command, observed result, synthesis, timing, and delivery.
+  Do not advertise general RCON availability publicly; it is an internal detail.
 
 ### Remaining-step summary
 
@@ -251,14 +290,14 @@ operations as fallback and use staged attempts before public activation.
 3. Finish polling, missing-file recovery, read races, timestamps, and log chunking.
 4. Finish invocation variants, greeting reconciliation, and permanent seen-player reconstruction from retained chat/join/leave history.
 5. Finish byte budgets, pagination, Unicode/rich text, artifact delivery, retries, and delivery reconciliation.
-6. Add direct historical/runtime answers, server identity/admin/permissions, self-knowledge, and partial/unavailable handling.
+6. Complete.
 7. Complete/live.
 8. Add durable per-player response/presentation preferences.
 9. Add deterministic recipes, throughput, power, module, and ratio calculations.
-10. Add permissive model-authored Lua/RCON with lightweight checks and observed correction; retain registered tools as fallback.
-11. Expand live knowledge to all player inventories/logistic requests, permissions, production, power, pollution, trains, entities, resources, maps, and pings.
-12. Build offline ghost-design generation, blueprint decoding, model-authored command trials, and lightweight review.
-13. Implement live player-requested ghost placement and unrestricted bot deconstruction marking with attribution and auditing.
+10. Live-test and refine the deployed permissive model-authored Lua/RCON path; add safe 429 reset telemetry and retain registered tools only while useful.
+11. Validate broad live-information coverage through free-form queries; add or repair specialized adapters only when repeated evidence justifies them.
+12. Superseded; do not build a dedicated mutation-design subsystem.
+13. Superseded; do not build a dedicated placement/deconstruction subsystem.
 14. Finish operations, tests, acceptance, rollback rehearsal, documentation, and activation.
 
 ## Fresh-session checklist

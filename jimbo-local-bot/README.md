@@ -149,14 +149,24 @@ This is a working proof of concept, not a service-grade deployment:
   deployed Groq configuration.
 - Model answers can still be incomplete or incorrect and should not be treated
   as authoritative.
-- Broader live-state tools and RCON concurrency/locking belong to a future full
-  chatbot design, not this proof of concept.
+- The full-bot roadmap moves broader live access to model-authored free-form
+  Lua/RCON with serialized execution and auditability. Category-specific
+  adapters are optional and may be removed when they cause problems.
 
 ## Full-bot development
 
 The full bot is being built separately from the active POC under
 `jimbo_full_bot`. Its architecture and serial roadmap are in
 `FULL_BOT_DESIGN.md` and `FULL_BOT_PLAN.md`.
+
+The target live-access architecture uses model-authored free-form Factorio
+Lua/RCON for every player. It keeps operational attribution, serialization,
+archiving, bounded I/O, timeout/unknown-state handling, and no blind retry, but
+does not add mutation or behavior classification. Human admins handle
+destructive or game-breaking conduct. Existing custom adapters are disposable:
+prefer bypassing or removing a troublesome adapter over repairing it merely to
+preserve information categories. Automated model tests remain quota-free; live
+RCON tests are allowed when they materially verify Factorio behavior.
 
 Step 1 provides only a side-effect-free offline shell:
 
@@ -189,12 +199,15 @@ confirmed-delivery deduplication, and welcome completion. Public delivery is
 enabled only by the explicit Step 7 live configuration.
 Aggressive content filtering and rich rendering remain a later Step 5 follow-up.
 
-Full Bot Step 6 now has a basic deterministic read-only RCON route. Recognized
-questions about connected players, current research/progress, game time, and
-available surfaces use one fixed locally authored snapshot and direct trusted
-answers. The model never selects or authors RCON. Other requests receive the
-static server blurb and continue to ordinary conversation; broader or smarter
-state-needs routing remains a later Step 6 follow-up.
+Full Bot Step 6 provides model-directed selection over locally validated live
+observations plus application-owned authoritative facts. Jimbo can answer from
+current players/research/game time/surfaces, retained public player history,
+its real runtime configuration and memory behavior, the configured server
+owner/philosophy, the current Factorio administrator list, and named-player
+permission groups/effective actions. `dlbattle` is the server owner and Jimbo
+operator; Factorio admin flags do not confer ownership or authority over Jimbo.
+Trusted runtime/history/permission answers are not replaced by model guesses,
+and missing or failed observations remain explicitly unknown or unavailable.
 
 Full Bot Step 7 adds the real Groq `openai/gpt-oss-120b` gateway and the live
 prototype pipeline. It keeps three successfully delivered exchanges in memory
