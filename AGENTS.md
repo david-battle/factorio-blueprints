@@ -254,9 +254,9 @@ multiples of 32 and keep their outer nominal bounds on multiples of 32.
 ## Local project execution
 
 - For a cold restart of Jimbo work, read
-  `jimbo-local-bot/RESUME.md` and `jimbo-local-bot/POC_PLAN.md` before acting.
-  The resume note is the concise operational handoff; the POC plan is the
-  authoritative history and numbered roadmap.
+  `jimbo-local-bot/RESUME.md` first, then `jimbo-local-bot/FULL_BOT_REQUIREMENTS.md`
+  and `jimbo-local-bot/FULL_BOT_FINDINGS.md`. The resume note is the concise
+  operational handoff; the requirements and findings are the normative design input.
 
 - Python 3.13 is installed at
   `C:\Users\dlbat\AppData\Local\Programs\Python\Python313\python.exe`. A
@@ -290,6 +290,9 @@ multiples of 32 and keep their outer nominal bounds on multiples of 32.
   correct.
 - Basic live state currently uses deterministic phrase routing to one fixed
   read-only snapshot for players, research/progress, game time, and surfaces.
-  The next Step 6 design uses one model state-needs planning pass over locally
+  The Step 6 design uses one model state-needs planning pass over locally
   allowlisted operations, local validation and fixed RCON execution, then one
-  synthesis pass with trusted provenance. Never permit model-authored Lua/RCON.
+  synthesis pass with trusted provenance. Model-authored freeform Lua/RCON is
+  now deployed for every player; local code applies operational framing,
+  serialization, archiving, timeout, and retry but does not classify or block
+  commands because they might mutate the world.
