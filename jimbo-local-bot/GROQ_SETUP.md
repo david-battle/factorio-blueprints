@@ -1,5 +1,10 @@
 # Groq setup for Jimbo
 
+**Note:** OpenCode Zen `big-pickle` is now the default model provider (free,
+no API key setup required beyond the existing opencode auth). Groq is available
+as a fallback via `--provider groq`. This document covers Groq-specific setup
+only.
+
 The Groq integration is implemented and tested without a real credential. One
 API key is required for the first hosted-model request.
 

@@ -29,6 +29,9 @@ DEFAULT_RCON_WRAPPER = REPOSITORY_PATH / "tools" / "factorio-rcon.ps1"
 DEFAULT_RCON_COMMAND_PATH = REPOSITORY_PATH / "tools" / "rcon-command.txt"
 DEFAULT_TRANSCRIPT_PATH = Path(__file__).resolve().parent / "runtime" / "transcript.jsonl"
 DEFAULT_GROQ_KEY_PATH = Path(__file__).resolve().parent / "runtime" / "groq-api-key.txt"
+DEFAULT_OPENCODE_AUTH_PATH = Path(r"C:\Users\dlbat\.local\share\opencode\auth.json")
+DEFAULT_OPENCODE_URL = "https://opencode.ai/zen/v1"
+DEFAULT_OPENCODE_MODEL = "big-pickle"
 DEFAULT_CURSOR_PATH = Path(__file__).resolve().parent / "runtime" / "log-cursor.json"
 POWERSHELL_PATH = Path(
     r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
@@ -390,6 +393,118 @@ class GroqClient:
             raise GroqError("Groq returned an invalid chat response") from error
         if not isinstance(content, str) or not content.strip():
             raise GroqError("Groq returned no response content")
+        self.last_provider = self.provider
+        self.last_model = self.model
+        return content.strip()
+
+
+class OpencodeError(ModelError):
+    """Raised when OpenCode Zen cannot return a valid answer."""
+
+
+class OpencodeClient:
+    def __init__(
+        self,
+        *,
+        api_key: str,
+        base_url: str = DEFAULT_OPENCODE_URL,
+        model: str = DEFAULT_OPENCODE_MODEL,
+        timeout: float = 60.0,
+    ) -> None:
+        if not api_key.strip():
+            raise OpencodeError("OpenCode API key is empty")
+        self.provider = "opencode"
+        self.api_key = api_key.strip()
+        self.base_url = base_url.rstrip("/")
+        self.model = model
+        self.last_provider = self.provider
+        self.last_model = self.model
+        self.timeout = timeout
+
+    @classmethod
+    def from_auth_json(
+        cls,
+        auth_path: Path,
+        **kwargs: object,
+    ) -> "OpencodeClient":
+        try:
+            raw = auth_path.read_text(encoding="utf-8")
+        except OSError as error:
+            raise OpencodeError(
+                f"OpenCode auth file is unavailable: {auth_path}"
+            ) from error
+        try:
+            auth = json.loads(raw)
+        except json.JSONDecodeError as error:
+            raise OpencodeError(
+                f"OpenCode auth file is not valid JSON: {auth_path}"
+            ) from error
+        key = auth.get("opencode", {}).get("key", "")
+        if not isinstance(key, str) or not key.strip():
+            raise OpencodeError(
+                f"OpenCode auth file has no key at opencode.key: {auth_path}"
+            )
+        return cls(api_key=key, **kwargs)
+
+    def generate(
+        self,
+        prompt: str,
+        *,
+        history: list[dict[str, str]] | None = None,
+        context: str | None = None,
+    ) -> str:
+        effective_prompt = prompt.strip() or "Say hello and ask what I need."
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                *([{"role": "system", "content": context}] if context else []),
+                *(history or []),
+                {"role": "user", "content": effective_prompt},
+            ],
+            "temperature": 0.3,
+            "max_tokens": 256,
+        }
+        request = urllib.request.Request(
+            f"{self.base_url}/chat/completions",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {self.api_key}",
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "User-Agent": "jimbo-factorio-bot/0.1",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                result = json.load(response)
+        except urllib.error.HTTPError as error:
+            detail = ""
+            try:
+                raw_error = error.read().decode("utf-8", errors="replace").strip()
+                try:
+                    error_body = json.loads(raw_error)
+                    candidate = error_body.get("error", {}).get("message", "")
+                    if isinstance(candidate, str):
+                        detail = candidate.strip()
+                except json.JSONDecodeError:
+                    detail = REPEATED_WHITESPACE_RE.sub(" ", raw_error)[:300]
+            except (AttributeError, OSError):
+                pass
+            suffix = f": {detail}" if detail else ""
+            raise OpencodeError(
+                f"OpenCode HTTP error {error.code}{suffix}"
+            ) from error
+        except (OSError, urllib.error.URLError, json.JSONDecodeError) as error:
+            raise OpencodeError(f"OpenCode request failed: {error}") from error
+
+        try:
+            content = result["choices"][0]["message"]["content"]
+        except (KeyError, IndexError, TypeError) as error:
+            raise OpencodeError("OpenCode returned an invalid chat response") from error
+        if not isinstance(content, str) or not content.strip():
+            raise OpencodeError("OpenCode returned no response content")
         self.last_provider = self.provider
         self.last_model = self.model
         return content.strip()
@@ -852,7 +967,7 @@ def build_argument_parser() -> argparse.ArgumentParser:
         help="Generate a response and exit; repeat for a contextual smoke conversation.",
     )
     parser.add_argument(
-        "--provider", choices=("ollama", "groq"), default="ollama"
+        "--provider", choices=("ollama", "groq", "opencode"), default="opencode"
     )
     parser.add_argument(
         "--fallback-provider", choices=("none", "ollama"), default="none"
@@ -860,6 +975,8 @@ def build_argument_parser() -> argparse.ArgumentParser:
     parser.add_argument("--ollama-url", default=DEFAULT_OLLAMA_URL)
     parser.add_argument("--groq-url", default=DEFAULT_GROQ_URL)
     parser.add_argument("--groq-key-file", type=Path, default=DEFAULT_GROQ_KEY_PATH)
+    parser.add_argument("--opencode-url", default=DEFAULT_OPENCODE_URL)
+    parser.add_argument("--opencode-auth", type=Path, default=DEFAULT_OPENCODE_AUTH_PATH)
     parser.add_argument(
         "--model",
         help="Override the selected provider's default model identifier.",
@@ -881,6 +998,13 @@ def build_model_client(args: argparse.Namespace) -> ModelClient:
         primary: ModelClient = OllamaClient(
             base_url=args.ollama_url,
             model=args.model or DEFAULT_MODEL,
+            timeout=args.model_timeout,
+        )
+    elif args.provider == "opencode":
+        primary = OpencodeClient.from_auth_json(
+            args.opencode_auth,
+            base_url=args.opencode_url,
+            model=args.model or DEFAULT_OPENCODE_MODEL,
             timeout=args.model_timeout,
         )
     else:
@@ -923,11 +1047,20 @@ def main() -> int:
             InvocationDecision("step6-smoke", "cli", True, sys.argv[2], "accepted")
         )
         assert handoff is not None
-        gateway = GroqModelGateway.from_key_file(
-            config.api_key_path,
-            model=config.model,
-            timeout_seconds=config.provider_timeout_seconds,
-        )
+        if config.provider == "opencode":
+            gateway = GroqModelGateway.from_auth_json(
+                config.api_key_path,
+                model=config.model,
+                timeout_seconds=config.provider_timeout_seconds,
+                base_url=config.base_url,
+            )
+        else:
+            gateway = GroqModelGateway.from_key_file(
+                config.api_key_path,
+                model=config.model,
+                timeout_seconds=config.provider_timeout_seconds,
+                base_url=config.base_url,
+            )
         state_plan = gateway.plan_state_needs(handoff.plan)
         print("Validated Step 6 tools: " + (", ".join(state_plan.tools) or "none"), flush=True)
         results = FixedLiveStateProvider(
@@ -980,11 +1113,20 @@ def main() -> int:
             InvocationDecision("smoke", "cli", True, sys.argv[2], "accepted")
         )
         assert handoff is not None
-        gateway = GroqModelGateway.from_key_file(
-            config.api_key_path,
-            model=config.model,
-            timeout_seconds=config.provider_timeout_seconds,
-        )
+        if config.provider == "opencode":
+            gateway = GroqModelGateway.from_auth_json(
+                config.api_key_path,
+                model=config.model,
+                timeout_seconds=config.provider_timeout_seconds,
+                base_url=config.base_url,
+            )
+        else:
+            gateway = GroqModelGateway.from_key_file(
+                config.api_key_path,
+                model=config.model,
+                timeout_seconds=config.provider_timeout_seconds,
+                base_url=config.base_url,
+            )
         print(gateway.generate(handoff.plan, trusted_context=handoff.context), flush=True)
         return 0
 

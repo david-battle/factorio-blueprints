@@ -8,6 +8,7 @@ import tempfile
 import unittest
 import urllib.error
 from pathlib import Path
+from unittest.mock import patch
 
 from jimbo_full_bot.config import FullBotConfig
 from jimbo_full_bot.contracts import DeliveryResult, ResultStatus
@@ -25,7 +26,11 @@ class FakeResponse:
         return self
     def __exit__(self, *_: object) -> None:
         return None
+    def close(self) -> None:
+        pass
     def read(self, *_: object) -> bytes:
+        if isinstance(self.value, bytes):
+            return self.value
         return json.dumps(self.value).encode("utf-8")
 
 
@@ -60,7 +65,8 @@ class ConversationMemoryTests(unittest.TestCase):
 
 
 class GroqGatewayTests(unittest.TestCase):
-    def test_rate_limit_has_distinct_error_and_makes_one_call(self) -> None:
+    @patch("jimbo_full_bot.model.time.sleep", return_value=None)
+    def test_rate_limit_retries_then_raises(self, mock_sleep: object) -> None:
         calls = []
         def rate_limited(request, *, timeout):
             calls.append(request)
@@ -70,7 +76,30 @@ class GroqGatewayTests(unittest.TestCase):
         )
         with self.assertRaises(ModelRateLimitError):
             gateway.plan_state_needs(plan().plan)
-        self.assertEqual(len(calls), 1)
+        self.assertEqual(len(calls), 6)
+
+    @patch("jimbo_full_bot.model.time.sleep", return_value=None)
+    def test_rate_limit_captures_headers_and_body_detail(self, mock_sleep: object) -> None:
+        def rate_limited_with_detail(request, *, timeout):
+            headers = {
+                "Retry-After": "5",
+                "x-ratelimit-remaining-tokens": "0",
+                "x-ratelimit-reset-tokens": "5s",
+            }
+            body = FakeResponse(b'{"error":{"message":"TPM limit exceeded","type":"tokens","code":"rate_limit_exceeded"}}')
+            raise urllib.error.HTTPError(request.full_url, 429, "Too Many Requests", headers, body)
+
+        gateway = GroqModelGateway(
+            api_key="x", model="m", timeout_seconds=1, opener=rate_limited_with_detail
+        )
+        with self.assertRaises(ModelRateLimitError) as ctx:
+            gateway.plan_state_needs(plan().plan)
+        err_msg = str(ctx.exception)
+        self.assertIn("retry_after=5", err_msg)
+        self.assertIn("x-ratelimit-remaining-tokens=0", err_msg)
+        self.assertIn("x-ratelimit-reset-tokens=5s", err_msg)
+        self.assertIn("TPM limit exceeded", err_msg)
+        self.assertEqual(gateway.last_rate_limits.get("retry-after"), "5")
 
     def test_payload_separates_policy_context_history_and_player_text(self) -> None:
         captured = {}

@@ -1048,6 +1048,14 @@ produces one local player-visible temporary-rate-limit response with no second
 hosted call and no automatic retry. Keep this deliberately small; a quota
 dashboard or elaborate scheduler is not required.
 
+The bot was switched from Groq to OpenCode Zen `big-pickle` (free,
+OpenAI-compatible API) on 2026-07-22 to avoid quota exhaustion. Retry logic
+with linear backoff (1s-5s) was added for transient errors (5xx, 429, network).
+A post-processor corrects known bad Factorio API patterns (e.g. `game.space_platforms`
+→ `game.forces.player.platforms`) before execution. Anti-hallucination instructions
+were added to the synthesis prompt to prevent the model from fabricating data
+when RCON queries fail.
+
 Minimal implementation choice: insert a two-second pause between the normal
 planning and synthesis calls within one player request. This is burst smoothing,
 not player-query admission pacing. A planning-phase `429` bypasses the pause and
@@ -1503,7 +1511,7 @@ Update this section after each completed step:
 | 7 | Complete/live | 2026-07-21 | Real Groq gateway, separated trusted context, three delivery-committed exchanges per player, hosted smoke, and active full-bot listener; Step 7 tests included in the 137-test suite. |
 | 8 | Not started | - | - |
 | 9 | Not started | - | - |
-| 10 | Experimental free-form RCON path deployed; live testing pending | 2026-07-22 | One model planning pass can emit one bounded physical Lua/RCON line; the fixed wrapper executes it serially, restores the shared command file, archives attribution/command/result, and feeds output to synthesis. Required model calls are separated by two seconds; a first `429` ends the request with a local visible response and no second call. Timeout has no retry; no mutation classifier. 170 tests pass. |
+| 10 | Experimental free-form RCON path deployed; live testing pending | 2026-07-22 | One model planning pass can emit one bounded physical Lua/RCON line; the fixed wrapper executes it serially, restores the shared command file, archives attribution/command/result, and feeds output to synthesis. Required model calls are separated by two seconds; a first `429` ends the request with a local visible response and no second call. Timeout has no retry; no mutation classifier. 171 tests pass. |
 | 11 | Existing adapters are disposable fallback | 2026-07-22 | Retain platform/logistics adapters only while useful; prefer bypass/removal over repairing troublesome category-specific behavior. |
 | 12 | Superseded | 2026-07-22 | No dedicated mutation-design subsystem planned. |
 | 13 | Superseded | 2026-07-22 | No dedicated placement/deconstruction execution subsystem planned. |

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import time
 from pathlib import Path
 
@@ -12,7 +13,7 @@ from .authoritative import (
     PermissionProvider,
     direct_fact_answer,
 )
-from .config import FullBotConfig
+from .config import FullBotConfig, DEFAULT_RUNTIME_DIR
 from .contracts import EventKind, NormalizedEvent, ResultStatus, StateNeedsPlan, ToolResult
 from .delivery import MinimalDeliveryWorker, MinimalRenderer, RconDeliveryTransport
 from .ingestion import (
@@ -87,11 +88,20 @@ class FullBotRuntime:
             command_path=config.rcon_command_path,
             timeout_seconds=config.rcon_timeout_seconds,
         )
-        self.model = model or GroqModelGateway.from_key_file(
-            config.api_key_path,
-            model=config.model,
-            timeout_seconds=config.provider_timeout_seconds,
-        )
+        if config.provider == "opencode":
+            self.model = model or GroqModelGateway.from_auth_json(
+                config.api_key_path,
+                model=config.model,
+                timeout_seconds=config.provider_timeout_seconds,
+                base_url=config.base_url,
+            )
+        else:
+            self.model = model or GroqModelGateway.from_key_file(
+                config.api_key_path,
+                model=config.model,
+                timeout_seconds=config.provider_timeout_seconds,
+                base_url=config.base_url,
+            )
         self.authoritative = AuthoritativeFactProvider(
             config, self.archive, self.history_events, self.model,
             PermissionProvider(
@@ -201,11 +211,6 @@ class FullBotRuntime:
                         "authoritative_fact_error", redact_sensitive(str(error)),
                         correlation_id=handoff.plan.correlation_id, actor=decision.actor,
                     ))
-                    tool_results = tuple(tool_results) + (ToolResult(
-                        ResultStatus.UNAVAILABLE,
-                        "The requested authoritative runtime fact is unavailable right now.",
-                        warnings=("authoritative fact lookup failed",),
-                    ),)
             if state_plan.tools:
                 try:
                     query_started = time.monotonic()
@@ -389,6 +394,38 @@ class FullBotRuntime:
 
 
 def live_config() -> FullBotConfig:
+    key_dir = DEFAULT_RUNTIME_DIR
+    opencode_auth = Path(r"C:\Users\dlbat\.local\share\opencode\auth.json")
+    if opencode_auth.is_file():
+        try:
+            auth = json.loads(opencode_auth.read_text(encoding="utf-8"))
+            if auth.get("opencode", {}).get("key"):
+                return FullBotConfig(
+                    provider="opencode",
+                    model="big-pickle",
+                    base_url="https://opencode.ai/zen/v1",
+                    api_key_path=opencode_auth,
+                ).with_overrides(
+                    live_log_enabled=True,
+                    live_rcon_enabled=True,
+                    public_replies_enabled=True,
+                    welcomes_enabled=True,
+                )
+        except (json.JSONDecodeError, OSError):
+            pass
+    gemini_key = key_dir / "gemini-api-key.txt"
+    if gemini_key.is_file() and gemini_key.read_text(encoding="utf-8").strip():
+        return FullBotConfig(
+            provider="gemini",
+            model="gemini-2.5-flash",
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai",
+            api_key_path=gemini_key,
+        ).with_overrides(
+            live_log_enabled=True,
+            live_rcon_enabled=True,
+            public_replies_enabled=True,
+            welcomes_enabled=True,
+        )
     return FullBotConfig().with_overrides(
         live_log_enabled=True,
         live_rcon_enabled=True,
@@ -401,14 +438,19 @@ def _trusted_platform_names(results: tuple[ToolResult, ...]) -> tuple[str, ...]:
     names: list[str] = []
     for result in results:
         values = result.values
-        if not isinstance(values, dict) or values.get("domain") != "space_platforms":
+        if not isinstance(values, dict):
             continue
-        rows = values.get("results", ())
-        if not isinstance(rows, list):
-            continue
-        for row in rows:
-            if isinstance(row, dict) and isinstance(row.get("name"), str):
-                names.append(row["name"])
+        if values.get("domain") == "space_platforms":
+            rows = values.get("results", ())
+            if isinstance(rows, list):
+                for row in rows:
+                    if isinstance(row, dict) and isinstance(row.get("name"), str):
+                        names.append(row["name"])
+        output = values.get("output", "")
+        if isinstance(output, str):
+            import re
+            for match in re.finditer(r'\[item=[^\]]+\]', output):
+                names.append(match.group())
     return tuple(dict.fromkeys(names))
 
 

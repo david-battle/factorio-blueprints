@@ -1,13 +1,13 @@
 # Jimbo Factorio Chat Bot
 
-Jimbo is a proof-of-concept chat bot for the local Factorio dedicated server.
-It watches newly appended public chat in the server console log, sends explicitly
-addressed questions to a language model, and posts a short reply back into the
-game through the repository's restricted RCON wrapper.
+Jimbo is a Factorio chat bot for the local dedicated server. It watches newly
+appended public chat in the server console log, sends explicitly addressed
+questions to a language model, and posts a short reply back into the game
+through the repository's RCON wrapper.
 
-The currently deployed configuration uses Groq's `openai/gpt-oss-120b`. A local
-Ollama client remains available for testing, but the small Qwen models evaluated
-during development were not reliable enough for live Factorio questions.
+The currently deployed configuration uses OpenCode Zen `big-pickle` (free,
+OpenAI-compatible API). Groq `openai/gpt-oss-120b` is available as a fallback
+via `--provider groq`.
 
 ## Player usage
 
@@ -32,14 +32,14 @@ player. It remembers the same compact response shown to the player, limited to
 180 characters and shortened at a word boundary when necessary. This memory is
 held only in the running process and is lost on restart.
 Its prompt also includes a small authoritative server-context block: the server
-is running Factorio 2.1.12 with Space Age, Elevated Rails, and Quality enabled.
-General recipes and game mechanics are left to the model's existing knowledge;
-Jimbo has no search tool or general live-world inspection access.
+is running Factorio 2.1 with Space Age, Elevated Rails, and Quality enabled.
+General recipes and game mechanics come from the model's existing knowledge.
 
-For each accepted question, Jimbo also runs one fixed read-only server query and
-provides the model with the connected player names and current research/progress.
-This is the complete POC live-state scope; the model cannot choose or construct
-RCON commands.
+For each accepted question, Jimbo can compose free-form Factorio Lua/RCON
+commands to query live game state. The model decides what data to request; local
+code applies operational framing, serialization, attribution, archiving, timeout,
+and retry with linear backoff for transient errors. A post-processor corrects
+known bad Factorio API patterns before execution.
 
 ## Requirements and setup
 
@@ -48,15 +48,20 @@ RCON commands.
 - The Factorio dedicated-server console log at
   `D:\factorio-server\server-console.log`.
 - The repository RCON wrapper and its existing machine-local credential setup.
-- For the live Groq provider, a Groq API key stored as the only line in:
+- For the default OpenCode Zen provider, an API key in:
+
+  ```text
+  C:\Users\dlbat\.local\share\opencode\auth.json
+  ```
+
+  under `{"opencode": {"key": "..."}}`. For Groq fallback, a key in:
 
   ```text
   jimbo-local-bot/runtime/groq-api-key.txt
   ```
 
-The entire `runtime` directory is ignored by Git. Never commit or print the API
-key. See [GROQ_SETUP.md](GROQ_SETUP.md) for the one-time key setup and a
-console-only validation procedure.
+The entire `runtime` directory is ignored by Git. Never commit or print any API
+key. See [GROQ_SETUP.md](GROQ_SETUP.md) for Groq-specific key setup.
 
 ## Start, stop, test, and inspect
 
@@ -72,11 +77,11 @@ Supported action-file contents are:
 
 ```json
 {"action":"status","arguments":[]}
-{"action":"start","arguments":["--provider","groq"]}
+{"action":"start","arguments":["--full-bot"]}
 {"action":"stop","arguments":[]}
-{"action":"restart","arguments":["--provider","groq"]}
+{"action":"restart","arguments":["--full-bot"]}
 {"action":"test","arguments":[]}
-{"action":"bot","arguments":["--provider","groq"]}
+{"action":"bot","arguments":["--full-bot"]}
 ```
 
 `start` runs the listener in the background, `bot` runs it in the foreground,
@@ -125,48 +130,48 @@ to the current end of the log.
 
 ## Safety boundaries
 
-- The model can generate only public reply text.
-- Generated text cannot select Lua, PowerShell, an RCON command, or a file.
+- The model can compose free-form Factorio Lua/RCON commands for any player.
+- Generated commands are executed through a fixed RCON wrapper with operational
+  framing, serialization, attribution, archiving, timeout, and no blind retry.
 - Replies are reduced to one line, stripped of Factorio formatting brackets,
   normalized to conservative ASCII for the Windows RCON path, and limited to
-  240 characters before insertion into a fixed RCON command.
+  220 characters before insertion into a fixed RCON command.
 - Server-authored messages are ignored to prevent reply loops.
 - Requests are processed serially with a per-player cooldown, one pending
   request per player, and a bounded queue.
-- Jimbo has no world-changing tools and performs no autonomous game actions.
-- Live state is limited to one fixed snapshot of online players and current
-  research. All other world facts remain unavailable.
+- Human admins handle destructive or game-breaking player conduct through
+  ordinary server moderation. The bot does not classify or block commands
+  because they might mutate the world.
 
 ## Current limitations
-
-This is a working proof of concept, not a service-grade deployment:
 
 - Conversation memory is lost on restart.
 - The cursor provides bounded restart, truncation, and replacement handling but
   is not a general-purpose production log-rotation system.
 - There is no Windows service installation, dashboard, moderation system,
-  long-term conversation database, or automatic local-model fallback in the
-  deployed Groq configuration.
+  or long-term conversation database.
 - Model answers can still be incomplete or incorrect and should not be treated
-  as authoritative.
+  as authoritative. The model may fabricate data if an RCON query fails; a
+  post-processor and anti-hallucination prompt instructions mitigate this.
 - The full-bot roadmap moves broader live access to model-authored free-form
   Lua/RCON with serialized execution and auditability. Category-specific
-  adapters are optional and may be removed when they cause problems.
+  adapters are optional and may be removed when they cause problems. Automated
+  model tests remain quota-free; live RCON tests are allowed when they materially
+  verify Factorio behavior.
 
 ## Full-bot development
 
-The full bot is being built separately from the active POC under
-`jimbo_full_bot`. Its architecture and serial roadmap are in
-`FULL_BOT_DESIGN.md` and `FULL_BOT_PLAN.md`.
+The full bot is the active implementation under `jimbo_full_bot`. Its
+architecture and serial roadmap are in `FULL_BOT_DESIGN.md` and `FULL_BOT_PLAN.md`.
 
-The target live-access architecture uses model-authored free-form Factorio
-Lua/RCON for every player. It keeps operational attribution, serialization,
-archiving, bounded I/O, timeout/unknown-state handling, and no blind retry, but
-does not add mutation or behavior classification. Human admins handle
-destructive or game-breaking conduct. Existing custom adapters are disposable:
-prefer bypassing or removing a troublesome adapter over repairing it merely to
-preserve information categories. Automated model tests remain quota-free; live
-RCON tests are allowed when they materially verify Factorio behavior.
+The live-access architecture uses model-authored free-form Factorio Lua/RCON
+for every player. It keeps operational attribution, serialization, archiving,
+bounded I/O, timeout/unknown-state handling, and no blind retry, but does not
+add mutation or behavior classification. Human admins handle destructive or
+game-breaking conduct. Existing custom adapters are disposable: prefer bypassing
+or removing a troublesome adapter over repairing it merely to preserve
+information categories. Automated model tests remain quota-free; live RCON tests
+are allowed when they materially verify Factorio behavior.
 
 Step 1 provides only a side-effect-free offline shell:
 
@@ -209,11 +214,11 @@ operator; Factorio admin flags do not confer ownership or authority over Jimbo.
 Trusted runtime/history/permission answers are not replaced by model guesses,
 and missing or failed observations remain explicitly unknown or unavailable.
 
-Full Bot Step 7 adds the real Groq `openai/gpt-oss-120b` gateway and the live
-prototype pipeline. It keeps three successfully delivered exchanges in memory
-per player, loses that memory on restart, and never writes or replaces the
-existing ignored API key. The managed listener is currently running the full
-bot; players can test it by beginning a public chat message with `Jimbo`.
+Full Bot Step 7 adds the real model gateway and the live prototype pipeline.
+It supports OpenCode Zen (default) and Groq providers, keeps three successfully
+delivered exchanges in memory per player, loses that memory on restart, and
+never writes or replaces any API key. The managed listener is currently running
+the full bot; players can test it by beginning a public chat message with `Jimbo`.
 
 Development history, acceptance results, and the remaining roadmap are in
 [POC_PLAN.md](POC_PLAN.md). A concise cold-start handoff is in

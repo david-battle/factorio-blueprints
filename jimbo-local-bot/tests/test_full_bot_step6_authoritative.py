@@ -50,7 +50,7 @@ class AuthoritativeFactTests(unittest.TestCase):
             runtime, server = provider.execute((
                 {"op": "runtime_identity"}, {"op": "server_identity"},
             ))
-            self.assertEqual(runtime.values["model"], "openai/gpt-oss-120b")
+            self.assertEqual(runtime.values["model"], "big-pickle")
             self.assertIsNone(runtime.values["model_parameter_count"])
             self.assertEqual(runtime.values["observed_usage"]["total_tokens"], 42)
             self.assertEqual(server.values["server_owner"], "dlbattle")

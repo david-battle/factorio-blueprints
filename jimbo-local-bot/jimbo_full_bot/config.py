@@ -12,6 +12,7 @@ REPOSITORY_ROOT = PROJECT_ROOT.parent
 DEFAULT_SERVER_LOG = Path(r"D:\factorio-server\server-console.log")
 DEFAULT_RUNTIME_DIR = PROJECT_ROOT / "runtime"
 DEFAULT_GROQ_KEY = DEFAULT_RUNTIME_DIR / "groq-api-key.txt"
+DEFAULT_OPENCODE_AUTH = Path(r"C:\Users\dlbat\.local\share\opencode\auth.json")
 DEFAULT_RCON_WRAPPER = REPOSITORY_ROOT / "tools" / "factorio-rcon.ps1"
 DEFAULT_RCON_COMMAND = REPOSITORY_ROOT / "tools" / "rcon-command.txt"
 
@@ -24,8 +25,9 @@ class ConfigurationError(ValueError):
 class FullBotConfig:
     """All Step 1 configuration; construction performs no filesystem I/O."""
 
-    provider: str = "groq"
-    model: str = "openai/gpt-oss-120b"
+    provider: str = "opencode"
+    model: str = "big-pickle"
+    base_url: str = "https://opencode.ai/zen/v1"
     management_player: str = "dlbattle"
     server_philosophy: str = (
         "Give players as much freedom as possible without breaking the game. "
@@ -34,7 +36,7 @@ class FullBotConfig:
     moderator_roster: tuple[str, ...] = ()
     server_log_path: Path = DEFAULT_SERVER_LOG
     runtime_dir: Path = DEFAULT_RUNTIME_DIR
-    api_key_path: Path = DEFAULT_GROQ_KEY
+    api_key_path: Path = DEFAULT_OPENCODE_AUTH
     rcon_wrapper_path: Path = DEFAULT_RCON_WRAPPER
     rcon_command_path: Path = DEFAULT_RCON_COMMAND
     provider_timeout_seconds: float = 60.0
@@ -50,10 +52,12 @@ class FullBotConfig:
     archive_rotation_bytes: int = 10_000_000
 
     def validate(self) -> FullBotConfig:
-        if self.provider.casefold() != "groq":
-            raise ConfigurationError("provider must be 'groq' for the first release")
+        if self.provider.casefold() not in {"groq", "gemini", "opencode"}:
+            raise ConfigurationError("provider must be 'groq' or 'gemini'")
         if not self.model.strip():
             raise ConfigurationError("model cannot be empty")
+        if not self.base_url.strip():
+            raise ConfigurationError("base_url cannot be empty")
         if not self.management_player.strip():
             raise ConfigurationError("management_player cannot be empty")
         if self.management_player != self.management_player.strip():

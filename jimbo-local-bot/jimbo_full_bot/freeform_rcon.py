@@ -11,6 +11,17 @@ from .delivery import POWERSHELL_PATH
 
 MAX_CAPTURE_CHARS = 200_000
 
+_RCON_FIXUPS = [
+    ("game.space_platforms", "game.forces.player.platforms"),
+    ("game.find_entities_filtered", "game.surfaces.nauvis.find_entities_filtered"),
+]
+
+
+def fix_rcon(command: str) -> str:
+    for bad, good in _RCON_FIXUPS:
+        command = command.replace(bad, good)
+    return command
+
 
 class FreeformRconError(RuntimeError):
     """Raised when a generated RCON command cannot be executed observably."""
@@ -23,6 +34,7 @@ class FreeformRconProvider:
         self.timeout_seconds = timeout_seconds
 
     def execute(self, command: str) -> ToolResult:
+        command = fix_rcon(command)
         original = self.command_path.read_bytes()
         try:
             self.command_path.write_text(command + "\n", encoding="utf-8")

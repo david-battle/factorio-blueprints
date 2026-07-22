@@ -30,8 +30,8 @@ class FullBotConfigurationTests(unittest.TestCase):
     def test_offline_defaults_disable_every_live_capability(self) -> None:
         config = FullBotConfig.offline()
 
-        self.assertEqual(config.provider, "groq")
-        self.assertEqual(config.model, "openai/gpt-oss-120b")
+        self.assertEqual(config.provider, "opencode")
+        self.assertEqual(config.model, "big-pickle")
         self.assertEqual(config.management_player, "dlbattle")
         self.assertFalse(config.public_replies_enabled)
         self.assertFalse(config.welcomes_enabled)
@@ -44,7 +44,7 @@ class FullBotConfigurationTests(unittest.TestCase):
             config = FullBotConfig.offline()
             report = FullBotApplication(config).run_offline()
 
-        self.assertEqual(config.api_key_path.name, "groq-api-key.txt")
+        self.assertEqual(config.api_key_path.name, "auth.json")
         self.assertIn(("api_key", "configured path (not read)"), report.summary)
 
     def test_safe_summary_does_not_expose_secret_path_or_secret_value(self) -> None:
