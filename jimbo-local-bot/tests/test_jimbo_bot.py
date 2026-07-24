@@ -691,5 +691,15 @@ class TranscriptTests(unittest.TestCase):
             self.assertNotIn("password", contents.casefold())
 
 
+class LauncherContractTests(unittest.TestCase):
+    def test_background_launcher_does_not_duplicate_full_bot_argument(self) -> None:
+        launcher = (
+            Path(__file__).resolve().parents[1] / "tools" / "jimbo-project.sh"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('"$PROJECT_DIR/jimbo_bot.py" $ARGUMENTS', launcher)
+        self.assertNotIn('"$PROJECT_DIR/jimbo_bot.py" --full-bot $ARGUMENTS', launcher)
+
+
 if __name__ == "__main__":
     unittest.main()

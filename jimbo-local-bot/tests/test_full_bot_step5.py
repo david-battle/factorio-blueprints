@@ -8,7 +8,7 @@ import time
 import unittest
 from datetime import UTC, datetime
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from jimbo_full_bot.archive import TextEventArchive
 from jimbo_full_bot.contracts import DeliveryResult, EventKind, NormalizedEvent, ResultStatus
@@ -22,6 +22,7 @@ from jimbo_full_bot.delivery import (
     build_print_command,
 )
 from jimbo_full_bot.interactions import WelcomeService
+from jimbo_full_bot.rcon_transport import DirectRconTransport
 from jimbo_full_bot.state import FlatTextStateStore
 
 
@@ -122,6 +123,24 @@ class RconDeliveryTransportTests(unittest.TestCase):
             RconDeliveryTransport(transport=mock_transport).deliver(message)
 
         self.assertEqual(mock_transport.command.call_count, 1)
+
+
+class DirectRconTransportTests(unittest.TestCase):
+    @patch("jimbo_full_bot.rcon_transport.MCRcon")
+    def test_converts_float_timeout_for_mcrcon_signal_alarm(
+        self, mock_mcrcon: MagicMock
+    ) -> None:
+        client = mock_mcrcon.return_value
+        client.command.return_value = "ok"
+        transport = DirectRconTransport("localhost", 27015, "secret", timeout=15.1)
+
+        self.assertEqual(transport.command("/help"), "ok")
+
+        mock_mcrcon.assert_called_once_with(
+            "localhost", "secret", port=27015, timeout=16
+        )
+        client.connect.assert_called_once_with()
+        client.disconnect.assert_called_once_with()
 
 
 class FakeTransport:

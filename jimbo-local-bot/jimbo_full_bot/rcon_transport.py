@@ -7,6 +7,7 @@ PowerShell startup overhead on every RCON interaction.
 
 from __future__ import annotations
 
+import math
 from pathlib import Path
 
 from mcrcon import MCRcon
@@ -33,8 +34,10 @@ class DirectRconTransport:
         matches the existing one-shot-per-request pattern used by all providers.
         """
         effective_timeout = timeout if timeout is not None else self.timeout
+        # mcrcon passes this value to signal.alarm(), which only accepts integers.
+        alarm_timeout = max(1, math.ceil(effective_timeout))
         try:
-            client = MCRcon(self.host, self.password, port=self.port, timeout=effective_timeout)
+            client = MCRcon(self.host, self.password, port=self.port, timeout=alarm_timeout)
             client.connect()
             try:
                 return client.command(cmd)

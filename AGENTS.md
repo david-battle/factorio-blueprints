@@ -258,6 +258,11 @@ multiples of 32 and keep their outer nominal bounds on multiples of 32.
   and `jimbo-local-bot/FULL_BOT_FINDINGS.md`. The resume note is the concise
   operational handoff; the requirements and findings are the normative design input.
 
+- **⚠️ IMPORTANT: If you are NOT running under Linux (WSL), announce this loudly
+  to the user immediately.** The Jimbo bot requires native Linux bash. Running from
+  Windows PowerShell via `wsl --` prefixes causes background process failures. The
+  user must restart OpenCode inside a WSL terminal.
+
 - **Linux (preferred):** The bot runs natively under WSL (Ubuntu 26.04, Python 3.14)
   with a virtual environment at `/mnt/d/jimbo-venv`. The full bot uses a
   pure-Python RCON transport (`DirectRconTransport` wrapping `mcrcon`) with no

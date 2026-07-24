@@ -151,9 +151,9 @@ class GroqModelGateway:
             "model": self.model,
             "messages": messages,
             "temperature": 0.3,
-            "max_completion_tokens": 256,
+            "max_completion_tokens": 2048,
         }
-        if "groq.com" in self.base_url:
+        if "groq.com" in self.base_url or "opencode" in self.base_url:
             payload["include_reasoning"] = False
             payload["reasoning_effort"] = "low"
         result = self._post(payload, timeout=self.timeout_seconds)
@@ -259,7 +259,7 @@ class GroqModelGateway:
                 request.request_text, history, prior_results
             )},
         ]
-        raw = self._complete(messages, temperature=0.0, max_tokens=512)
+        raw = self._complete(messages, temperature=0.0, max_tokens=4096)
         try:
             return validate_state_plan(raw)
         except StatePlanError as error:
@@ -269,7 +269,7 @@ class GroqModelGateway:
                 ". Correct it once using only the published schema; return JSON only.",
             }]
             return validate_state_plan(
-                self._complete(correction, temperature=0.0, max_tokens=512)
+                self._complete(correction, temperature=0.0, max_tokens=4096)
             )
 
     def _complete(
@@ -309,7 +309,7 @@ class GroqModelGateway:
             "temperature": temperature,
             "max_completion_tokens": max_tokens,
         }
-        if "groq.com" in self.base_url:
+        if "groq.com" in self.base_url or "opencode" in self.base_url:
             payload["include_reasoning"] = False
             payload["reasoning_effort"] = "low"
         result = self._post(payload, timeout=self.timeout_seconds)

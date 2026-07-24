@@ -131,6 +131,20 @@ class FullBotRuntime:
             if handoff is None:
                 continue
             handled += 1
+            owner_question = decision.request_text.casefold().strip(" \t?!.,")
+            if owner_question in {
+                "who is the owner of this server",
+                "who is the server owner",
+                "who owns this server",
+            }:
+                response = self.config.management_player + " is the server owner and Jimbo operator."
+                rendered = self.renderer.render_reply(
+                    handoff.plan.correlation_id, decision.actor, response
+                )
+                result = self.delivery.deliver(rendered)
+                if result.status is ResultStatus.COMPLETE:
+                    self.memory.commit(decision.actor, decision.request_text, result.exact_text)
+                continue
             history = self.memory.exchanges_for(decision.actor)
             player_key = decision.actor.casefold()
             prior_results = self.recent_observations.get(player_key, ())
@@ -172,8 +186,12 @@ class FullBotRuntime:
                 state_plan = StateNeedsPlan((aliases[fallback_tool],) if fallback_tool else ())
                 planning_warning = ToolResult(
                     ResultStatus.UNKNOWN,
-                    "The requested investigation plan was invalid; answer from prior evidence or clarify using only registered capabilities.",
-                    values={"supported_investigation_domains": ["space_platforms", "logistics"]},
+                    "The requested investigation plan was invalid; use these configured facts when relevant and do not infer ownership from Factorio admin flags.",
+                    values={
+                        "server_owner": self.config.management_player,
+                        "jimbo_operator": self.config.management_player,
+                        "supported_investigation_domains": ["space_platforms", "logistics"],
+                    },
                     warnings=("unsupported or malformed investigation plan",),
                 )
             tool_results = (planning_warning,) if planning_warning is not None else ()

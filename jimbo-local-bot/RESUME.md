@@ -6,6 +6,11 @@ phase, followed by `FULL_BOT_FINDINGS.md` for the player-testing evidence behind
 it. Read `POC_PLAN.md` only when detailed POC history or numbered-step decisions
 are needed; it is authoritative but intentionally long.
 
+**⚠️ IMPORTANT: If you are NOT running under Linux (WSL), announce this loudly
+to the user immediately.** The Jimbo bot and its launcher require native Linux
+bash. Running from Windows PowerShell via `wsl --` prefixes causes background
+process failures. The user must restart OpenCode inside a WSL terminal.
+
 ## Current state (2026-07-22)
 
 - POC Steps 1, 2, 3, 4, 5, 5.5, 5.75, 5.8, and 6 are complete.
@@ -105,6 +110,13 @@ The bot runs natively under WSL (Ubuntu 26.04, Python 3.14). Key facts:
 - The server console log is read via `/mnt/d/factorio-server/server-console.log`.
 - RCON connects to `127.0.0.1:27015` (WSL localhost reaches Windows host).
 
+### Auth file setup (WSL)
+
+The OpenCode auth file lives at `C:\Users\dlbat\.local\share\opencode\auth.json`
+on the Windows side. For WSL, a symlink was created at
+`/home/dlbattle/.local/share/opencode/auth.json` pointing to the Windows path.
+This is required for the bot to start in WSL.
+
 ### WSL setup
 
 ```bash
@@ -120,6 +132,13 @@ curl -sS https://bootstrap.pypa.io/get-pip.py | /mnt/d/jimbo-venv/bin/python3
 cd /mnt/d/ChatGPT-Factorio-Playground/factorio-blueprints/jimbo-local-bot
 /mnt/d/jimbo-venv/bin/python3 -m unittest discover -s tests -v
 ```
+
+### Running the bot on Linux
+
+The bash launcher (`tools/jimbo-project.sh`) works natively when OpenCode runs
+inside a WSL terminal. Do NOT call it via `wsl --` from PowerShell; the `nohup`
+background process will die when the WSL session closes. Launch OpenCode directly
+from a WSL bash prompt for native Linux command execution.
 
 ## Listener operations
 
@@ -207,9 +226,13 @@ tree and latest commit after restart.
 The user-facing `README.md` documents setup, operation, testing, diagnostics,
 boundaries, and current limitations.
 
-### Latest handoff (2026-07-22)
+### Latest handoff (2026-07-22, revised)
 
-- The managed full listener is running (query status for current PID).
+- The Windows bot (PID 15040, Python 3.13) was stopped.
+- **All 171 tests pass on Linux** (WSL, Python 3.14, 0.197s).
+- The bot was successfully started and runs interactively under WSL with
+  `JIMBO_AUTH_FILE` set. Background `nohup` processes die when spawned from
+  PowerShell via `wsl --`; run OpenCode natively inside WSL instead.
 - The bot uses OpenCode Zen `big-pickle` (free, OpenAI-compatible API at
   `https://opencode.ai/zen/v1`) as the default model provider.
 - **The bot runs natively on Linux** (WSL Ubuntu 26.04, Python 3.14) with a
@@ -220,10 +243,6 @@ boundaries, and current limitations.
   serialization, archiving, timeout, and retry with linear backoff (1s-5s)
   for transient errors (5xx, 429, network). A post-processor corrects known
   bad Factorio API patterns before execution.
-- The complete suite passes **171 tests** on both Windows Python 3.13 and
-  native Linux Python 3.14. Automated model/provider tests remain mocked and
-  consume no provider quota. Tests may invoke live RCON when authoritative
-  Factorio execution is materially useful.
 
 ### Remaining-step summary
 

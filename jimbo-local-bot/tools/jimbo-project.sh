@@ -75,8 +75,8 @@ start_listener() {
         return
     fi
     mkdir -p "$RUNTIME_DIR"
-    # Launch the full bot (--full-bot) as a background daemon.
-    nohup "$PYTHON" -u "$PROJECT_DIR/jimbo_bot.py" --full-bot $ARGUMENTS \
+    # Pass the selected bot mode exactly once from the approved action file.
+    nohup "$PYTHON" -u "$PROJECT_DIR/jimbo_bot.py" $ARGUMENTS \
         >"$STDOUT_LOG" 2>"$STDERR_LOG" &
     local new_pid=$!
     echo "$new_pid" > "$PID_FILE"
